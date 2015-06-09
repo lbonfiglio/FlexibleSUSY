@@ -27,6 +27,7 @@ LIBFLEXI_SRC := \
 		$(DIR)/rk.cpp \
 		$(DIR)/scan.cpp \
 		$(DIR)/slha_io.cpp \
+		$(DIR)/two_body_decays.cpp \
 		$(DIR)/utils.cpp \
 		$(DIR)/weinberg_angle.cpp \
 		$(DIR)/wrappers.cpp
@@ -80,6 +81,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/slha_io.hpp \
 		$(DIR)/spectrum_generator_settings.hpp \
 		$(DIR)/sum.hpp \
+		$(DIR)/two_body_decays.hpp \
 		$(DIR)/utils.h \
 		$(DIR)/weinberg_angle.hpp \
 		$(DIR)/wrappers.hpp \
