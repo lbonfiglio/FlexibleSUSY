@@ -1,0 +1,58 @@
+// ====================================================================
+// This file is part of FlexibleSUSY.
+//
+// FlexibleSUSY is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License,
+// or (at your option) any later version.
+//
+// FlexibleSUSY is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with FlexibleSUSY.  If not, see
+// <http://www.gnu.org/licenses/>.
+// ====================================================================
+
+// File generated at @DateAndTime@
+
+/**
+ * @file @ModelName@_decays.cpp
+ * @brief implementation of the @ModelName@ decays class
+ *
+ * Contains the definition of the @ModelName@ decays class methods
+ * that calculate the partial decay widths and branching ratios
+ * from DRbar parameters.
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ (git commit: @FlexibleSUSYGitCommit@) and SARAH @SARAHVersion@ .
+ */
+
+#include "@ModelName@_decays.hpp"
+
+namespace flexiblesusy {
+
+@ModelName@_decays::~@ModelName@_decays()
+{
+}
+
+void @ModelName@_decays::set_decays_loop_order(unsigned loop_order)
+{
+   decays_loop_order = loop_order;
+}
+
+unsigned @ModelName@_decays::get_decays_loop_order() const
+{
+   return decays_loop_order;
+}
+
+void @ModelName@_decays::calculate_decays()
+{
+@calculateAllDecays@
+}
+
+@twoBodyCouplingsFunctions@
+
+} // namespace flexiblesusy

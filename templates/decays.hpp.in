@@ -1,0 +1,59 @@
+// ====================================================================
+// This file is part of FlexibleSUSY.
+//
+// FlexibleSUSY is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License,
+// or (at your option) any later version.
+//
+// FlexibleSUSY is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with FlexibleSUSY.  If not, see
+// <http://www.gnu.org/licenses/>.
+// ====================================================================
+
+// File generated at @DateAndTime@
+
+/**
+ * @file @ModelName@_decays.hpp
+ * @brief contains class with routines for calculating the
+ *        decay widths and branching ratios in the model
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ (git commit: @FlexibleSUSYGitCommit@) and SARAH @SARAHVersion@ .
+ */
+
+#ifndef @ModelName@_DECAYS_H
+#define @ModelName@_DECAYS_H
+
+#include "@ModelName@_mass_eigenstates.hpp"
+
+namespace flexiblesusy {
+
+/**
+ * @class @ModelName@_decays
+ * @brief class with routines for calculating widths and branching ratios
+ */
+class @ModelName@_decays : private @ModelName@_mass_eigenstates {
+public:
+
+   virtual ~@ModelName@_decays();
+
+   void set_decays_loop_order(unsigned);
+   unsigned get_decays_loop_order() const;
+
+   void calculate_decays();
+
+@twoBodyCouplingsPrototypes@
+
+private:
+   unsigned decays_loop_order;
+};
+
+} // namespace flexiblesusy
+
+#endif
