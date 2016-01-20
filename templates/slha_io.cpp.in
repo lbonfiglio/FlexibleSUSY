@@ -98,23 +98,23 @@ void @ModelName@_slha_io::set_spinfo(const Problems<@ModelName@_info::NUMBER_OF_
 {
    std::ostringstream spinfo;
    spinfo << "Block SPINFO\n"
-          << FORMAT_SPINFO(1, PKGNAME)
-          << FORMAT_SPINFO(2, FLEXIBLESUSY_VERSION);
+          << format_spinfo(1, PKGNAME)
+          << format_spinfo(2, FLEXIBLESUSY_VERSION);
 
    if (problems.have_warning()) {
       std::ostringstream warnings;
       problems.print_warnings(warnings);
-      spinfo << FORMAT_SPINFO(3, warnings.str());
+      spinfo << format_spinfo(3, warnings.str());
    }
 
    if (problems.have_problem()) {
       std::ostringstream problems_str;
       problems.print_problems(problems_str);
-      spinfo << FORMAT_SPINFO(4, problems_str.str());
+      spinfo << format_spinfo(4, problems_str.str());
    }
 
-   spinfo << FORMAT_SPINFO(5, @ModelName@_info::model_name)
-          << FORMAT_SPINFO(9, SARAH_VERSION);
+   spinfo << format_spinfo(5, @ModelName@_info::model_name)
+          << format_spinfo(9, SARAH_VERSION);
 
    slha_io.set_block(spinfo, SLHA_io::front);
 }

@@ -88,6 +88,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/root_finder.hpp \
 		$(DIR)/scan.hpp \
 		$(DIR)/sfermions.hpp \
+		$(DIR)/slha_formatting.hpp \
 		$(DIR)/slha_io.hpp \
 		$(DIR)/sm_twoloophiggs.hpp \
 		$(DIR)/split_threeloophiggs.hpp \

@@ -348,9 +348,9 @@ void SLHA_io::set_block(const std::string& name, double value,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n'
-      << boost::format(mixing_matrix_formatter) % 1 % 1 % value % symbol;
+      << format_tensor(1, 1, value, symbol);
 
    set_block(ss);
 }
@@ -361,13 +361,13 @@ void SLHA_io::set_block(const std::string& name, const softsusy::DoubleMatrix& m
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    for (int i = 1; i <= matrix.displayRows(); ++i)
       for (int k = 1; k <= matrix.displayCols(); ++k) {
-         ss << boost::format(mixing_matrix_formatter) % i % k % matrix(i,k)
-            % (symbol + "(" + ToString(i) + "," + ToString(k) + ")");
+         ss << format_tensor(i, k, matrix(i,k),
+                             symbol + "(" + ToString(i) + "," + ToString(k) + ")");
       }
 
    set_block(ss);
@@ -379,14 +379,13 @@ void SLHA_io::set_block(const std::string& name, const softsusy::ComplexMatrix& 
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    for (int i = 1; i <= matrix.displayRows(); ++i)
       for (int k = 1; k <= matrix.displayCols(); ++k) {
-         ss << boost::format(mixing_matrix_formatter) % i % k
-            % Re(matrix(i,k))
-            % ("Re(" + symbol + "(" + ToString(i) + "," + ToString(k) + "))");
+         ss << format_tensor(i, k, Re(matrix(i,k)),
+                             "Re(" + symbol + "(" + ToString(i) + "," + ToString(k) + "))");
       }
 
    set_block(ss);
@@ -401,19 +400,19 @@ void SLHA_io::set_sminputs(const softsusy::QedQcd& qedqcd_)
    const double alphaEmInv = 1./qedqcd.displayAlpha(ALPHA);
 
    ss << "Block SMINPUTS\n";
-   ss << FORMAT_ELEMENT( 1, alphaEmInv                   , "alpha^(-1) SM MSbar(MZ)");
-   ss << FORMAT_ELEMENT( 2, qedqcd.displayFermiConstant(), "G_Fermi");
-   ss << FORMAT_ELEMENT( 3, qedqcd.displayAlpha(ALPHAS)  , "alpha_s(MZ) SM MSbar");
-   ss << FORMAT_ELEMENT( 4, qedqcd.displayPoleMZ()       , "MZ(pole)");
-   ss << FORMAT_ELEMENT( 5, qedqcd.displayMbMb()         , "mb(mb) SM MSbar");
-   ss << FORMAT_ELEMENT( 6, qedqcd.displayPoleMt()       , "mtop(pole)");
-   ss << FORMAT_ELEMENT( 7, qedqcd.displayPoleMtau()     , "mtau(pole)");
-   ss << FORMAT_ELEMENT( 8, qedqcd.displayNeutrinoPoleMass(3), "mnu3(pole)");
-   ss << FORMAT_ELEMENT( 9, qedqcd.displayPoleMW()       , "MW(pole)");
-   ss << FORMAT_ELEMENT(11, qedqcd.displayMass(mElectron), "melectron(pole)");
-   ss << FORMAT_ELEMENT(12, qedqcd.displayNeutrinoPoleMass(1), "mnu1(pole)");
-   ss << FORMAT_ELEMENT(13, qedqcd.displayMass(mMuon)    , "mmuon(pole)");
-   ss << FORMAT_ELEMENT(14, qedqcd.displayNeutrinoPoleMass(2), "mnu2(pole)");
+   ss << format_vector( 1, alphaEmInv                   , "alpha^(-1) SM MSbar(MZ)");
+   ss << format_vector( 2, qedqcd.displayFermiConstant(), "G_Fermi");
+   ss << format_vector( 3, qedqcd.displayAlpha(ALPHAS)  , "alpha_s(MZ) SM MSbar");
+   ss << format_vector( 4, qedqcd.displayPoleMZ()       , "MZ(pole)");
+   ss << format_vector( 5, qedqcd.displayMbMb()         , "mb(mb) SM MSbar");
+   ss << format_vector( 6, qedqcd.displayPoleMt()       , "mtop(pole)");
+   ss << format_vector( 7, qedqcd.displayPoleMtau()     , "mtau(pole)");
+   ss << format_vector( 8, qedqcd.displayNeutrinoPoleMass(3), "mnu3(pole)");
+   ss << format_vector( 9, qedqcd.displayPoleMW()       , "MW(pole)");
+   ss << format_vector(11, qedqcd.displayMass(mElectron), "melectron(pole)");
+   ss << format_vector(12, qedqcd.displayNeutrinoPoleMass(1), "mnu1(pole)");
+   ss << format_vector(13, qedqcd.displayMass(mMuon)    , "mmuon(pole)");
+   ss << format_vector(14, qedqcd.displayNeutrinoPoleMass(2), "mnu2(pole)");
 
    // recalculate mc(mc)^MS-bar
    double mc = qedqcd.displayMass(mCharm);
@@ -422,10 +421,10 @@ void SLHA_io::set_sminputs(const softsusy::QedQcd& qedqcd_)
 
    // recalculate mu(2 GeV)^MS-bar, md(2 GeV)^MS-bar, ms^MS-bar(2 GeV)
    qedqcd.runto(2.0);
-   ss << FORMAT_ELEMENT(21, qedqcd.displayMass(mDown)    , "md");
-   ss << FORMAT_ELEMENT(22, qedqcd.displayMass(mUp)      , "mu");
-   ss << FORMAT_ELEMENT(23, qedqcd.displayMass(mStrange) , "ms");
-   ss << FORMAT_ELEMENT(24, mc                           , "mc");
+   ss << format_vector(21, qedqcd.displayMass(mDown)    , "md");
+   ss << format_vector(22, qedqcd.displayMass(mUp)      , "mu");
+   ss << format_vector(23, qedqcd.displayMass(mStrange) , "ms");
+   ss << format_vector(24, mc                           , "mc");
 
    set_block(ss);
 }
