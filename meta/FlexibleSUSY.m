@@ -1667,8 +1667,22 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
 WriteBVPSolverTemplates[files_List] :=
     WriteOut`ReplaceInFiles[files, { Sequence @@ GeneralReplacementRules[] }];
 
-WriteSolverMatchingClass[files_List] :=
-    WriteOut`ReplaceInFiles[files, { Sequence @@ GeneralReplacementRules[] } ];
+WriteSolverMatchingClass[susyScaleMatching_List, files_List] :=
+    Module[{fixedPars, parNames, savedParameterDefs = "", savedParameterGetters = "",
+            saveMatchedParameters = ""},
+           fixedPars = Parameters`StripIndices /@ FlexibleEFTHiggsMatching`GetFixedBSMParameters[susyScaleMatching];
+           parNames = CConversion`ToValidCSymbolString /@ fixedPars;
+           savedParameterDefs = StringJoin[Parameters`CreateParameterDefinitionAndDefaultInitialize[{#, Parameters`GetType[#]}]& /@ fixedPars];
+           savedParameterGetters = StringJoin[CConversion`CreateInlineGetter[CConversion`ToValidCSymbolString[#],
+                                                                             Parameters`GetType[#]]& /@ fixedPars];
+           saveMatchedParameters = StringJoin[(# <> " = model->get_" <> # <> "();\n")& /@ parNames];
+           WriteOut`ReplaceInFiles[files,
+                          { "@savedParameterGetters@" -> IndentText[WrapLines[savedParameterGetters]],
+                            "@savedParameterDefs@" -> IndentText[savedParameterDefs],
+                            "@saveMatchedParameters@" -> IndentText[WrapLines[saveMatchedParameters]],
+                            Sequence @@ GeneralReplacementRules[]
+                          } ];
+          ];
 
 WriteTwoScaleModelClass[files_List] :=
     WriteOut`ReplaceInFiles[files, { Sequence @@ GeneralReplacementRules[] }];
@@ -1727,7 +1741,9 @@ WriteTwoScaleSpectrumGeneratorClass[files_List] :=
           ];
 
 WriteSemiAnalyticSpectrumGeneratorClass[files_List] :=
-    Module[{boundaryConstraint = "", semiAnalyticConstraint = "", getBoundaryScale = ""},
+    Module[{boundaryConstraint = "", semiAnalyticConstraint = "",
+            getBoundaryScale = "", fillSMFermionPoleMasses = ""},
+            fillSMFermionPoleMasses = FlexibleEFTHiggsMatching`FillSMFermionPoleMasses[];
            Which[SemiAnalytic`IsBoundaryConstraint[FlexibleSUSY`HighScaleInput],
                  boundaryConstraint = "high_scale_constraint";
                  getBoundaryScale = "get_high_scale()";,
@@ -1837,7 +1853,7 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
                                        Sequence @@ GeneralReplacementRules[]
                                    } ];
            ];
-           
+
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,massMatrices_,files_List] :=
   Module[{fields, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge},
@@ -1850,7 +1866,7 @@ WriteCXXDiagramClass[vertices_List,massMatrices_,files_List] :=
     cxxVertices = CXXDiagrams`CreateVertices[vertices,vertexRules];
     massFunctions = CXXDiagrams`CreateMassFunctions[];
     unitCharge = CXXDiagrams`CreateUnitCharge[massMatrices];
-    
+
     WriteOut`ReplaceInFiles[files,
                             {"@CXXDiagrams_Fields@"          -> fields,
                              "@CXXDiagrams_VertexData@"      -> vertexData,
@@ -1867,22 +1883,22 @@ WriteEDMClass[edmFields_List,files_List] :=
           interfacePrototypes,interfaceDefinitions},
     graphs = EDM`EDMContributingGraphs[];
     diagrams = Outer[EDM`EDMContributingDiagramsForFieldAndGraph,edmFields,graphs,1];
-    
+
     vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,2],1];
-    
-    {interfacePrototypes,interfaceDefinitions} = 
+
+    {interfacePrototypes,interfaceDefinitions} =
       If[diagrams === {},
          {"",""},
-         StringJoin @@@ 
-          (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@ 
+         StringJoin @@@
+          (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@
             Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams}]])];
-    
+
     WriteOut`ReplaceInFiles[files,
                             {"@EDM_InterfacePrototypes@"       -> interfacePrototypes,
                              "@EDM_InterfaceDefinitions@"      -> interfaceDefinitions,
                              Sequence @@ GeneralReplacementRules[]
                             }];
-    
+
     vertices
   ]
 
@@ -1895,14 +1911,14 @@ WriteAMuonClass[files_List] :=
             getMSUSY},
       graphs = AMuon`AMuonContributingGraphs[];
       diagrams = AMuon`AMuonContributingDiagramsForGraph /@ graphs;
-      
+
       vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,1],1];
-      
+
       muonPhysicalMass = AMuon`AMuonCreateMuonPhysicalMass[];
       calculation = AMuon`AMuonCreateCalculation @ Transpose[{graphs,diagrams}];
-            
+
       getMSUSY = AMuon`AMuonGetMSUSY[];
-      
+
       WriteOut`ReplaceInFiles[files,
         {"@AMuon_MuonField@"      -> CXXDiagrams`CXXNameOfField[AMuon`AMuonGetMuon[]],
          "@AMuon_MuonPhysicalMass@"       -> TextFormatting`IndentText[muonPhysicalMass],
@@ -1910,7 +1926,7 @@ WriteAMuonClass[files_List] :=
          "@AMuon_GetMSUSY@"       -> IndentText[WrapLines[getMSUSY]],
          Sequence @@ GeneralReplacementRules[]
         }];
-                              
+
       vertices
       ];
 
@@ -2122,14 +2138,23 @@ WriteMakefileModule[rgeFile_List, files_List] :=
           ];
 
 WriteBVPSolverMakefile[files_List] :=
-    Module[{twoScaleSource = "", twoScaleHeader = ""},
+    Module[{twoScaleSource = "", twoScaleHeader = "",
+            semiAnalyticSource = "", semiAnalyticHeader = ""},
            If[FlexibleSUSY`FlexibleEFTHiggs === True,
               twoScaleSource = "\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_two_scale_matching.cpp"}];
               twoScaleHeader = "\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_two_scale_matching.hpp"}];
+              semiAnalyticSource = "\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_semi_analytic_matching_constraint.cpp"}]
+                                   <> " \\\n\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_semi_analytic_matching.cpp"}];
+              semiAnalyticHeader = "\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_matching_constraint.hpp"}]
+                                   <> " \\\n\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_semi_analytic_matching_constraint.hpp"}]
+                                   <> " \\\n\t\t" <> FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_semi_analytic_matching.hpp"}];
+
              ];
            WriteOut`ReplaceInFiles[files,
                    { "@FlexibleEFTHiggsTwoScaleSource@" -> twoScaleSource,
                      "@FlexibleEFTHiggsTwoScaleHeader@" -> twoScaleHeader,
+                     "@FlexibleEFTHiggsSemiAnalyticSource@" -> semiAnalyticSource,
+                     "@FlexibleEFTHiggsSemiAnalyticHeader@" -> semiAnalyticHeader,
                      Sequence @@ GeneralReplacementRules[]
                    } ];
           ];
@@ -3594,7 +3619,8 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
               If[FlexibleSUSY`FlexibleEFTHiggs === True,
                  Print["Creating two-scale matching class ..."];
-                 WriteSolverMatchingClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "standard_model_two_scale_matching.hpp.in"}],
+                 WriteSolverMatchingClass[FlexibleSUSY`MatchingScaleInput,
+                                          {{FileNameJoin[{$flexiblesusyTemplateDir, "standard_model_two_scale_matching.hpp.in"}],
                                             FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_two_scale_matching.hpp"}]},
                                            {FileNameJoin[{$flexiblesusyTemplateDir, "standard_model_two_scale_matching.cpp.in"}],
                                             FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_two_scale_matching.cpp"}]}
@@ -3709,11 +3735,27 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                                SemiAnalytic`IsBoundaryConstraint[FlexibleSUSY`LowScaleInput],
                                                SemiAnalytic`IsSemiAnalyticConstraint[FlexibleSUSY`LowScaleInput],
                                                semiAnalyticSolns, semiAnalyticLowScaleFiles];
+              If[FlexibleSUSY`FlexibleEFTHiggs === True,
+                 Print["Creating class for matching constraint ..."];
+                 WriteConstraintClass[FlexibleSUSY`SUSYScale, SemiAnalytic`GetSavedMatchingParameters[FlexibleSUSY`MatchingScaleInput],
+                                      FlexibleSUSY`SUSYScaleFirstGuess,
+                                      {FlexibleSUSY`SUSYScaleMinimum, FlexibleSUSY`SUSYScaleMaximum},
+                                      {{FileNameJoin[{$flexiblesusyTemplateDir, "matching_constraint.hpp.in"}],
+                                        FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_matching_constraint.hpp"}]},
+                                       {FileNameJoin[{$flexiblesusyTemplateDir, "semi_analytic_matching_constraint.hpp.in"}],
+                                        FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_semi_analytic_matching_constraint.hpp"}]},
+                                       {FileNameJoin[{$flexiblesusyTemplateDir, "semi_analytic_matching_constraint.cpp.in"}],
+                                        FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_semi_analytic_matching_constraint.cpp"}]}
+                                      }];
+                ];
 
               Print["Creating class for initial guesser ..."];
               If[FlexibleSUSY`OnlyLowEnergyFlexibleSUSY,
                  initialGuesserInputFile = "semi_analytic_low_scale_initial_guesser";,
                  initialGuesserInputFile = "semi_analytic_high_scale_initial_guesser";
+                ];
+              If[FlexibleSUSY`FlexibleEFTHiggs === True,
+                 initialGuesserInputFile = "standard_model_" <> initialGuesserInputFile;
                 ];
               Which[SemiAnalytic`IsBoundaryConstraint[FlexibleSUSY`HighScaleInput],
                  semiAnalyticInputScale = "high_constraint.get_scale()",
@@ -3761,9 +3803,22 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                            {FileNameJoin[{$flexiblesusyTemplateDir, "semi_analytic_model.cpp.in"}],
                                             FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_semi_analytic_model.cpp"}]}}];
 
+              If[FlexibleSUSY`FlexibleEFTHiggs === True,
+                 Print["Creating semi-analytic matching class ..."];
+                 WriteSolverMatchingClass[FlexibleSUSY`MatchingScaleInput,
+                                          {{FileNameJoin[{$flexiblesusyTemplateDir, "standard_model_semi_analytic_matching.hpp.in"}],
+                                            FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_semi_analytic_matching.hpp"}]},
+                                           {FileNameJoin[{$flexiblesusyTemplateDir, "standard_model_semi_analytic_matching.cpp.in"}],
+                                            FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_standard_model_semi_analytic_matching.cpp"}]}
+                                          }];
+                ];
+
               spectrumGeneratorInputFile = "semi_analytic_high_scale_spectrum_generator";
               If[FlexibleSUSY`OnlyLowEnergyFlexibleSUSY,
                  spectrumGeneratorInputFile = "semi_analytic_low_scale_spectrum_generator";
+                ];
+              If[FlexibleSUSY`FlexibleEFTHiggs === True,
+                 spectrumGeneratorInputFile = "standard_model_" <> spectrumGeneratorInputFile;
                 ];
               Print["Creating class for semi-analytic spectrum generator ..."];
               WriteSemiAnalyticSpectrumGeneratorClass[{{FileNameJoin[{$flexiblesusyTemplateDir, spectrumGeneratorInputFile <> ".hpp.in"}],
@@ -3796,11 +3851,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_observables.hpp"}]},
                              {FileNameJoin[{$flexiblesusyTemplateDir, "observables.cpp.in"}],
                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_observables.cpp"}]}}];
-                      
-                      
+
+
            Print["Setting up CXXDiagrams..."];
            CXXDiagrams`Initialize[];
-           
+
            Print["Creating EDM class..."];
            edmFields = DeleteDuplicates @ Cases[Observables`GetRequestedObservables[extraSLHAOutputBlocks],
                                                 FlexibleSUSYObservable`EDM[p_[__]|p_] :> p];
@@ -3810,14 +3865,14 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_edm.hpp"}]},
                             {FileNameJoin[{$flexiblesusyTemplateDir, "edm.cpp.in"}],
                              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_edm.cpp"}]}}];
-           
+
            Print["Creating AMuon class..."];
-           aMuonVertices = 
+           aMuonVertices =
              WriteAMuonClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.hpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.hpp"}]},
                               {FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.cpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.cpp"}]}}];
-           
+
            WriteCXXDiagramClass[Join[edmVertices,aMuonVertices],Lat$massMatrices,
                                 {{FileNameJoin[{$flexiblesusyTemplateDir, "cxx_diagrams.hpp.in"}],
                                  FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_cxx_diagrams.hpp"}]}}];
