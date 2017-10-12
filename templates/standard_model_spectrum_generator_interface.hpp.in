@@ -41,14 +41,14 @@ namespace flexiblesusy {
 
 struct @ModelName@_input_parameters;
 
-template <class T>
+template <class T, class Effective_theory = standard_model::StandardModel<T> >
 class @ModelName@_spectrum_generator_interface {
 public:
    virtual ~@ModelName@_spectrum_generator_interface() = default;
 
-   std::tuple<@ModelName@<T>, standard_model::StandardModel<T>> get_models() const
+   std::tuple<@ModelName@<T>, Effective_theory> get_models() const
    { return std::make_tuple(model, eft); }
-   std::tuple<@ModelName@_slha<@ModelName@<T>>, standard_model::StandardModel<T>> get_models_slha() const
+   std::tuple<@ModelName@_slha<@ModelName@<T>>, Effective_theory> get_models_slha() const
    { return std::make_tuple(@ModelName@_slha<@ModelName@<T>>(model, settings.get(Spectrum_generator_settings::force_positive_masses) == 0.), eft); }
 
    @ModelName@<T> get_model() const
@@ -69,7 +69,7 @@ public:
 
 protected:
    @ModelName@<T> model;
-   standard_model::StandardModel<T> eft{};
+   Effective_theory eft{};
    Spectrum_generator_problems problems;
    Spectrum_generator_settings settings;
    double parameter_output_scale{0.}; ///< output scale for running parameters
@@ -84,8 +84,8 @@ protected:
  *
  * @param settings_ spectrum generator settings
  */
-template <class T>
-void @ModelName@_spectrum_generator_interface<T>::set_settings(
+template <class T, class Effective_theory>
+void @ModelName@_spectrum_generator_interface<T, Effective_theory>::set_settings(
    const Spectrum_generator_settings& settings_)
 {
    settings = settings_;
@@ -108,8 +108,8 @@ void @ModelName@_spectrum_generator_interface<T>::set_settings(
  * @param qedqcd_ Standard Model input parameters
  * @param input model input parameters
  */
-template <class T>
-void @ModelName@_spectrum_generator_interface<T>::run(
+template <class T, class Effective_theory>
+void @ModelName@_spectrum_generator_interface<T, Effective_theory>::run(
    const softsusy::QedQcd& qedqcd_, const @ModelName@_input_parameters& input)
 {
    softsusy::QedQcd qedqcd = qedqcd_;
@@ -132,8 +132,8 @@ void @ModelName@_spectrum_generator_interface<T>::run(
  * @param start lowest scale
  * @param stop highest scale
  */
-template <class T>
-void @ModelName@_spectrum_generator_interface<T>::write_running_couplings(
+template <class T, class Effective_theory>
+void @ModelName@_spectrum_generator_interface<T, Effective_theory>::write_running_couplings(
    const std::string& filename,
    double start, double stop) const
 {
@@ -159,8 +159,8 @@ void @ModelName@_spectrum_generator_interface<T>::write_running_couplings(
  *
  * @param filename output file name
  */
-template <class T>
-void @ModelName@_spectrum_generator_interface<T>::write_spectrum(
+template <class T, class Effective_theory>
+void @ModelName@_spectrum_generator_interface<T, Effective_theory>::write_spectrum(
    const std::string& filename) const
 {
    @ModelName@_spectrum_plotter plotter(model);
@@ -175,8 +175,9 @@ void @ModelName@_spectrum_generator_interface<T>::write_spectrum(
  *
  * @param model model class
  */
-template <class T>
-void @ModelName@_spectrum_generator_interface<T>::translate_exception_to_problem(@ModelName@<T>& model)
+template <class T, class Effective_theory>
+void @ModelName@_spectrum_generator_interface<T, Effective_theory>::translate_exception_to_problem(
+   @ModelName@<T>& model)
 {
    try {
       throw;
