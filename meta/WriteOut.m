@@ -205,7 +205,7 @@ WriteSLHAMass[massMatrix_TreeMasses`FSMassMatrix] :=
               If[pdg != 0,
                  eigenstateNameStr = CConversion`RValueToCFormString[eigenstateName];
                  massNameStr = CConversion`RValueToCFormString[FlexibleSUSY`M[eigenstateName]];
-                 result = "<< FORMAT_MASS(" <> ToString[pdg] <>
+                 result = "<< format_mass(" <> ToString[pdg] <>
                           ", LOCALPHYSICAL(" <> massNameStr <> "), \"" <> eigenstateNameStr <> "\")\n";
                 ];
               ,
@@ -214,7 +214,7 @@ WriteSLHAMass[massMatrix_TreeMasses`FSMassMatrix] :=
                   If[pdg != 0,
                      eigenstateNameStr = CConversion`RValueToCFormString[eigenstateName] <> "(" <> ToString[i] <> ")";
                      massNameStr = CConversion`RValueToCFormString[FlexibleSUSY`M[eigenstateName[i-1]]];
-                     result = result <> "<< FORMAT_MASS(" <> ToString[pdg] <>
+                     result = result <> "<< format_mass(" <> ToString[pdg] <>
                               ", LOCALPHYSICAL(" <> massNameStr <> "), \"" <> eigenstateNameStr <> "\")\n";
                     ];
                  ];
@@ -253,7 +253,7 @@ ConvertToRealInputParameter[FlexibleSUSY`Phase[parameter_], struct_String] :=
 WriteParameterTuple[{key_?NumberQ, parameter_}, streamName_String] :=
     Module[{parameterStr},
            parameterStr = CConversion`ToValidCSymbolString[parameter];
-           streamName <> " << FORMAT_ELEMENT(" <> ToString[key] <> ", " <>
+           streamName <> " << format_element(" <> ToString[key] <> ", " <>
            ConvertToRealInputParameter[parameter,"input."] <>
            ", \"" <> parameterStr <> "\");\n"
           ];
@@ -530,7 +530,7 @@ WriteSLHABlockEntry[blockName_, {par_, idx1_?NumberQ, idx2_?NumberQ, idx3_?Numbe
            idx3Str = ToString[idx3];
            commentStr = If[comment == "", parStr, comment];
            (* result *)
-           "      << FORMAT_RANK_THREE_TENSOR(" <> idx1Str <> ", " <> idx2Str <> ", "
+           "      << format_tensor(" <> idx1Str <> ", " <> idx2Str <> ", "
            <> idx3Str <> ", (" <> parVal <> "), \"" <> commentStr <> "\")" <> "\n"
           ];
 
@@ -542,7 +542,7 @@ WriteSLHABlockEntry[blockName_, {par_, idx1_?NumberQ, idx2_?NumberQ}, comment_St
            idx2Str = ToString[idx2];
            commentStr = If[comment == "", parStr, comment];
            (* result *)
-           "      << FORMAT_MIXING_MATRIX(" <> idx1Str <> ", " <> idx2Str <>
+           "      << format_matrix(" <> idx1Str <> ", " <> idx2Str <>
            ", (" <> parVal <> "), \"" <> commentStr <> "\")" <> "\n"
           ];
 
@@ -564,7 +564,7 @@ WriteSLHABlockEntry[blockName_, {par_, pdg_?NumberQ}, comment_String:""] :=
            pdgStr = ToString[pdg];
            commentStr = If[comment == "", parStr, comment];
            (* result *)
-           "      << FORMAT_ELEMENT(" <> pdgStr <> ", (" <> parVal <>
+           "      << format_element(" <> pdgStr <> ", (" <> parVal <>
            "), \"" <> commentStr <> "\")" <> "\n"
           ];
 
@@ -574,7 +574,7 @@ WriteSLHABlockEntry[_, {par_}, comment_String:""] :=
            parVal = CConversion`RValueToCFormString[Parameters`WrapPreprocessorMacroAround[par]];
            commentStr = If[comment == "", parStr, comment];
            (* result *)
-           "      << FORMAT_NUMBER((" <> parVal <> "), \"" <> commentStr <> "\")\n"
+           "      << format_number((" <> parVal <> "), \"" <> commentStr <> "\")\n"
           ];
 
 WriteSLHABlockEntry[tuple___] :=
@@ -591,7 +591,7 @@ WriteSLHABlock[{blockName_, tuples_List}, scale_String:"model.get_scale()"] :=
                "std::ostringstream block;\n" <>
                "block << \"Block " <> blockNameStr <>
                If[scale != "",
-                  " Q= \" << FORMAT_SCALE(" <> scale <> ")",
+                  " Q= \" << format_scale(" <> scale <> ")",
                   "\""
                  ] <>
                " << '\\n'\n" <>

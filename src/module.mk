@@ -122,6 +122,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/sfermions.hpp \
 		$(DIR)/single_scale_constraint.hpp \
 		$(DIR)/single_scale_matching.hpp \
+		$(DIR)/slha_formatting.hpp \
 		$(DIR)/slha_io.hpp \
 		$(DIR)/sm_threeloop_as.hpp \
 		$(DIR)/sm_threeloophiggs.hpp \

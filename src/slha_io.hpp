@@ -24,12 +24,12 @@
 #include <iosfwd>
 #include <vector>
 #include <Eigen/Core>
-#include <boost/format.hpp>
 #include <boost/function.hpp>
 #include "slhaea.h"
 #include "config.h"
 #include "logger.hpp"
 #include "error.hpp"
+#include "slha_formatting.hpp"
 #include "wrappers.hpp"
 #include "numerics2.hpp"
 #include "pmns.hpp"
@@ -43,40 +43,6 @@ namespace flexiblesusy {
 
    class Spectrum_generator_settings;
    class Physical_input;
-
-   namespace {
-      /// SLHA line formatter for the MASS block entries
-      const boost::format mass_formatter(" %9d   %16.8E   # %s\n");
-      /// SLHA line formatter for the mixing matrix entries (NMIX, UMIX, VMIX, ...)
-      const boost::format mixing_matrix_formatter(" %2d %2d   %16.8E   # %s\n");
-      /// SLHA line formatter for vector entries
-      const boost::format vector_formatter(" %5d   %16.8E   # %s\n");
-      /// SLHA number formatter
-      const boost::format number_formatter("         %16.8E   # %s\n");
-      /// SLHA line formatter for entries with three indices
-      const boost::format tensor_formatter(" %8d %8d %8d   %16.8E   # %s\n");
-      /// SLHA scale formatter
-      const boost::format scale_formatter("%9.8E");
-      /// SLHA line formatter for the one-element entries (HMIX, GAUGE, MSOFT, ...)
-      const boost::format single_element_formatter(" %5d   %16.8E   # %s\n");
-      /// SLHA line formatter for the SPINFO block entries
-      const boost::format spinfo_formatter(" %5d   %s\n");
-   } // namespace
-
-#define FORMAT_MASS(pdg,mass,name)                                      \
-   boost::format(mass_formatter) % (pdg) % (mass) % (name)
-#define FORMAT_MIXING_MATRIX(i,k,entry,name)                            \
-   boost::format(mixing_matrix_formatter) % (i) % (k) % (entry) % (name)
-#define FORMAT_ELEMENT(pdg,value,name)                                  \
-   boost::format(single_element_formatter) % (pdg) % (value) % (name)
-#define FORMAT_SCALE(n)                                                 \
-   boost::format(scale_formatter) % (n)
-#define FORMAT_NUMBER(n,str)                                            \
-   boost::format(number_formatter) % (n) % (str)
-#define FORMAT_SPINFO(n,str)                                            \
-   boost::format(spinfo_formatter) % (n) % (str)
-#define FORMAT_RANK_THREE_TENSOR(i,j,k,entry,name)                      \
-   boost::format(tensor_formatter) % (i) % (j) % (k) % (entry) % (name)
 
 /**
  * @class SLHA_io
@@ -370,12 +336,11 @@ void SLHA_io::set_block(const std::string& name,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    for (int i = 1; i <= NRows; ++i) {
-      ss << boost::format(vector_formatter) % i % Re(matrix(i-1,0))
-         % ("Re(" + symbol + "(" + ToString(i) + "))");
+      ss << format_vector(i, Re(matrix(i-1,0)), "Re(" + symbol + "(" + ToString(i) + "))");
    }
 
    set_block(ss);
@@ -389,15 +354,14 @@ void SLHA_io::set_block(const std::string& name,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    for (int i = 1; i <= NRows; ++i) {
       for (int k = 1; k <= NCols; ++k) {
-         ss << boost::format(mixing_matrix_formatter) % i % k
-            % Re(matrix(i-1,k-1))
-            % ("Re(" + symbol + "(" + ToString(i) + ","
-               + ToString(k) + "))");
+         ss << format_matrix(i, k, Re(matrix(i-1,k-1)),
+                             "Re(" + symbol + "(" + ToString(i) + ","
+                             + ToString(k) + "))");
       }
    }
 
@@ -412,12 +376,11 @@ void SLHA_io::set_block_imag(const std::string& name,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    for (int i = 1; i <= NRows; ++i) {
-      ss << boost::format(vector_formatter) % i % Im(matrix(i-1,0))
-         % ("Im(" + symbol + "(" + ToString(i) + "))");
+      ss << format_vector(i, Im(matrix(i-1,0)), "Im(" + symbol + "(" + ToString(i) + "))");
    }
 
    set_block(ss);
@@ -431,15 +394,14 @@ void SLHA_io::set_block_imag(const std::string& name,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    for (int i = 1; i <= NRows; ++i) {
       for (int k = 1; k <= NCols; ++k) {
-         ss << boost::format(mixing_matrix_formatter) % i % k
-            % Im(matrix(i-1,k-1))
-            % ("Im(" + symbol + "(" + ToString(i) + ","
-               + ToString(k) + "))");
+         ss << format_matrix(i, k, Im(matrix(i-1,k-1)),
+                             "Im(" + symbol + "(" + ToString(i) + ","
+                             + ToString(k) + "))");
       }
    }
 
@@ -454,19 +416,18 @@ void SLHA_io::set_block(const std::string& name,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    const int rows = matrix.rows();
    const int cols = matrix.cols();
    for (int i = 1; i <= rows; ++i) {
       if (cols == 1) {
-         ss << boost::format(vector_formatter) % i % matrix(i-1,0)
-            % (symbol + "(" + ToString(i) + ")");
+         ss << format_vector(i, matrix(i-1,0), symbol + "(" + ToString(i) + ")");
       } else {
          for (int k = 1; k <= cols; ++k) {
-            ss << boost::format(mixing_matrix_formatter) % i % k % matrix(i-1,k-1)
-               % (symbol + "(" + ToString(i) + "," + ToString(k) + ")");
+            ss << format_matrix(i, k, matrix(i-1,k-1),
+                                symbol + "(" + ToString(i) + "," + ToString(k) + ")");
          }
       }
    }
@@ -482,19 +443,18 @@ void SLHA_io::set_block_imag(const std::string& name,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n';
 
    const int rows = matrix.rows();
    const int cols = matrix.cols();
    for (int i = 1; i <= rows; ++i) {
       if (cols == 1) {
-         ss << boost::format(vector_formatter) % i % Im(matrix(i-1,0))
-            % ("Im(" + symbol + "(" + ToString(i) + "))");
+         ss << format_vector(i, Im(matrix(i-1,0)), "Im(" + symbol + "(" + ToString(i) + "))");
       } else {
          for (int k = 1; k <= cols; ++k) {
-            ss << boost::format(mixing_matrix_formatter) % i % k % Im(matrix(i-1,k-1))
-               % ("Im(" + symbol + "(" + ToString(i) + "," + ToString(k) + "))");
+            ss << format_matrix(i, k, Im(matrix(i-1,k-1)),
+                                "Im(" + symbol + "(" + ToString(i) + "," + ToString(k) + "))");
          }
       }
    }
