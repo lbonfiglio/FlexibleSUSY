@@ -1,0 +1,121 @@
+/* DO NOT EDIT! GENERATED AUTOMATICALLY! */
+/* generated at @DATE@ */
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define PKGNAME "@PROJECT_NAME@"
+
+#define FLEXIBLESUSY_VERSION  "@FlexibleSUSY_VERSION@"
+#define FLEXIBLESUSY_MAJOR    @FlexibleSUSY_VERSION_MAJOR@
+#define FLEXIBLESUSY_MINOR    @FlexibleSUSY_VERSION_MINOR@
+#define FLEXIBLESUSY_PATCH    @FlexibleSUSY_VERSION_PATCH@
+#define FLEXIBLESUSY_EXTRA    @FlexibleSUSY_VERSION_TWEAK@
+#define GIT_COMMIT            "@GIT_COMMIT@"
+
+#define SARAH_VERSION         "@SARAH_VERSION@"
+#define SARAH_MAJOR           @SARAH_MAJOR@
+#define SARAH_MINOR           @SARAH_MINOR@
+#define SARAH_PATCH           @SARAH_PATCH@
+
+#define MATHEMATICA_VERSION   @MATH_VERSION@
+
+#define GM2CALC_VERSION       "@GM2CALC_VERSION@"
+#define HIMALAYA_VERSION      "@HIMALAYA_VERSION@"
+
+/* System information */
+#define OPERATING_SYSTEM      "@CMAKE_SYSTEM_NAME@"
+#define KERNEL_VERSION        "@CMAKE_SYSTEM_VERSION@"
+
+/* Build variables */
+#define BLASLIBS              "@BLASLIBS@"
+#define BOOSTFLAGS            "@BOOSTFLAGS@"
+#define BOOSTTESTLIBS         "@BOOSTTESTLIBS@"
+#define BOOSTTHREADLIBS       "@BOOSTTHREADLIBS@"
+#define CPPFLAGS              "@CPPFLAGS@"
+#define CXX                   "@CXX@"
+#define CXXFLAGS              "@CXXFLAGS@"
+#define EIGENFLAGS            "@EIGENFLAGS@"
+#define FC                    "@FC@"
+#define FFLAGS                "@FFLAGS@"
+#define FLIBS                 "@FLIBS@"
+#define HIMALAYAFLAGS         "@HIMALAYAFLAGS@"
+#define HIMALAYALIBS          "@HIMALAYALIBS@"
+#define GSLFLAGS              "@GSLFLAGS@"
+#define GSLLIBS               "@GSLLIBS@"
+#define LAPACKLIBS            "@LAPACKLIBS@"
+#define LDFLAGS               "@LDFLAGS@"
+#define LDLIBS                "@LDLIBS@"
+#define LLFLAGS               "@LLFLAGS@"
+#define LLLIBS                "@LLLIBS@"
+#define LOOPFUNCFLAGS         "@LOOPFUNCFLAGS@"
+#define LOOPFUNCLIBS          "@LOOPFUNCLIBS@"
+#define SQLITELIBS            "@SQLITELIBS@"
+#define SQLITEFLAGS           "@SQLITEFLAGS@"
+#define THREADLIBS            "@THREADLIBS@"
+#define TSILLIBS              "@TSILLIBS@"
+#define TSILFLAGS             "@TSILFLAGS@"
+
+/* Switches */
+
+/* Enable colored printout */
+#cmakedefine ENABLE_COLORS 1
+
+/* Enable eigenvalues error check */
+#cmakedefine ENABLE_MASS_ERROR_CHECK 1
+
+/* Enable debug mode */
+#cmakedefine ENABLE_DEBUG 1
+
+/* Enable silent mode */
+#cmakedefine ENABLE_SILENT 1
+
+/* Enable verbose mode */
+#cmakedefine ENABLE_VERBOSE 1
+
+/* Enable fflite */
+#cmakedefine ENABLE_FFLITE 1
+
+/* Enable Himalaya */
+#cmakedefine ENABLE_HIMALAYA 1
+
+/* Enable LAPACK */
+#cmakedefine ENABLE_LAPACK 1
+
+/* Enable LibraryLink */
+#cmakedefine ENABLE_LIBRARYLINK 1
+
+/* Enable MKL ILP64 workaround */
+#cmakedefine ENABLE_ILP64MKL_WORKAROUND 1
+
+/* Enable LoopTools */
+#cmakedefine ENABLE_LOOPTOOLS 1
+
+/* Enable odeint */
+#cmakedefine ENABLE_ODEINT 1
+
+/* Enable sqlite */
+#cmakedefine ENABLE_SQLITE 1
+
+/* Enable multi-threading */
+#cmakedefine ENABLE_THREADS 1
+
+/* Enable tsil */
+#cmakedefine ENABLE_TSIL 1
+
+/* Enable <random> header */
+#cmakedefine ENABLE_RANDOM 1
+
+/* Enable two-scale BVP solver */
+#cmakedefine ENABLE_TWO_SCALE_SOLVER 1
+
+/* Enable lattice BVP solver */
+#cmakedefine ENABLE_LATTICE_SOLVER 1
+
+/* Enable semi-analytic BVP solver */
+#cmakedefine ENABLE_SEMI_ANALYTIC_SOLVER 1
+
+/* Enable statements for addons */
+#cmakedefine ENABLE_ADDONS 1
+
+#endif
