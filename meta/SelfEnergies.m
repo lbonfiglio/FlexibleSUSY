@@ -301,7 +301,7 @@ GetParticleIndicesInCoupling[Cp[a__][_]] := GetParticleIndicesInCoupling[Cp[a]];
 CreateCouplingSymbol[coupling_] :=
     Module[{symbol, indices},
            indices = GetParticleIndicesInCoupling[coupling];
-           symbol = ToValidCSymbol[coupling /. a_[List[__]] :> a];
+           symbol = CConversion`ToValidCSymbol[coupling /. a_[List[__]] :> a];
            symbol[Sequence @@ indices]
           ];
 
@@ -329,14 +329,14 @@ CreateCouplingFunction[coupling_, expr_, inModelClass_] :=
             type, typeStr},
            indices = GetParticleIndicesInCoupling[coupling];
            symbol = CreateCouplingSymbol[coupling];
-           cFunctionName = ToValidCSymbolString[GetHead[symbol]];
+           cFunctionName = CConversion`ToValidCSymbolString[GetHead[symbol]];
            cFunctionName = cFunctionName <> "(";
            For[i = 1, i <= Length[indices], i++,
                If[i > 1, cFunctionName = cFunctionName <> ", ";];
                cFunctionName = cFunctionName <> "int ";
                (* variable names must not be integers *)
                If[!IntegerQ[indices[[i]]] && !FreeQ[expr, indices[[i]]],
-                  cFunctionName = cFunctionName <> ToValidCSymbolString[indices[[i]]];
+                  cFunctionName = cFunctionName <> CConversion`ToValidCSymbolString[indices[[i]]];
                  ];
               ];
            cFunctionName = cFunctionName <> ")";
@@ -428,14 +428,14 @@ ReplaceGhosts[states_:FlexibleSUSY`FSEigenstates] :=
 DeclareFieldIndices[field_Symbol] := "";
 
 DeclareFieldIndices[field_[ind1_, ind2_]] :=
-    ", int " <> ToValidCSymbolString[ind1] <>
-    ", int " <> ToValidCSymbolString[ind2];
+    ", int " <> CConversion`ToValidCSymbolString[ind1] <>
+    ", int " <> CConversion`ToValidCSymbolString[ind2];
 
 DeclareFieldIndices[field_[PL]] := DeclareFieldIndices[field];
 DeclareFieldIndices[field_[PR]] := DeclareFieldIndices[field];
 DeclareFieldIndices[field_[1]]  := DeclareFieldIndices[field];
 DeclareFieldIndices[field_[ind_]] :=
-    "int " <> ToValidCSymbolString[ind];
+    "int " <> CConversion`ToValidCSymbolString[ind];
 
 ExtractChiraility[field_[idx1_,idx2_]] := ExtractChiraility[field];
 ExtractChiraility[field_[PL]]          := "_PL";
@@ -449,7 +449,7 @@ ExtractFieldName[field_[PL]]          := ExtractFieldName[field];
 ExtractFieldName[field_[PR]]          := ExtractFieldName[field];
 ExtractFieldName[field_[1]]           := ExtractFieldName[field];
 ExtractFieldName[field_[idx_]]        := ExtractFieldName[field];
-ExtractFieldName[field_]              := ToValidCSymbolString[field];
+ExtractFieldName[field_]              := CConversion`ToValidCSymbolString[field];
 
 CreateSelfEnergyFunctionName[field_, loops_] :=
     "self_energy_" <> ExtractFieldName[field] <> "_" <> ToString[loops] <> "loop" <> ExtractChiraility[field];
