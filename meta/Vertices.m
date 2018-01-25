@@ -43,6 +43,8 @@ ToRotatedField::usage;
 ReplaceUnrotatedFields::usage;
 StripGroupStructure::usage="Removes group generators and Kronecker deltas.";
 StripFieldIndices::usage;
+StripSelectedFieldIndices::usage;
+StripLorentzIndices::usage;
 
 Begin["`Private`"]
 
@@ -616,6 +618,20 @@ ExternalColorIndices[fields_List] :=
 FieldIndexList[field_] := Flatten@Cases[field, _?VectorQ, {0, Infinity}];
 
 StripFieldIndices[field_] := field /. head_[_?VectorQ] :> head;
+
+StripSelectedFieldIndices[field_, selector_] :=
+    Module[{remainingIndices},
+           remainingIndices = Select[field[[1]], (!selector[#])&];
+           If[Length[remainingIndices] === 0,
+              Head[field],
+              Head[field][remainingIndices]
+             ]
+          ];
+
+StripLorentzIndices[p_Symbol] := p;
+StripLorentzIndices[SARAH`bar[p_]] := SARAH`bar[StripLorentzIndices[p]];
+StripLorentzIndices[Susyno`LieGroups`conj[p_]] := Susyno`LieGroups`conj[StripLorentzIndices[p]];
+StripLorentzIndices[p_] := StripSelectedFieldIndices[p, Parameters`IsLorentzIndex];
 
 ColorIndexRange[colorIndex_, fields_] :=
     SingleCase[

@@ -366,7 +366,7 @@ IndexFields[fields_List] :=
     MapIndexed[
 	Module[{field = #1,
 		index = #2[[1]]},
-	       StripLorentzIndices[
+	       Vertices`StripLorentzIndices[
 		   SARAH`getFull[field] /. SARAH`subGC[index] /.
 		   SARAH`subIndFinal[index,index]]
                ] &, fields];
@@ -430,17 +430,6 @@ CouplingsForFields[fields_List] :=
              LeftAndRightComponentedVertex, {couplings[[1]][SARAH`PL], couplings[[1]][SARAH`PR]},
              "UnknownVertexType",{}]
    ]
-
-IsLorentzIndex[index_] := StringMatchQ[ToString @ index, "lt" ~~ __];
-
-StripLorentzIndices[p_Symbol] := p;
-StripLorentzIndices[SARAH`bar[p_]] := SARAH`bar[StripLorentzIndices[p]];
-StripLorentzIndices[Susyno`LieGroups`conj[p_]] := Susyno`LieGroups`conj[StripLorentzIndices[p]];
-StripLorentzIndices[p_] := Module[{remainingIndices},
-                                  remainingIndices = Select[p[[1]], (!IsLorentzIndex[#] &)];
-                                  If[Length[remainingIndices] === 0, Head[p],
-                                     Head[p][remainingIndices]]
-                                  ];
 
 FieldInfo[field_,OptionsPattern[{includeLorentzIndices -> False}]] := 
     Module[{fieldInfo = Cases[SARAH`Particles[FlexibleSUSY`FSEigenstates],

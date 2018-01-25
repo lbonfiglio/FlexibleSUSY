@@ -211,18 +211,13 @@ NonZeroVertexQ[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
 
 (* @todo extend to multiple non-Abelian groups *)
 IsColorOrLorentzIndex[index_] := StringMatchQ[ToString @ index, "ct" ~~ __] ||
-                                 StringMatchQ[ToString @ index, "lt" ~~ __];
+                                 Parameters`IsLorentzIndex[index];
+
 StripColorAndLorentzIndices[p_Symbol] := p;
 StripColorAndLorentzIndices[SARAH`bar[p_]] := SARAH`bar[StripColorAndLorentzIndices[p]];
 StripColorAndLorentzIndices[Susyno`LieGroups`conj[p_]] := Susyno`LieGroups`conj[StripColorAndLorentzIndices[p]];
-StripColorAndLorentzIndices[p_] :=
-    Module[{remainingIndices},
-           remainingIndices = Select[p[[1]], (!IsColorOrLorentzIndex[#])&];
-           If[Length[remainingIndices] === 0,
-              Head[p],
-              Head[p][remainingIndices]
-             ]
-          ];
+StripColorAndLorentzIndices[p_] := Vertices`StripSelectedFieldIndices[p, IsColorOrLorentzIndex];
+
 SetAttributes[StripColorAndLorentzIndices, {Listable}];
 
 (* @todo this is very slow because each possible vertex must be calculated,

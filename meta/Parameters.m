@@ -103,6 +103,7 @@ IsModelParameter::usage="returns True if parameter is a model parameter";
 IsInputParameter::usage="returns True if parameter is an input parameter";
 IsOutputParameter::usage="returns True if parameter is a defined output parameter";
 IsIndex::usage="returns True if given symbol is an index";
+IsLorentzIndex::usage="returns True if given symbol is a Lorentz index";
 IsPhase::usage="returns True if given symbol is a phase";
 IsExtraParameter::usage="return True if parameter is an auxiliary parameter";
 IsGaugeCoupling::usage="returns True if parameter is a gauge coupling.";
@@ -671,6 +672,8 @@ IsIndex[i_ /; MemberQ[sarahIndices,i]] := True;
 IsIndex[_] := False;
 IsIndex[indices_List] := And @@ (IsIndex /@ indices);
 IsIndex[indices__] := IsIndex[{indices}];
+
+IsLorentzIndex[index_] := StringMatchQ[ToString @ index, "lt" ~~ __];
 
 GetIndices[parameter_[indices__] /; And @@ (IsIndex /@ {indices})] := {indices};
 GetIndices[parameter_] := {};
