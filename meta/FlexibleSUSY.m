@@ -33,7 +33,6 @@ BeginPackage["FlexibleSUSY`",
               "SelfEnergies`",
               "Vertices`",
               "Phases`",
-              "LatticeUtils`",
               "LoopMasses`",
               "WriteOut`",
               "Constraint`",
@@ -3273,7 +3272,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                               Parameters`ApplyGUTNormalization[] //.
                               { SARAH`sum[j_, start_, end_, expr_] :> (Sum[expr, {j,start,end}]) };
            massMatrices = Lat$massMatrices /. allIndexReplacementRules;
-           Lat$massMatrices = LatticeUtils`FixDiagonalization[Lat$massMatrices];
+           Lat$massMatrices = TreeMasses`FixDiagonalization[Lat$massMatrices];
 
            allIntermediateOutputParameters =
                Parameters`GetIntermediateOutputParameterDependencies[TreeMasses`GetMassMatrix /@ massMatrices];

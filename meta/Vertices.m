@@ -25,7 +25,7 @@ BeginPackage["Vertices`", {
     "SelfEnergies`",
     "Parameters`",
     "TreeMasses`",
-    "LatticeUtils`"}]
+    "Utils`"}]
 
 VertexRules::usage;
 ToCpPattern::usage="ToCpPattern[cp] converts field indices inside cp to patterns, e.g. ToCpPattern[Cp[bar[UFd[{gO1}]], Sd[{gI1}], Glu[{1}]][PL]] === Cp[bar[UFd[{gO1_}]], Sd[{gI1_}], Glu[{1}]][PL].";
@@ -82,8 +82,8 @@ VertexRules[nPointFunctions_, massMatrices_] := Block[{
     UnitaryMatrixQ[_] := False;
     nCpPatterns = Length[cpPatterns];
     MapIndexed[
-	DoneLn[#1 -> VertexExp[#1, nPointFunctions, massMatrices],
-	       "[",First[#2],"/",nCpPatterns,"] calculating ", #1, "... "]&,
+	Utils`DoneLn[#1 -> VertexExp[#1, nPointFunctions, massMatrices],
+	             "[",First[#2],"/",nCpPatterns,"] calculating ", #1, "... "]&,
 	cpPatterns]
 ];
 
@@ -356,7 +356,7 @@ FindVertexWithLorentzStructure[vertices_List, lorentz_Integer] :=
     vertices[[lorentz]];
 
 FindVertexWithLorentzStructure[vertices_List, lorentz_] :=
-    SingleCase[vertices, {_, str_ /; !FreeQ[str, lorentz]}];
+    Utils`SingleCase[vertices, {_, str_ /; !FreeQ[str, lorentz]}];
 
 simplifyContractionDispatch = Dispatch[{
     HoldPattern[
@@ -455,8 +455,8 @@ Block[{
     Fold[If[IsUnrotated[#2],
 	    RewriteUnrotatedField[
 		#1, lorentz, #2,
-		SingleCase[massMatrices,
-			   _[_,FieldHead@ToRotatedField[#2],z_] :> z]],
+		Utils`SingleCase[massMatrices,
+		        	  _[_,FieldHead@ToRotatedField[#2],z_] :> z]],
 	    #1]&,
 	 vertex, RestoreBarOnMajorana[uFields, lorentz]]
 ];
@@ -468,7 +468,7 @@ RestoreBarOnMajorana[uFields_List, LorentzProduct[gamma[_], PL|PR]] :=
     RestoreBarOnMajoranaUntil[1, uFields];
 
 RestoreBarOnMajoranaUntil[lastPos_Integer, uFields_List] :=
-MapIndexed[If[First[#2] <= lastPos && MajoranaQ@FieldHead@ToRotatedField[#1],
+MapIndexed[If[First[#2] <= lastPos && TreeMasses`IsMajoranaFermion @FieldHead@ToRotatedField[#1],
 	      SARAH`bar[#1], #1]&,
 	   uFields];
 
@@ -634,7 +634,7 @@ StripLorentzIndices[Susyno`LieGroups`conj[p_]] := Susyno`LieGroups`conj[StripLor
 StripLorentzIndices[p_] := StripSelectedFieldIndices[p, Parameters`IsLorentzIndex];
 
 ColorIndexRange[colorIndex_, fields_] :=
-    SingleCase[
+    Utils`SingleCase[
 	SARAH`getIndizesWI[First @ Select[fields, !FreeQ[#, colorIndex] &]],
 	{color, n_} :> n];
 

@@ -27,6 +27,8 @@ FSMassMatrix::usage="Head of a mass matrix";
 ConvertSarahMassMatrices::usage="creates list of mass matrices using
 SARAH's MassMatrix[] function";
 
+FixDiagonalization::usage="";
+
 GetUnmixedParticleMasses::usage="returns list of masses of unmixed
  particles";
 
@@ -865,6 +867,37 @@ ConvertSarahMassMatrices[] :=
            result = DeleteDuplicateVectors[result];
            Return[result];
           ];
+
+IsMajoranaMass[FSMassMatrix[_, _?IsMajoranaFermion, _]] := True;
+
+IsMajoranaMass[_FSMassMatrix] := False;
+
+IsMajoranaMassMatrix[FSMassMatrix[_?MatrixQ, _, _]?IsMajoranaMass] := True;
+
+IsMajoranaMassMatrix[_FSMassMatrix] := False;
+
+FixDiagonalization[massMatrices_List] := FixDiagonalization /@ massMatrices;
+
+(*
+   Diagonalization conventions of SARAH:
+
+      SVD: m = u^T diag v,
+	where u and v are the 1st and the 2nd mixing matrices from
+	DEFINITION[_][MatterSector]
+
+      hermitian: m = z^dagger diag z
+
+   According to the SARAH documentation, the specification of the
+   neutraliino mass matrix is indistinguishable from that of a
+   hermitian matrix even though it must be diagonalized as
+
+      symmetric: m = u^T diag u
+
+   This leads to the following amendment:
+ *)
+FixDiagonalization[FSMassMatrix[m_, f_, z_Symbol]?MajoranaMassMatrixQ] := FSMassMatrix[m, f, {z, z}];
+
+FixDiagonalization[m_FSMassMatrix] := m;
 
 (* returns masses of unmixed particles *)
 GetUnmixedParticleMasses[] :=

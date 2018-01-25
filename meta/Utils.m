@@ -72,6 +72,10 @@ Out[]= {\"a_d\", \"b_e\"}}
 SplitList::usage = "split list into list of sub-lists of given maximum
  size";
 
+
+SingleCase::usage = "return only the first case satisfying the given
+pattern";
+
 ForceJoin::usage = "Joins the given arguments if they are lists.";
 
 FSGetOption::usage = "Returns the value of an option from a list of
@@ -126,6 +130,11 @@ UpdateProgressBar::usage = "updates progress indicator.";
 
 StopProgressBar::usage = "stops progress bar.";
 
+Done::usage = "Print given message and time taken to evaluate given expression";
+
+DoneLn::usage = "Print given message and time taken to evaluate given expression
+on a single line";
+
 FSColor::usage = "Default FlexibleSUSY color";
 
 FSFancyPrint::usage = "Print text in fancy headline style";
@@ -179,6 +188,13 @@ SplitList[lst_List, size_Integer] :=
            result
           ];
 
+SingleCase[args__] := Module[{
+	cases = Cases[args]
+    },
+    Assert[Length[cases] === 1];
+    First[cases]
+];
+
 FSGetOption[opts_List, opt_] :=
     Module[{values},
            values = Cases[opts, (Rule[opt, value_] | RuleDelayed[opt, value_]) :> value];
@@ -230,6 +246,30 @@ MaxRelDiff[{a_, b_}, underflow_:10^(-16)] :=
 
 MaxRelDiff[numbers_List, underflow_:10^(-16)] :=
     Max[MaxRelDiff[#,underflow]& /@ Tuples[numbers, 2]];
+
+SetAttributes[Done, HoldFirst];
+
+Done[exp_, msg__] := Module[{
+	result,
+	time
+    },
+    WriteString["stdout", msg];
+    result = Timing[exp];
+    If[(time = Round[First[result] 1*^3]) === 0,
+       time = ToString[Round[First[result] 1*^6]] <> " us",
+       time = ToString[time] <> " ms"];
+    WriteString["stdout", time];
+    Last[result]
+];
+
+SetAttributes[DoneLn, HoldFirst];
+
+DoneLn[exp_, msg__] := Module[{
+	result = Done[exp, msg]
+    },
+    WriteString["stdout", "\n"];
+    result
+];
 
 StartProgressBar[dyn:Dynamic[x_], total_, len_:50] :=
     If[$Notebooks,
