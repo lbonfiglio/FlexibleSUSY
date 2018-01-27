@@ -145,7 +145,9 @@ list(APPEND LIBFLEXI_HDR
 
 add_library(flexisusy ${LIBFLEXI_SRC})
 
-target_link_libraries(flexisusy Eigen3::Eigen)
-target_link_libraries(flexisusy config)
+target_link_libraries(flexisusy
+  Eigen3::Eigen
+  FlexibleSUSY::config
+  FlexibleSUSY::slhaea)
 
 add_library(FlexibleSUSY::flexisusy ALIAS flexisusy)

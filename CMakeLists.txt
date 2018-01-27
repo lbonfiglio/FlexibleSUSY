@@ -15,4 +15,5 @@ find_package(Boost 1.37.0 REQUIRED)
 find_package(Eigen3 3.1 REQUIRED NO_MODULE)
 
 add_subdirectory(config)
+add_subdirectory(slhaea)
 add_subdirectory(src)
