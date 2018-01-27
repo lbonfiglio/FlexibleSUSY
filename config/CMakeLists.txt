@@ -1,5 +1,8 @@
 string(TIMESTAMP DATE "%a %d %b %Y %H:%M:%SZ UTC" UTC)
 
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
+
 configure_file(config_cmake.h.in config.h)
 
 add_library(config INTERFACE)
