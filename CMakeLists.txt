@@ -10,7 +10,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FlexibleSUSYBuildOptions)
 
-find_package(Mathematica 7.0 REQUIRED)
+if (ENABLE_META)
+  find_package(Mathematica 7.0 REQUIRED)
+endif()
+
 find_package(Boost 1.37.0 REQUIRED)
 find_package(Eigen3 3.1 REQUIRED NO_MODULE)
 
