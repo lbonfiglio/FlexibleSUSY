@@ -146,7 +146,6 @@ list(APPEND LIBFLEXI_HDR
 add_library(flexisusy ${LIBFLEXI_SRC})
 
 target_link_libraries(flexisusy Eigen3::Eigen)
-target_include_directories(flexisusy PUBLIC
-  "${CMAKE_BINARY_DIR}/config")
+target_link_libraries(flexisusy config)
 
 add_library(FlexibleSUSY::flexisusy ALIAS flexisusy)
