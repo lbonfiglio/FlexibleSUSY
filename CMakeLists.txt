@@ -10,13 +10,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FlexibleSUSYBuildOptions)
 
-if (ENABLE_META)
+if(ENABLE_META)
   find_package(Mathematica 7.0 REQUIRED)
 endif()
 
-find_package(Boost 1.37.0 REQUIRED)
-find_package(Eigen3 3.1 REQUIRED NO_MODULE)
+if(ENABLE_COMPILE)
+  find_package(Boost 1.37.0 REQUIRED)
+  find_package(Eigen3 3.1 REQUIRED NO_MODULE)
+endif()
 
 add_subdirectory(config)
-add_subdirectory(slhaea)
-add_subdirectory(src)
+
+if(ENABLE_COMPILE)
+  add_subdirectory(slhaea)
+  add_subdirectory(src)
+endif()
