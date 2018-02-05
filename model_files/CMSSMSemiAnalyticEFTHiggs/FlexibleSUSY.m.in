@@ -52,7 +52,9 @@ SUSYScale = Sqrt[Product[M[Su[i]]^(Abs[ZU[i,3]]^2 + Abs[ZU[i,6]]^2), {i,6}]];
 SUSYScaleFirstGuess = Sqrt[14 m12^2 - 3 m12 Azero + Azero^2];
 
 SUSYScaleInput = {
-   {\[Mu], MuInput}
+   {\[Mu], MuInput},
+   {vu, Sqrt[vu^2 + vd^2] Sin[ArcTan[TanBeta]]},
+   {vd, Sqrt[vu^2 + vd^2] Cos[ArcTan[TanBeta]]}
 };
 
 HighScale = g1 == g2;
