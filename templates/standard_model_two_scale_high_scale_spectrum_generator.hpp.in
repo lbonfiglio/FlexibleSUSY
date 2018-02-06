@@ -28,8 +28,6 @@
 #include "@ModelName@_input_parameters.hpp"
 #include "standard_model_two_scale_model.hpp"
 
-#include "two_scale_solver.hpp"
-
 namespace softsusy { class QedQcd; }
 
 namespace flexiblesusy {
