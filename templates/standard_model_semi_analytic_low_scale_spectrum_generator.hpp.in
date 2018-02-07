@@ -36,7 +36,8 @@ class Two_scale;
 
 template <>
 class @ModelName@_spectrum_generator<Semi_analytic>
-   : public @ModelName@_spectrum_generator_interface<Semi_analytic> {
+   : public @ModelName@_spectrum_generator_interface<
+      Semi_analytic, standard_model::StandardModel<Two_scale> > {
 public:
    @ModelName@_spectrum_generator() = default;
    virtual ~@ModelName@_spectrum_generator() = default;
@@ -60,7 +61,6 @@ protected:
    virtual void run_except(const softsusy::QedQcd&, const @ModelName@_input_parameters&) override;
 
 private:
-   standard_model::StandardModel<Two_scale> eft{};
    double susy_scale{0.};
    double low_scale{0.};
 
