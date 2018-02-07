@@ -2606,3 +2606,721 @@ lambda2LPhiHSSAlphaBAlphaSDegenerateSquark = With[{
        3*MS2^3*(-g + MS2)*Log[q2])) + 24*g^(3/2)*MS2^3*(Sqrt[g] - 2*sgn*Xb)*
     PolyLog[2, 1 - g/MS2]))/(3*(g - MS2)^2*MS2^3)
 ];
+
+(* convert Piecewise to Which statement *)
+PiecewiseToWhich[conds_List] := 
+    Sequence @@ (Sequence @@@ (Reverse /@ conds));
+
+PiecewiseToWhich[HoldPattern[Piecewise[conds_List, default_]]] :=
+    Which[Evaluate@PiecewiseToWhich[conds], True, default];
+
+PiecewiseToWhich[expr_] := expr;
+
+(* shift DR -> OS at O(at*as), from SUSYHD 1.1 *)
+lambda2LDRtoOSAtAs = With[{
+    gt = Yu[3,3],
+    mtilde = SCALE,
+    mQ3 = Sqrt[Abs[msq2[3,3]]],
+    mU3 = Sqrt[Abs[msu2[3,3]]],
+    Xt = xt,
+    M3 = M3Input
+    },
+    (
+    g3^2 gt^4 With[{\[Delta] = 
+    8.5 10^-2, \[Delta]2 = 1 10^-2}, 
+  Piecewise[{{shiftDROS\[Alpha]t\[Alpha]Sdegenerate[mtilde, mQ3, Xt], 
+     Abs[mQ3/mU3 - 1] < \[Delta]2 && Abs[M3/mU3 - 1] < \[Delta]2 && 
+      Abs[M3/mQ3 - 1] < \[Delta]2}, {Re[
+        shiftDROS\[Alpha]t\[Alpha]Sgeneral[1. mtilde, 
+         mU3 (1 + \[Delta]), mU3, Xt , M3]] (mQ3 - 
+         mU3 (1 - \[Delta]))/(2 mU3 \[Delta]) + 
+      Re[shiftDROS\[Alpha]t\[Alpha]Sgeneral[1. mtilde, 
+         mU3 (1 - \[Delta]), mU3, Xt , M3]] (1 - (
+         mQ3 - mU3 (1 - \[Delta]))/(2 mU3 \[Delta])), 
+     Abs[mQ3/mU3 - 1] < \[Delta]},
+    {Re[shiftDROS\[Alpha]t\[Alpha]Sgeneral[1. mtilde, mQ3, mU3, Xt , 
+         mQ3 (1 + \[Delta])]] (M3 - mQ3 (1 - \[Delta]))/(
+       2 mQ3 \[Delta]) + 
+      Re[shiftDROS\[Alpha]t\[Alpha]Sgeneral[1. mtilde, mQ3, mU3, Xt , 
+         mQ3 (1 - \[Delta])]] (1 - (M3 - mQ3 (1 - \[Delta]))/(
+         2 mQ3 \[Delta])), Abs[mQ3/M3 - 1] < \[Delta]},
+    {Re[shiftDROS\[Alpha]t\[Alpha]Sgeneral[1. mtilde, mQ3, mU3, Xt , 
+         mU3 (1 + \[Delta])]] (M3 - mU3 (1 - \[Delta]))/(
+       2 mU3 \[Delta]) + 
+      Re[shiftDROS\[Alpha]t\[Alpha]Sgeneral[1. mtilde, mQ3, mU3, Xt , 
+         mU3 (1 - \[Delta])]] (1 - (M3 - mU3 (1 - \[Delta]))/(
+         2 mU3 \[Delta])), Abs[mU3/M3 - 1] < \[Delta]}}, 
+   Re[shiftDROS\[Alpha]t\[Alpha]Sgeneral[mtilde, 1. mQ3, mU3, Xt , 
+     M3]]]]
+    ) /. a:Piecewise[__] :> PiecewiseToWhich[a]
+    ];
+
+(* shift DR -> OS at O(at*as), general expression, from SUSYHD 1.1 *)
+shiftDROS\[Alpha]t\[Alpha]Sgeneral[mtilde_, mQ3_, mU3_, QXt_, M3_] := 
+ Re@ Block[{x1 = (mQ3)^2/M3^2, x2 = (mU3)^2/M3^2, xt = QXt/M3, 
+            xs = mtilde^2/M3^2}, 
+    (
+   1/(64 \[Pi]^4) (-((
+       2 ((-1 + x1)^2 ComplexLog[1 - x1] + 
+          x1 (3 + x1 - (-2 + x1) Log[x1] + 2 Log[xs/x1])))/x1^2) - (
+      2 ((-1 + x2)^2 ComplexLog[1 - x2] + 
+         x2 (3 + x2 - (-2 + x2) Log[x2] + 2 Log[xs/x2])))/x2^2 + 
+      1/(x1^2 x2^2)
+        xt (1/(x1 - 
+            x2)^3 x1^2 x2^2 (2 (x1 - x2) xt^2 + (2 x1^2 + 
+               x2 (2 x2 - xt^2) - x1 (4 x2 + xt^2)) Log[x1/x2]) (-((
+             4 xt^2 (x1 (-1 + x2) Log[x1] - (-1 + x1) x2 Log[
+                  x2]))/((-1 + x1) (x1 - x2) (-1 + x2))) + 
+            1/(x1 - x2)
+              xt (-7 x1 + x1/(-1 + x1) + x1/(-1 + x2) + 7 x2 + x2/(
+               1 - x1) + x2/(1 - x2) - (4 (-1 + x1)^2 ComplexLog[1 - x1])/
+               x1 + ((-x1 + x2) Log[x1])/(-1 + x1)^2 - 
+               8 ComplexLog[1 - x2] + (4 ComplexLog[1 - x2])/x2 + 
+               4 x2 ComplexLog[1 - x2] - (x1 Log[x2])/(-1 + x2)^2 + (
+               x2 Log[x2])/(-1 + x2)^2 + 9 x1 Log[x1/xs] - 
+               x2 Log[x1/xs] + x1 Log[x2/xs] - 9 x2 Log[x2/xs] + 
+               4 x1 Log[xs] - 4 x2 Log[xs]) - (
+            4 ((-1 + x1) x2 ComplexLog[1 - x1] + 
+               x1 ((-1 + x2) ComplexLog[1 - x2] - 2 x2 (2 + Log[xs]))))/(
+            x1 x2) + (
+            xt ((-1 + x1)^2 ComplexLog[1 - x1] + 
+               x1 (3 + x1 - (-2 + x1) Log[x1] + 2 Log[xs/x1])))/
+            x1^2 + (
+            xt ((-1 + x2)^2 ComplexLog[1 - x2] + 
+               x2 (3 + x2 - (-2 + x2) Log[x2] + 2 Log[xs/x2])))/
+            x2^2) + 
+         xt (1/(x1 - x2)^2 2 (-2 x1 + 
+               2 x2 + (x1 + x2) Log[x1/x2]) ((-1 + x1)^2 x2^2 ComplexLog[
+                 1 - x1] - 
+               x1 ((-2 + x1) x2^2 Log[x1] + 
+                  x1 (-1 + x2)^2 ComplexLog[1 - x2] + 
+                  x2 (3 x1 - 3 x2 - x1 (-2 + x2) Log[x2] - 
+                    2 x2 Log[xs/x1] + 2 x1 Log[xs/x2]))) + 
+            x1^2 xt (1/(x1^2 (x1 - x2)^3)
+                 2 xt (-x1 + x2 + 
+                  x1 Log[x1/x2]) ((-1 + x1)^2 x2^2 ComplexLog[1 - x1] - 
+                  x1 ((-2 + x1) x2^2 Log[x1] + 
+                    x1 (-1 + x2)^2 ComplexLog[1 - x2] + 
+                    x2 (3 x1 - 3 x2 - x1 (-2 + x2) Log[x2] - 
+                    2 x2 Log[xs/x1] + 2 x1 Log[xs/x2]))) - 
+               1/((-1 + x1/x2)^4 x2) (-2 x1 + 
+                  2 x2 + (x1 + x2) Log[x1/
+                    x2]) ((-1 + x1/
+                    x2) (-((
+                    4 xt^2 (x1 (-1 + x2) Log[x1] - (-1 + x1) x2 Log[
+                    x2]))/((-1 + x1) (x1 - x2) (-1 + x2))) + 
+                    1/(x1 - x2)
+                     xt (-7 x1 + x1/(-1 + x1) + x1/(-1 + x2) + 7 x2 + 
+                    x2/(1 - x1) + x2/(1 - x2) - (
+                    4 (-1 + x1)^2 ComplexLog[1 - x1])/
+                    x1 + ((-x1 + x2) Log[x1])/(-1 + x1)^2 - 
+                    8 ComplexLog[1 - x2] + (4 ComplexLog[1 - x2])/x2 + 
+                    4 x2 ComplexLog[1 - x2] - (x1 Log[x2])/(-1 + x2)^2 + (
+                    x2 Log[x2])/(-1 + x2)^2 + 9 x1 Log[x1/xs] - 
+                    x2 Log[x1/xs] + x1 Log[x2/xs] - 9 x2 Log[x2/xs] + 
+                    4 x1 Log[xs] - 4 x2 Log[xs]) - (
+                    4 ((-1 + x1) x2 ComplexLog[1 - x1] + 
+                    x1 ((-1 + x2) ComplexLog[1 - x2] - 
+                    2 x2 (2 + Log[xs]))))/(x1 x2) - (
+                    xt ((-1 + x1)^2 ComplexLog[1 - x1] + 
+                    x1 (3 + x1 - (-2 + x1) Log[x1] + 2 Log[xs/x1])))/
+                    x1^2 + (
+                    3 xt ((-1 + x2)^2 ComplexLog[1 - x2] + 
+                    x2 (3 + x2 - (-2 + x2) Log[x2] + 2 Log[xs/x2])))/
+                    x2^2) + 
+                  1/(x1 x2^3)
+                    6 xt ((-1 + x1)^2 x2^2 ComplexLog[1 - x1] - 
+                    x1 ((-2 + x1) x2^2 Log[x1] + 
+                    x1 (-1 + x2)^2 ComplexLog[1 - x2] + 
+                    x2 (3 x1 - 3 x2 - x1 (-2 + x2) Log[x2] - 
+                    2 x2 Log[xs/x1] + 2 x1 Log[xs/x2]))))))))
+    )
+];
+
+(* shift DR -> OS at O(at*as), degenerate masses, from SUSYHD 1.1 *)
+shiftDROS\[Alpha]t\[Alpha]Sdegenerate[mtilde_, M3_, Xt_] := 
+ Re@ Block[{xt = Xt/M3, xs = mtilde^2/M3^2},
+           ((2 + xt)^2 (-6 + 18 xt - 9 xt^2 + xt^3) + (-12 + 24 xt - 
+           6 xt^2 - 4 xt^3 + xt^4) Log[xs])/(96 \[Pi]^4)];
+
+(* shift DR -> OS at O(at*at), general expression, from SUSYHD 1.1 *)
+lambda2LDRtoOSAtAt = With[{
+    gt = Yu[3,3],
+    Q = SCALE,
+    mst = Sqrt[Sqrt[msq2[3,3] msu2[3,3]]],
+    \[Mu] = MuInput,
+    tan\[Beta] = TanBeta,
+    Xt = xt,
+    \[Delta] = 10^-5
+    },
+    (
+    gt^6 Block[{\[Beta] = ArcTan[tan\[Beta]], xt = Xt/mst, 
+    yt = Xt/mst + (2 \[Mu])/(mst Sin[2 ArcTan[tan\[Beta]]]), 
+    x\[Mu] = (\[Mu])^2/mst^2, xq = Q^2/mst^2},
+   Sin[\[Beta]]^-2 (1/(
+       1024 \[Pi]^4) (-36 - 36 xt^2 + 6 xt^4 + 72 x\[Mu] - 
+         72 xt^2 x\[Mu] + 12 xt^4 x\[Mu] - 36 x\[Mu]^2 + 
+         108 xt^2 x\[Mu]^2 - 18 xt^4 x\[Mu]^2) log[1 - x\[Mu]] + 
+      1/(1024 \[Pi]^4) (108 - 54 xt^2 + 9 xt^4 - 108 x\[Mu] + 
+         180 xt^2 x\[Mu] - 30 xt^4 x\[Mu] - 
+         6 xt^2 (-6 + xt^2) x\[Mu] f2[Sqrt[x\[Mu]]] + 
+         3 (-24 (-1 + x\[Mu]) + 12 xt^2 (3 + 2 x\[Mu]) - 
+            2 xt^4 (3 + 2 x\[Mu])) Log[xq] + 
+         Cos[\[Beta]]^2 (36 - 48 (-6 + Sqrt[3] \[Pi]) xt yt + 
+            8 (-6 + Sqrt[3] \[Pi]) xt^3 yt + 72 yt^2 - 
+            12 Sqrt[3] \[Pi] yt^2 + 
+            xt^4 (9 - 2 (-6 + Sqrt[3] \[Pi]) yt^2) + 
+            6 xt^2 (-9 + 2 (-6 + Sqrt[3] \[Pi]) yt^2) + 
+            6 (24 xt yt - 4 xt^3 yt + 6 (1 + yt^2) - 
+               6 xt^2 (2 + yt^2) + xt^4 (2 + yt^2)) Log[xq]) + 
+         36 x\[Mu]^2 Log[x\[Mu]] - 108 xt^2 x\[Mu]^2 Log[x\[Mu]] + 
+         18 xt^4 x\[Mu]^2 Log[x\[Mu]] + 
+         6 xt^2 (30 - 10 xt^2 + xt^4) (2 + Log[xq]) Sin[\[Beta]]^2))]
+    ) /. {
+        a:log[_] :> FiniteLog[a],
+        f2[\[Mu]_] :> Piecewise[{{1/2, Abs[\[Mu]^2 - 1] < \[Delta]}}, 
+                                1/(1 - \[Mu]^2) (1 + \[Mu]^2/(1 - \[Mu]^2) Log[\[Mu]^2])]
+    } /. Piecewise[{{val_, cond_}}, default_] :> If[cond, val, default]
+    ];
+
+replaceThresholdLoopFunctions = {
+    ftilde1 -> TCF[1],
+    ftilde2 -> TCF[2],
+    ftilde3 -> TCF[3],
+    ftilde4 -> TCF[4],
+    ftilde5 -> TCF[5],
+    ftilde6 -> TCF[6],
+    ftilde7 -> TCF[7],
+    ftilde8 -> TCF[8],
+    ftilde9 -> TCF[9]
+};
+
+(* 2-loop shift O(at*as) when re-parametrizing 1-loop contribution in terms of yt^MSSM *)
+lambda2LAtAsYtShift = With[{
+    gt = Yu[3,3],
+    Q2 = SCALE^2,
+    MQ32 = msq2[3,3],
+    MU32 = msu2[3,3],
+    mu2 = MuInput^2,
+    M32 = M3Input^2,
+    Xt = xt,
+    cosbeta = Cos[ArcTan[TanBeta]],
+    sinbeta = Sin[ArcTan[TanBeta]]
+    },
+    computeStopShift[] := Module[{oneLoopStop,deltagtrengs,oneLoopStopShift,oneloopStopShiftExp,deltagtphigs},
+	oneLoopStop = gt^4/(4*Pi)^2*(3*Log[MQ3^2/Q2]+3*Log[MU3^2/Q2]+6*Xtildet*(ftilde1[MQ3/MU3]-Xtildet/12*ftilde2[MQ3/MU3])) /. {Xtildet-> Xt^2/(MQ3*MU3)};
+	deltagtphigs = 1/(4*Pi)^2*(-4/3)*g3^2*(Log[M3^2/Q2]+ftilde6[MQ3/M3]+ftilde6[MU3/M3]-Xt/M3*ftilde9[MQ3/M3,MU3/M3]);
+	deltagtrengs = -4/3*g3^2*1/(4*Pi)^2;
+	oneLoopStopShift = oneLoopStop /. {gt -> gt*(1+deltagtphigs+deltagtrengs)} /. {MU3->Sqrt[MU32], MQ3-> Sqrt[MQ32], M3-> Sqrt[M32]};
+	oneloopStopShiftExp = g3^2*Collect[Normal[SeriesCoefficient[Series[oneLoopStopShift,{g3,0,2}],2]], gt, (Collect[#,g3, Collect[#,Pi,Collect[#,Log[_],Simplify]&]&])&];
+	oneloopStopShiftExp
+    ];
+    -computeStopShift[] /. replaceThresholdLoopFunctions
+    ];
+
+(* 2-loop shift O(at^2) when re-parametrizing 1-loop contribution in terms of yt^MSSM *)
+lambda2LAtAtYtShift = With[{
+    gt = Yu[3,3],
+    Q2 = SCALE^2,
+    MQ32 = msq2[3,3],
+    MU32 = msu2[3,3],
+    mu2 = MuInput^2,
+    M32 = M3Input^2,
+    ma2 = mAInput^2,
+    Xt = xt,
+    cosbeta = Cos[ArcTan[TanBeta]],
+    sinbeta = Sin[ArcTan[TanBeta]],
+    k = 1/(4 Pi)^2
+    },
+    computegtStopShift[] := Module[{oneLoopStop,oneLoopStopShift,oneloopStopShiftExp,deltagtphigt},
+	oneLoopStop = gt^4*k*(3*Log[MQ3^2/Q2]+3*Log[MU3^2/Q2]+6*Xtildet*(ftilde1[MQ3/MU3]-Xtildet/12*ftilde2[MQ3/MU3])) /. {Xtildet-> Xt^2/(MQ3*MU3)};
+	deltagtphigt = k*(-1)*gt^2*( 3/(4*(sinbeta)^2)*Log[mu2/Q2]+3/8*(cosbeta/sinbeta)^2*(2*Log[ma2/Q2]-1)-Xtildet/4*ftilde5[MQ3/MU3] 
+										 +1/(sinbeta)^2*ftilde6[MQ3/mu]+1/(2*(sinbeta)^2)*ftilde6[MU3/mu]) /. {Xtildet-> Xt^2/(MQ3*MU3)};
+	oneLoopStopShift = oneLoopStop /. {gt -> gt*(1+deltagtphigt)} /. {MU3->Sqrt[MU32], MQ3-> Sqrt[MQ32], M3-> Sqrt[M32],mu->Sqrt[mu2]};
+	oneloopStopShiftExp = gt^6*Collect[Normal[SeriesCoefficient[Series[oneLoopStopShift,{gt,0,6}],6]], gt, (Collect[#,gt, Collect[#,Pi,Collect[#,Log[_],Simplify]&]&])&];
+	oneloopStopShiftExp
+    ];
+    -computegtStopShift[] /. replaceThresholdLoopFunctions
+    ];
+
+(* 3-loop shift O(at*as^2) when re-parametrizing 1- and 2-loop contribution 
+   in terms of yt^MSSM and g3^MSSM
+   [degenerate mass case]
+ *)
+lambda3LAtAsAsYtShiftDeg = With[{
+    MR = SCALE,
+    MS = Sqrt[msq2[3,3]],
+    Xt = xt
+    },
+    1/2 g3^4 Yu[3, 3]^4/(4 Pi)^6 (
+    -2*((1/2 + 2*(-4/3 + (4*Xt)/(3*MS) - (4*Log[MS^2/MR^2])/3) - 
+    2*Log[MS^2/MR^2])*((-64*Xt)/MS - (32*Xt^2)/MS^2 + (224*Xt^3)/(3*MS^3) + 
+    (8*Xt^4)/(3*MS^4) - (16*Xt^5)/(3*MS^5) + 
+    ((128*Xt)/MS - (128*Xt^2)/MS^2 - (64*Xt^3)/(3*MS^3) + (16*Xt^4)/(3*MS^4))*
+     Log[MS^2/MR^2] - 96*Log[MS^2/MR^2]^2) + 
+  ((12*Xt^2)/MS^2 - Xt^4/MS^4 + 12*Log[MS^2/MR^2])*
+   (3*(-4/3 + (4*Xt)/(3*MS) - (4*Log[MS^2/MR^2])/3)^2 + 
+    2*(-2075/54 + (356*Xt)/(27*MS) + (16*Xt^2)/(9*MS^2) + 
+      (-670/27 - (208*Xt)/(27*MS))*Log[MS^2/MR^2] + (2*Log[MS^2/MR^2]^2)/9)))
+    )
+    ];
+
+(* 3-loop shift O(at*as^2) when re-parametrizing 1- and 2-loop contribution
+   in terms of yt^MSSM
+   [general mass case]
+ *)
+lambda3LAtAsAsYtShift = With[{
+    MR = SCALE,
+    mQ3 = Sqrt[msq2[3,3] (1 + 0.02)],
+    mU3 = Sqrt[msu2[3,3] (1 - 0.02)],
+    m3  = M3Input,
+    msq = (msq2[1,1] msu2[1,1] msd2[1,1]
+           msq2[2,2] msu2[2,2] msd2[2,2])^(1/12),
+    Xt = xt
+    },
+    1/2 g3^4 Yu[3, 3]^4/(4 Pi)^6 (
+    -2*((1/2 - Log[m3^2/MR^2] + (-Log[mQ3^2/MR^2] - 10*Log[msq^2/MR^2] - 
+      Log[mU3^2/MR^2])/12 + 2*((2*m3^4)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) - 
+      (2*mQ3^2*mU3^2)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) + 
+      ((-2*(2*m3^8 - 2*m3^6*mQ3^2 + m3^4*mQ3^4 - 2*m3^6*mU3^2 + m3^4*mU3^4))/
+         (3*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) + (8*m3^3*Xt)/
+         (3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)))*Log[m3^2/MR^2] + 
+      ((4*m3^2*mQ3^2)/(3*(m3^2 - mQ3^2)^2) - (2*mQ3^4)/(3*(m3^2 - mQ3^2)^2) - 
+        (8*m3*mQ3^2*Xt)/(3*(m3^2 - mQ3^2)*(mQ3^2 - mU3^2)))*Log[mQ3^2/MR^2] + 
+      ((4*m3^2*mU3^2)/(3*(m3^2 - mU3^2)^2) - (2*mU3^4)/(3*(m3^2 - mU3^2)^2) - 
+        (8*m3*mU3^2*Xt)/(3*(m3^2 - mU3^2)*(-mQ3^2 + mU3^2)))*
+       Log[mU3^2/MR^2]))*
+   ((16*(-2*m3^6*mQ3^2 + 2*m3^4*mQ3^4 - 2*m3^6*mU3^2 + 9*m3^4*mQ3^2*mU3^2 - 
+       6*m3^2*mQ3^4*mU3^2 + 2*m3^4*mU3^4 - 6*m3^2*mQ3^2*mU3^4 + 
+       3*mQ3^4*mU3^4))/(mQ3^2*(-m3^2 + mQ3^2)*mU3^2*(m3^2 - mU3^2)) - 
+    (64*m3^2*Xt^2)/(mQ3^2*mU3^2) - (512*m3*Xt^3)/(mQ3^2 - mU3^2)^2 + 
+    (32*(-(m3^6*mQ3^2) + m3^4*mQ3^4 - m3^6*mU3^2 - 5*m3^4*mQ3^2*mU3^2 + 
+       5*m3^2*mQ3^4*mU3^2 + m3^4*mU3^4 + 5*m3^2*mQ3^2*mU3^4 - 5*mQ3^4*mU3^4)*
+      Xt^4)/(mQ3^2*(-m3^2 + mQ3^2)*mU3^2*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^2) + 
+    ((-16*(3*m3^4 - 4*m3^2*mQ3^2 + 2*mQ3^4))/(m3^2 - mQ3^2)^2 + 
+      (64*(2*m3^3 - m3*mQ3^2)*Xt)/((m3^2 - mQ3^2)*(mQ3^2 - mU3^2)) - 
+      (32*(4*mQ3^6 - 2*mQ3^4*mU3^2 + m3^4*(3*mQ3^2 - mU3^2) + 
+         m3^2*(-8*mQ3^4 + 4*mQ3^2*mU3^2))*Xt^2)/((m3^2 - mQ3^2)^2*
+        (mQ3^2 - mU3^2)^2) + (64*m3*(2*m3^4 - mQ3^4 + 3*mQ3^2*mU3^2 - 
+         m3^2*(3*mQ3^2 + mU3^2))*Xt^3)/((m3^2 - mQ3^2)*(mQ3^2 - mU3^2)^3) + 
+      (16*(5*mQ3^8 + 8*m3^4*mQ3^2*mU3^2 + 4*mQ3^6*mU3^2 - mQ3^4*mU3^4 + 
+         2*m3^6*(mQ3^2 - mU3^2) - 2*m3^2*(4*mQ3^6 + 5*mQ3^4*mU3^2 - 
+           mQ3^2*mU3^4))*Xt^4)/((m3^2 - mQ3^2)^2*(mQ3^2 - mU3^2)^4) + 
+      (64*m3*mQ3^2*(mQ3^2 + mU3^2)*Xt^5)/((m3^2 - mQ3^2)*(mQ3^2 - mU3^2)^4))*
+     Log[mQ3^2/MR^2]^2 + 
+    ((16*(7*m3^6 - 2*mQ3^2*mU3^4 - m3^4*(6*mQ3^2 + 7*mU3^2) + 
+         m3^2*(5*mQ3^2*mU3^2 + 3*mU3^4)))/((m3^2 - mQ3^2)*(m3^2 - mU3^2)^2) + 
+      (128*m3*Xt)/(mQ3^2 - mU3^2) - 
+      (32*(7*m3^4 + 3*mQ3^2*mU3^2 - 2*m3^2*(3*mQ3^2 + 2*mU3^2))*Xt^2)/
+       ((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)) - 
+      (128*m3*(mQ3^2 + 3*mU3^2)*Xt^3)/(mQ3^2 - mU3^2)^3 + 
+      (16*(4*m3^8 - 3*mQ3^2*mU3^4*(mQ3^2 + 5*mU3^2) + 
+         m3^6*(3*mQ3^2 + 7*mU3^2) - m3^4*(6*mQ3^4 + 15*mQ3^2*mU3^2 + 
+           29*mU3^4) + m3^2*(7*mQ3^4*mU3^2 + 31*mQ3^2*mU3^4 + 16*mU3^6))*
+        Xt^4)/((m3^2 - mQ3^2)*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)^3) - 
+      (128*m3*mU3^2*Xt^5)/((m3^2 - mU3^2)*(-mQ3^2 + mU3^2)^3))*
+     Log[mU3^2/MR^2] + ((-16*(3*m3^4 - 4*m3^2*mU3^2 + 2*mU3^4))/
+       (m3^2 - mU3^2)^2 + (64*(2*m3^3 - m3*mU3^2)*Xt)/
+       ((m3^2 - mU3^2)*(-mQ3^2 + mU3^2)) + 
+      (32*(m3^4*(mQ3^2 - 3*mU3^2) + 2*mU3^4*(mQ3^2 - 2*mU3^2) + 
+         m3^2*(-4*mQ3^2*mU3^2 + 8*mU3^4))*Xt^2)/((m3^2 - mU3^2)^2*
+        (mQ3^2 - mU3^2)^2) + (64*m3*(2*m3^4 + 3*mQ3^2*mU3^2 - mU3^4 - 
+         m3^2*(mQ3^2 + 3*mU3^2))*Xt^3)/((m3^2 - mU3^2)*(-mQ3^2 + mU3^2)^3) + 
+      (16*(8*m3^4*mQ3^2*mU3^2 - mQ3^4*mU3^4 + 4*mQ3^2*mU3^6 + 5*mU3^8 - 
+         2*m3^6*(mQ3^2 - mU3^2) + 2*m3^2*mU3^2*(mQ3^4 - 5*mQ3^2*mU3^2 - 
+           4*mU3^4))*Xt^4)/((m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)^4) + 
+      (64*m3*mU3^2*(mQ3^2 + mU3^2)*Xt^5)/((m3^2 - mU3^2)*(mQ3^2 - mU3^2)^4))*
+     Log[mU3^2/MR^2]^2 - 4*((2*m3^4)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) - 
+      (2*mQ3^2*mU3^2)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) + 
+      ((-2*(2*m3^8 - 2*m3^6*mQ3^2 + m3^4*mQ3^4 - 2*m3^6*mU3^2 + m3^4*mU3^4))/
+         (3*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) + (8*m3^3*Xt)/
+         (3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)))*Log[m3^2/MR^2] + 
+      ((4*m3^2*mQ3^2)/(3*(m3^2 - mQ3^2)^2) - (2*mQ3^4)/(3*(m3^2 - mQ3^2)^2) - 
+        (8*m3*mQ3^2*Xt)/(3*(m3^2 - mQ3^2)*(mQ3^2 - mU3^2)))*Log[mQ3^2/MR^2] + 
+      ((4*m3^2*mU3^2)/(3*(m3^2 - mU3^2)^2) - (2*mU3^4)/(3*(m3^2 - mU3^2)^2) - 
+        (8*m3*mU3^2*Xt)/(3*(m3^2 - mU3^2)*(-mQ3^2 + mU3^2)))*Log[mU3^2/MR^2])*
+     ((12*Xt^4)/(mQ3^2 - mU3^2)^2 + (6 + (12*Xt^2)/(mQ3^2 - mU3^2) + 
+        ((-6*mQ3^2)/(mQ3^2 - mU3^2)^3 - (6*mU3^2)/(mQ3^2 - mU3^2)^3)*Xt^4)*
+       Log[mQ3^2/MR^2] + (6 - (12*Xt^2)/(mQ3^2 - mU3^2) + 
+        ((6*mQ3^2)/(mQ3^2 - mU3^2)^3 + (6*mU3^2)/(mQ3^2 - mU3^2)^3)*Xt^4)*
+       Log[mU3^2/MR^2]) + Log[m3^2/MR^2]*
+     ((-16*m3^4*(2*m3^6*(mQ3^2 + mU3^2) + 2*m3^2*(mQ3^2 - mU3^2)^2*
+          (mQ3^2 + mU3^2) + m3^4*(-4*mQ3^4 + 2*mQ3^2*mU3^2 - 4*mU3^4) + 
+         mQ3^2*mU3^2*(mQ3^4 + mU3^4)))/(mQ3^2*(m3^2 - mQ3^2)^2*mU3^2*
+        (m3^2 - mU3^2)^2) + (64*m3^4*(-m3^2 + mQ3^2 + mU3^2)*Xt^2)/
+       (mQ3^2*(-m3^2 + mQ3^2)*mU3^2*(m3^2 - mU3^2)) - 
+      (32*m3^2*(m3^8*(mQ3^2 + mU3^2) + mQ3^4*mU3^4*(mQ3^2 + mU3^2) + 
+         m3^4*(mQ3^2 + mU3^2)^3 - 2*m3^6*(mQ3^4 + mQ3^2*mU3^2 + mU3^4) - 
+         m3^2*mQ3^2*mU3^2*(mQ3^4 + 4*mQ3^2*mU3^2 + mU3^4))*Xt^4)/
+       (mQ3^2*(m3^2 - mQ3^2)^2*mU3^2*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)^2) + 
+      (128*m3^3*Xt^5)/((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^2) + 
+      ((16*m3^4*(2*m3^2 - mQ3^2 - mU3^2)*(mQ3^2 - mU3^2))/
+         ((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) + 
+        (64*m3^3*(-2*m3^2 + mQ3^2 + mU3^2)*Xt)/((m3^2 - mQ3^2)*(m3^2 - mU3^2)*
+          (mQ3^2 - mU3^2)) - (32*m3^4*(2*m3^4 + mQ3^4 + mU3^4 - 
+           2*m3^2*(mQ3^2 + mU3^2))*Xt^2)/((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2*
+          (mQ3^2 - mU3^2)) - (128*m3^3*(2*m3^4 - mQ3^4 + 4*mQ3^2*mU3^2 - 
+           mU3^4 - 2*m3^2*(mQ3^2 + mU3^2))*Xt^3)/((m3^2 - mQ3^2)*
+          (m3^2 - mU3^2)*(mQ3^2 - mU3^2)^3) + 
+        (16*m3^4*(mQ3^2 + mU3^2)*(2*m3^4 + mQ3^4 + mU3^4 - 
+           2*m3^2*(mQ3^2 + mU3^2))*Xt^4)/((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2*
+          (mQ3^2 - mU3^2)^3) - (64*m3^3*(mQ3^2 + mU3^2)*Xt^5)/
+         ((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^3))*Log[mQ3^2/MR^2] + 
+      ((-16*m3^4*(2*m3^2 - mQ3^2 - mU3^2)*(mQ3^2 - mU3^2))/
+         ((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) + 
+        (64*m3^3*(2*m3^2 - mQ3^2 - mU3^2)*Xt)/((m3^2 - mQ3^2)*(m3^2 - mU3^2)*
+          (mQ3^2 - mU3^2)) + (32*m3^4*(2*m3^4 + mQ3^4 + mU3^4 - 
+           2*m3^2*(mQ3^2 + mU3^2))*Xt^2)/((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2*
+          (mQ3^2 - mU3^2)) + (128*m3^3*(2*m3^4 - mQ3^4 + 4*mQ3^2*mU3^2 - 
+           mU3^4 - 2*m3^2*(mQ3^2 + mU3^2))*Xt^3)/((m3^2 - mQ3^2)*
+          (m3^2 - mU3^2)*(mQ3^2 - mU3^2)^3) - 
+        (16*m3^4*(mQ3^2 + mU3^2)*(2*m3^4 + mQ3^4 + mU3^4 - 
+           2*m3^2*(mQ3^2 + mU3^2))*Xt^4)/((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2*
+          (mQ3^2 - mU3^2)^3) + (64*m3^3*(mQ3^2 + mU3^2)*Xt^5)/
+         ((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^3))*
+       Log[mU3^2/MR^2]) + Log[mQ3^2/MR^2]*
+     ((16*(7*m3^6 - 2*mQ3^4*mU3^2 - m3^4*(7*mQ3^2 + 6*mU3^2) + 
+         m3^2*(3*mQ3^4 + 5*mQ3^2*mU3^2)))/((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)) - 
+      (128*m3*Xt)/(mQ3^2 - mU3^2) + 
+      (32*(7*m3^4 + 3*mQ3^2*mU3^2 - 2*m3^2*(2*mQ3^2 + 3*mU3^2))*Xt^2)/
+       ((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)) + 
+      (128*m3*(3*mQ3^2 + mU3^2)*Xt^3)/(mQ3^2 - mU3^2)^3 - 
+      (16*(4*m3^8 - 3*mQ3^4*mU3^2*(5*mQ3^2 + mU3^2) + 
+         m3^6*(7*mQ3^2 + 3*mU3^2) - m3^4*(29*mQ3^4 + 15*mQ3^2*mU3^2 + 
+           6*mU3^4) + m3^2*(16*mQ3^6 + 31*mQ3^4*mU3^2 + 7*mQ3^2*mU3^4))*Xt^4)/
+       ((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^3) - 
+      (128*m3*mQ3^2*Xt^5)/((m3^2 - mQ3^2)*(mQ3^2 - mU3^2)^3) + 
+      ((16*(-2*mQ3^4*mU3^4 + 2*m3^6*(mQ3^2 + mU3^2) + 4*m3^2*mQ3^2*mU3^2*
+            (mQ3^2 + mU3^2) - m3^4*(mQ3^4 + 8*mQ3^2*mU3^2 + mU3^4)))/
+         ((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) - (64*m3^3*Xt)/
+         ((m3^2 - mQ3^2)*(m3^2 - mU3^2)) + 
+        (32*(2*m3^8*(mQ3^2 + mU3^2) + 2*mQ3^4*mU3^4*(mQ3^2 + mU3^2) - 
+           4*m3^2*mQ3^2*mU3^2*(mQ3^2 + mU3^2)^2 + 3*m3^4*(mQ3^2 + mU3^2)^3 - 
+           2*m3^6*(3*mQ3^4 + 2*mQ3^2*mU3^2 + 3*mU3^4))*Xt^2)/
+         ((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)^2) + 
+        (128*(-2*m3*mQ3^2*mU3^2 + m3^3*(mQ3^2 + mU3^2))*Xt^3)/
+         ((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^2) - 
+        (16*(mQ3^2 + mU3^2)*(4*m3^8*(mQ3^2 + mU3^2) + 4*mQ3^4*mU3^4*
+            (mQ3^2 + mU3^2) - 8*m3^2*mQ3^2*mU3^2*(mQ3^2 + mU3^2)^2 - 
+           2*m3^6*(5*mQ3^4 + 6*mQ3^2*mU3^2 + 5*mU3^4) + 
+           m3^4*(5*mQ3^6 + 19*mQ3^4*mU3^2 + 19*mQ3^2*mU3^4 + 5*mU3^6))*Xt^4)/
+         ((m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)^4) - 
+        (64*m3*(mQ3^2 + mU3^2)*(-2*mQ3^2*mU3^2 + m3^2*(mQ3^2 + mU3^2))*Xt^5)/
+         ((m3^2 - mQ3^2)*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)^4))*
+       Log[mU3^2/MR^2]) + ((-64*m3^4)/(-m3^2 + mQ3^2)^2 + 
+      (256*m3^3*Xt)/((m3^2 - mQ3^2)*(mQ3^2 - mU3^2)) + 
+      (128*m3*(2*m3^2 - mQ3^2 - mU3^2)*Xt^3)/(mQ3^2 - mU3^2)^3 - 
+      (32*(-2*m3^2 + mQ3^2 + mU3^2)*Xt^4)/(mQ3^2 - mU3^2)^3)*
+     PolyLog[2, 1 - m3^2/mQ3^2] + ((-64*m3^4)/(m3^2 - mU3^2)^2 + 
+      (256*m3^3*Xt)/((m3^2 - mU3^2)*(-mQ3^2 + mU3^2)) + 
+      (128*m3*(-2*m3^2 + mQ3^2 + mU3^2)*Xt^3)/(mQ3^2 - mU3^2)^3 + 
+      (32*(-2*m3^2 + mQ3^2 + mU3^2)*Xt^4)/(mQ3^2 - mU3^2)^3)*
+     PolyLog[2, 1 - m3^2/mU3^2]) + 
+  ((12*Xt^4)/(mQ3^2 - mU3^2)^2 + (6 + (12*Xt^2)/(mQ3^2 - mU3^2) + 
+      ((-6*mQ3^2)/(mQ3^2 - mU3^2)^3 - (6*mU3^2)/(mQ3^2 - mU3^2)^3)*Xt^4)*
+     Log[mQ3^2/MR^2] + (6 - (12*Xt^2)/(mQ3^2 - mU3^2) + 
+      ((6*mQ3^2)/(mQ3^2 - mU3^2)^3 + (6*mU3^2)/(mQ3^2 - mU3^2)^3)*Xt^4)*
+     Log[mU3^2/MR^2])*(3*((2*m3^4)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) - 
+       (2*mQ3^2*mU3^2)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) + 
+       ((-2*(2*m3^8 - 2*m3^6*mQ3^2 + m3^4*mQ3^4 - 2*m3^6*mU3^2 + m3^4*mU3^4))/
+          (3*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) + (8*m3^3*Xt)/
+          (3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)))*Log[m3^2/MR^2] + 
+       ((4*m3^2*mQ3^2)/(3*(m3^2 - mQ3^2)^2) - (2*mQ3^4)/
+          (3*(m3^2 - mQ3^2)^2) - (8*m3*mQ3^2*Xt)/(3*(m3^2 - mQ3^2)*
+           (mQ3^2 - mU3^2)))*Log[mQ3^2/MR^2] + 
+       ((4*m3^2*mU3^2)/(3*(m3^2 - mU3^2)^2) - (2*mU3^4)/
+          (3*(m3^2 - mU3^2)^2) - (8*m3*mU3^2*Xt)/(3*(m3^2 - mU3^2)*
+           (-mQ3^2 + mU3^2)))*Log[mU3^2/MR^2])^2 + 
+    2*((291*m3^8 - 282*m3^6*mQ3^2 + 93*m3^4*mQ3^4 - 18*m3^2*mQ3^6 - 
+        360*m3^6*msq^2 + 300*m3^4*mQ3^2*msq^2 - 180*m3^2*mQ3^4*msq^2 - 
+        282*m3^6*mU3^2 - 112*m3^4*mQ3^2*mU3^2 + 208*m3^2*mQ3^4*mU3^2 - 
+        6*mQ3^6*mU3^2 + 300*m3^4*msq^2*mU3^2 + 240*m3^2*mQ3^2*msq^2*mU3^2 - 
+        60*mQ3^4*msq^2*mU3^2 + 93*m3^4*mU3^4 + 208*m3^2*mQ3^2*mU3^4 - 
+        169*mQ3^4*mU3^4 - 180*m3^2*msq^2*mU3^4 - 60*mQ3^2*msq^2*mU3^4 - 
+        18*m3^2*mU3^6 - 6*mQ3^2*mU3^6)/(18*(m3^2 - mQ3^2)^2*
+        (m3^2 - mU3^2)^2) - (8*(14*m3^3 - 3*m3*mQ3^2 - 30*m3*msq^2 - 
+         3*m3*mU3^2)*Xt)/(9*(m3^2 - mQ3^2)*(m3^2 - mU3^2)) + 
+      ((262*m3^16 - 878*m3^14*mQ3^2 + 885*m3^12*mQ3^4 - 320*m3^10*mQ3^6 + 
+          49*m3^8*mQ3^8 - 878*m3^14*mU3^2 + 2972*m3^12*mQ3^2*mU3^2 - 
+          2932*m3^10*mQ3^4*mU3^2 + 1004*m3^8*mQ3^6*mU3^2 - 
+          158*m3^6*mQ3^8*mU3^2 + 885*m3^12*mU3^4 - 2932*m3^10*mQ3^2*mU3^4 + 
+          2404*m3^8*mQ3^4*mU3^4 - 368*m3^6*mQ3^6*mU3^4 - m3^4*mQ3^8*mU3^4 - 
+          320*m3^10*mU3^6 + 1004*m3^8*mQ3^2*mU3^6 - 368*m3^6*mQ3^4*mU3^6 - 
+          452*m3^4*mQ3^6*mU3^6 + 144*m3^2*mQ3^8*mU3^6 + 49*m3^8*mU3^8 - 
+          158*m3^6*mQ3^2*mU3^8 - m3^4*mQ3^4*mU3^8 + 144*m3^2*mQ3^6*mU3^8 - 
+          36*mQ3^8*mU3^8)/(9*(m3^2 - mQ3^2)^4*(m3^2 - mU3^2)^4) - 
+        (8*(27*m3^11 - 82*m3^9*mQ3^2 + 57*m3^7*mQ3^4 - 82*m3^9*mU3^2 + 
+           220*m3^7*mQ3^2*mU3^2 - 142*m3^5*mQ3^4*mU3^2 + 57*m3^7*mU3^4 - 
+           142*m3^5*mQ3^2*mU3^4 + 87*m3^3*mQ3^4*mU3^4)*Xt)/
+         (9*(m3^2 - mQ3^2)^3*(m3^2 - mU3^2)^3) + (64*m3^6*Xt^2)/
+         (9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2))*Log[m3^2/MR^2]^2 + 
+      ((128*m3^16 - 556*m3^14*mQ3^2 + 714*m3^12*mQ3^4 - 373*m3^10*mQ3^6 + 
+          96*m3^8*mQ3^8 - 42*m3^6*mQ3^10 + 38*m3^4*mQ3^12 - 9*m3^2*mQ3^14 + 
+          60*m3^12*mQ3^2*msq^2 + 120*m3^10*mQ3^4*msq^2 - 
+          180*m3^8*mQ3^6*msq^2 - 90*m3^10*mQ3^2*msq^4 + 60*m3^8*mQ3^4*msq^4 + 
+          30*m3^6*mQ3^6*msq^4 - 340*m3^14*mU3^2 + 1712*m3^12*mQ3^2*mU3^2 - 
+          2209*m3^10*mQ3^4*mU3^2 + 933*m3^8*mQ3^6*mU3^2 + 
+          106*m3^6*mQ3^8*mU3^2 - 230*m3^4*mQ3^10*mU3^2 + 
+          47*m3^2*mQ3^12*mU3^2 - 3*mQ3^14*mU3^2 - 60*m3^12*msq^2*mU3^2 - 
+          300*m3^10*mQ3^2*msq^2*mU3^2 - 180*m3^8*mQ3^4*msq^2*mU3^2 + 
+          540*m3^6*mQ3^6*msq^2*mU3^2 + 90*m3^10*msq^4*mU3^2 + 
+          210*m3^8*mQ3^2*msq^4*mU3^2 - 210*m3^6*mQ3^4*msq^4*mU3^2 - 
+          90*m3^4*mQ3^6*msq^4*mU3^2 + 262*m3^12*mU3^4 - 1903*m3^10*mQ3^2*
+           mU3^4 + 2771*m3^8*mQ3^4*mU3^4 - 1506*m3^6*mQ3^6*mU3^4 + 
+          316*m3^4*mQ3^8*mU3^4 + 37*m3^2*mQ3^10*mU3^4 - mQ3^12*mU3^4 + 
+          180*m3^10*msq^2*mU3^4 + 540*m3^8*mQ3^2*msq^2*mU3^4 - 
+          180*m3^6*mQ3^4*msq^2*mU3^4 - 540*m3^4*mQ3^6*msq^2*mU3^4 - 
+          270*m3^8*msq^4*mU3^4 - 90*m3^6*mQ3^2*msq^4*mU3^4 + 
+          270*m3^4*mQ3^4*msq^4*mU3^4 + 90*m3^2*mQ3^6*msq^4*mU3^4 + 
+          5*m3^10*mU3^6 + 723*m3^8*mQ3^2*mU3^6 - 1186*m3^6*mQ3^4*mU3^6 + 
+          610*m3^4*mQ3^6*mU3^6 - 119*m3^2*mQ3^8*mU3^6 - 17*mQ3^10*mU3^6 - 
+          180*m3^8*msq^2*mU3^6 - 420*m3^6*mQ3^2*msq^2*mU3^6 + 
+          420*m3^4*mQ3^4*msq^2*mU3^6 + 180*m3^2*mQ3^6*msq^2*mU3^6 + 
+          270*m3^6*msq^4*mU3^6 - 90*m3^4*mQ3^2*msq^4*mU3^6 - 
+          150*m3^2*mQ3^4*msq^4*mU3^6 - 30*mQ3^6*msq^4*mU3^6 - 43*m3^8*mU3^8 - 
+          60*m3^6*mQ3^2*mU3^8 + 162*m3^4*mQ3^4*mU3^8 - 84*m3^2*mQ3^6*mU3^8 + 
+          21*mQ3^8*mU3^8 + 60*m3^6*msq^2*mU3^8 + 120*m3^4*mQ3^2*msq^2*mU3^8 - 
+          180*m3^2*mQ3^4*msq^2*mU3^8 - 90*m3^4*msq^4*mU3^8 + 
+          60*m3^2*mQ3^2*msq^4*mU3^8 + 30*mQ3^4*msq^4*mU3^8)/
+         (18*(m3^2 - mQ3^2)^4*(m3^2 - mU3^2)^3*(mQ3^2 - mU3^2)) + 
+        ((40*m3*(mQ3^2 - msq^2)^2)/(3*(m3^2 - mQ3^2)^2*(mQ3^2 - mU3^2)) + 
+          (4*(18*m3^5 + m3^3*mQ3^2 + 3*m3*mQ3^4 - 37*m3^3*mU3^2 - 
+             7*m3*mQ3^2*mU3^2 + 22*m3*mU3^4))/(9*(m3^2 - mU3^2)^2*
+            (-mQ3^2 + mU3^2)) - (4*(5*m3^5*mQ3^2 - 5*m3^3*mQ3^4 + 
+             3*m3*mQ3^6 - 5*m3^5*mU3^2 - 4*m3*mQ3^4*mU3^2 + 5*m3^3*mU3^4 + 
+             4*m3*mQ3^2*mU3^4 - 3*m3*mU3^6))/(9*(m3^2 - mQ3^2)^2*
+            (m3^2 - mU3^2)^2) + (4*(33*m3^9*mQ3^4 - 75*m3^7*mQ3^6 + 
+             33*m3^5*mQ3^8 + 8*m3^3*mQ3^10 - 3*m3*mQ3^12 - 17*m3^9*mQ3^2*
+              mU3^2 - 33*m3^7*mQ3^4*mU3^2 + 158*m3^5*mQ3^6*mU3^2 - 
+             106*m3^3*mQ3^8*mU3^2 + 10*m3*mQ3^10*mU3^2 + 49*m3^7*mQ3^2*
+              mU3^4 - 78*m3^5*mQ3^4*mU3^4 - 11*m3^3*mQ3^6*mU3^4 + 
+             28*m3*mQ3^8*mU3^4 - 5*m3^7*mU3^6 - 22*m3^5*mQ3^2*mU3^6 + 
+             43*m3^3*mQ3^4*mU3^6 - 12*m3*mQ3^6*mU3^6 + 5*m3^5*mU3^8 + 
+             5*m3^3*mQ3^2*mU3^8 - 10*m3*mQ3^4*mU3^8 - 3*m3^3*mU3^10 + 
+             3*m3*mQ3^2*mU3^10))/(9*(m3^2 - mQ3^2)^3*(m3^2 - mU3^2)^2*
+            (mQ3^2 - mU3^2)^2))*Xt + (64*m3^2*mQ3^4*Xt^2)/
+         (9*(m3^2 - mQ3^2)^2*(mQ3^2 - mU3^2)^2))*Log[mQ3^2/MR^2]^2 + 
+      ((-10*(12*m3^8 - 23*m3^6*mQ3^2 + 11*m3^4*mQ3^4 + 18*m3^6*msq^2 - 
+           15*m3^4*mQ3^2*msq^2 + 9*m3^2*mQ3^4*msq^2 - 23*m3^6*mU3^2 + 
+           44*m3^4*mQ3^2*mU3^2 - 21*m3^2*mQ3^4*mU3^2 - 15*m3^4*msq^2*mU3^2 - 
+           12*m3^2*mQ3^2*msq^2*mU3^2 + 3*mQ3^4*msq^2*mU3^2 + 11*m3^4*mU3^4 - 
+           21*m3^2*mQ3^2*mU3^4 + 10*mQ3^4*mU3^4 + 9*m3^2*msq^2*mU3^4 + 
+           3*mQ3^2*msq^2*mU3^4))/(9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2) + 
+        (80*m3*msq^2*Xt)/(3*(m3^2 - mQ3^2)*(m3^2 - mU3^2)))*Log[msq^2/MR^2] + 
+      ((-5*(2*mQ3^2 - 2*msq^2)*(-2*m3^4 - 3*m3^2*mQ3^2 + mQ3^4 + 
+           3*m3^2*msq^2 + mQ3^2*msq^2))/(6*(-m3^2 + mQ3^2)^3) - 
+        (5*(-2*msq^2 + 2*mU3^2)*(-2*m3^4 + 3*m3^2*msq^2 - 3*m3^2*mU3^2 + 
+           msq^2*mU3^2 + mU3^4))/(6*(-m3^2 + mU3^2)^3) + 
+        ((40*m3*(mQ3^2 - msq^2)^2)/(3*(m3^2 - mQ3^2)^2*(mQ3^2 - mU3^2)) + 
+          (40*m3*(-msq^2 + mU3^2)^2)/(3*(m3^2 - mU3^2)^2*(-mQ3^2 + mU3^2)))*
+         Xt)*Log[msq^2/MR^2]^2 + 
+      ((52*m3^10*mQ3^2 - 105*m3^8*mQ3^4 + 53*m3^6*mQ3^6 - 308*m3^10*mU3^2 + 
+          764*m3^8*mQ3^2*mU3^2 - 622*m3^6*mQ3^4*mU3^2 + 163*m3^4*mQ3^6*
+           mU3^2 - 9*m3^2*mQ3^8*mU3^2 - 90*m3^6*mQ3^2*msq^2*mU3^2 + 
+          180*m3^4*mQ3^4*msq^2*mU3^2 - 90*m3^2*mQ3^6*msq^2*mU3^2 + 
+          365*m3^8*mU3^4 - 985*m3^6*mQ3^2*mU3^4 + 942*m3^4*mQ3^4*mU3^4 - 
+          271*m3^2*mQ3^6*mU3^4 - 3*mQ3^8*mU3^4 + 90*m3^6*msq^2*mU3^4 - 
+          210*m3^4*mQ3^2*msq^2*mU3^4 + 150*m3^2*mQ3^4*msq^2*mU3^4 - 
+          30*mQ3^6*msq^2*mU3^4 + 18*m3^6*mU3^6 + 25*m3^4*mQ3^2*mU3^6 - 
+          246*m3^2*mQ3^4*mU3^6 + 131*mQ3^6*mU3^6 + 30*m3^4*msq^2*mU3^6 - 
+          60*m3^2*mQ3^2*msq^2*mU3^6 + 30*mQ3^4*msq^2*mU3^6 - 106*m3^4*mU3^8 + 
+          279*m3^2*mQ3^2*mU3^8 - 125*mQ3^4*mU3^8 - 9*m3^2*mU3^10 - 
+          3*mQ3^2*mU3^10)/(9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^3*
+          (mQ3^2 - mU3^2)) + (8*(16*m3^7 - 16*m3^5*mQ3^2 + 55*m3^5*mU3^2 - 
+           53*m3^3*mQ3^2*mU3^2 + 3*m3*mQ3^4*mU3^2 - 30*m3^3*msq^2*mU3^2 + 
+           30*m3*mQ3^2*msq^2*mU3^2 - 61*m3^3*mU3^4 + 53*m3*mQ3^2*mU3^4 + 
+           3*m3*mU3^6)*Xt)/(9*(m3^2 - mQ3^2)*(m3^2 - mU3^2)^2*
+          (mQ3^2 - mU3^2)) + ((-10*(6*m3^4*msq^2 - 9*m3^2*msq^4 + 
+             2*m3^4*mU3^2 + 18*m3^2*msq^2*mU3^2 - 3*msq^4*mU3^2 - 
+             3*m3^2*mU3^4 + mU3^6))/(9*(m3^2 - mU3^2)^3) + 
+          (40*(-6*m3*msq^4 + m3^3*mU3^2 + 12*m3*msq^2*mU3^2 - m3*mU3^4)*Xt)/
+           (9*(m3^2 - mU3^2)^2*(-mQ3^2 + mU3^2)))*Log[msq^2/MR^2])*
+       Log[mU3^2/MR^2] + ((128*m3^10 + 44*m3^8*mQ3^2 - 2*m3^6*mQ3^4 + 
+          9*m3^4*mQ3^6 - 60*m3^6*mQ3^2*msq^2 + 90*m3^4*mQ3^2*msq^4 - 
+          556*m3^8*mU3^2 + 68*m3^6*mQ3^2*mU3^2 - 33*m3^4*mQ3^4*mU3^2 - 
+          6*m3^2*mQ3^6*mU3^2 + 60*m3^6*msq^2*mU3^2 - 120*m3^4*mQ3^2*msq^2*
+           mU3^2 - 90*m3^4*msq^4*mU3^2 - 60*m3^2*mQ3^2*msq^4*mU3^2 + 
+          702*m3^6*mU3^4 - 141*m3^4*mQ3^2*mU3^4 + 36*m3^2*mQ3^4*mU3^4 - 
+          3*mQ3^6*mU3^4 + 120*m3^4*msq^2*mU3^4 + 180*m3^2*mQ3^2*msq^2*mU3^4 + 
+          60*m3^2*msq^4*mU3^4 - 30*mQ3^2*msq^4*mU3^4 - 347*m3^4*mU3^6 + 
+          50*m3^2*mQ3^2*mU3^6 - mQ3^4*mU3^6 - 180*m3^2*msq^2*mU3^6 + 
+          30*msq^4*mU3^6 + 48*m3^2*mU3^8 - 17*mQ3^2*mU3^8 + 21*mU3^10)/
+         (18*(m3^2 - mU3^2)^4*(-mQ3^2 + mU3^2)) - 
+        (4*(-18*m3^7*mQ3^2 + m3^5*mQ3^4 + 3*m3^3*mQ3^6 + 30*m3^3*mQ3^2*
+            msq^4 + 18*m3^7*mU3^2 + 69*m3^5*mQ3^2*mU3^2 - 
+           11*m3^3*mQ3^4*mU3^2 - 3*m3*mQ3^6*mU3^2 - 60*m3^3*mQ3^2*msq^2*
+            mU3^2 - 30*m3^3*msq^4*mU3^2 - 30*m3*mQ3^2*msq^4*mU3^2 - 
+           86*m3^5*mU3^4 - 59*m3^3*mQ3^2*mU3^4 + 10*m3*mQ3^4*mU3^4 + 
+           60*m3^3*msq^2*mU3^4 + 60*m3*mQ3^2*msq^2*mU3^4 + 
+           30*m3*msq^4*mU3^4 + 99*m3^3*mU3^6 + 4*m3*mQ3^2*mU3^6 - 
+           60*m3*msq^2*mU3^6 - 27*m3*mU3^8)*Xt)/(9*(m3^2 - mU3^2)^3*
+          (-mQ3^2 + mU3^2)^2) + (64*m3^2*mU3^4*Xt^2)/(9*(m3^2 - mU3^2)^2*
+          (-mQ3^2 + mU3^2)^2))*Log[mU3^2/MR^2]^2 + 
+      Log[m3^2/MR^2]*((-864*m3^12 + 1942*m3^10*mQ3^2 - 1460*m3^8*mQ3^4 + 
+          351*m3^6*mQ3^6 - 9*m3^4*mQ3^8 + 180*m3^10*msq^2 - 
+          240*m3^8*mQ3^2*msq^2 + 270*m3^6*mQ3^4*msq^2 - 90*m3^4*mQ3^6*msq^2 + 
+          1942*m3^10*mU3^2 - 4088*m3^8*mQ3^2*mU3^2 + 2853*m3^6*mQ3^4*mU3^2 - 
+          572*m3^4*mQ3^6*mU3^2 - 3*m3^2*mQ3^8*mU3^2 - 240*m3^8*msq^2*mU3^2 - 
+          180*m3^6*mQ3^2*msq^2*mU3^2 + 90*m3^4*mQ3^4*msq^2*mU3^2 - 
+          30*m3^2*mQ3^6*msq^2*mU3^2 - 1460*m3^8*mU3^4 + 2853*m3^6*mQ3^2*
+           mU3^4 - 1894*m3^4*mQ3^4*mU3^4 + 345*m3^2*mQ3^6*mU3^4 + 
+          270*m3^6*msq^2*mU3^4 + 90*m3^4*mQ3^2*msq^2*mU3^4 + 351*m3^6*mU3^6 - 
+          572*m3^4*mQ3^2*mU3^6 + 345*m3^2*mQ3^4*mU3^6 - 48*mQ3^6*mU3^6 - 
+          90*m3^4*msq^2*mU3^6 - 30*m3^2*mQ3^2*msq^2*mU3^6 - 9*m3^4*mU3^8 - 
+          3*m3^2*mQ3^2*mU3^8)/(9*(m3^2 - mQ3^2)^3*(m3^2 - mU3^2)^3) + 
+        (8*(85*m3^7 - 75*m3^5*mQ3^2 + 3*m3^3*mQ3^4 - 60*m3^5*msq^2 + 
+           30*m3^3*mQ3^2*msq^2 - 75*m3^5*mU3^2 + 59*m3^3*mQ3^2*mU3^2 + 
+           30*m3^3*msq^2*mU3^2 + 3*m3^3*mU3^4)*Xt)/(9*(m3^2 - mQ3^2)^2*
+          (m3^2 - mU3^2)^2) + 
+        ((-2*(64*m3^16 - 180*m3^14*mQ3^2 + 122*m3^12*mQ3^4 - 31*m3^10*mQ3^6 + 
+             30*m3^8*mQ3^8 - 7*m3^6*mQ3^10 - 204*m3^14*mU3^2 + 
+             604*m3^12*mQ3^2*mU3^2 - 369*m3^10*mQ3^4*mU3^2 + 
+             13*m3^8*mQ3^6*mU3^2 - 49*m3^6*mQ3^8*mU3^2 + 13*m3^4*mQ3^10*
+              mU3^2 + 234*m3^12*mU3^4 - 779*m3^10*mQ3^2*mU3^4 + 
+             503*m3^8*mQ3^4*mU3^4 - 13*m3^6*mQ3^6*mU3^4 + 61*m3^4*mQ3^8*
+              mU3^4 - 18*m3^2*mQ3^10*mU3^4 - 101*m3^10*mU3^6 + 
+             401*m3^8*mQ3^2*mU3^6 - 239*m3^6*mQ3^4*mU3^6 - 53*m3^4*mQ3^6*
+              mU3^6 - 6*m3^2*mQ3^8*mU3^6 + 6*mQ3^10*mU3^6 + 13*m3^8*mU3^8 - 
+             76*m3^6*mQ3^2*mU3^8 + 43*m3^4*mQ3^4*mU3^8 + 24*m3^2*mQ3^6*
+              mU3^8 - 6*mQ3^8*mU3^8))/(9*(m3^2 - mQ3^2)^4*(m3^2 - mU3^2)^3*
+            (mQ3^2 - mU3^2)) + (4*(68*m3^11 - 183*m3^9*mQ3^2 + 
+             120*m3^7*mQ3^4 + 3*m3^5*mQ3^6 - 137*m3^9*mU3^2 + 
+             353*m3^7*mQ3^2*mU3^2 - 215*m3^5*mQ3^4*mU3^2 - 17*m3^3*mQ3^6*
+              mU3^2 + 75*m3^7*mU3^4 - 184*m3^5*mQ3^2*mU3^4 + 
+             105*m3^3*mQ3^4*mU3^4 + 12*m3*mQ3^6*mU3^4)*Xt)/
+           (9*(m3^2 - mQ3^2)^3*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)) - 
+          (128*m3^4*mQ3^2*Xt^2)/(9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)*
+            (mQ3^2 - mU3^2)))*Log[mQ3^2/MR^2] + 
+        ((-40*m3^12 + 200*m3^10*mQ3^2 - 60*m3^8*mQ3^4 + 20*m3^6*mQ3^6 + 
+            200*m3^10*mU3^2 - 840*m3^8*mQ3^2*mU3^2 + 420*m3^6*mQ3^4*mU3^2 - 
+            140*m3^4*mQ3^6*mU3^2 - 60*m3^8*mU3^4 + 420*m3^6*mQ3^2*mU3^4 + 
+            20*m3^6*mU3^6 - 140*m3^4*mQ3^2*mU3^6)/(9*(m3^2 - mQ3^2)^3*
+            (m3^2 - mU3^2)^3) - (40*(m3^7 + 5*m3^5*mQ3^2 + 5*m3^5*mU3^2 - 
+             11*m3^3*mQ3^2*mU3^2)*Xt)/(9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2))*
+         Log[msq^2/MR^2] + ((2*(64*m3^16 - 204*m3^14*mQ3^2 + 
+             234*m3^12*mQ3^4 - 101*m3^10*mQ3^6 + 13*m3^8*mQ3^8 - 
+             180*m3^14*mU3^2 + 604*m3^12*mQ3^2*mU3^2 - 779*m3^10*mQ3^4*
+              mU3^2 + 401*m3^8*mQ3^6*mU3^2 - 76*m3^6*mQ3^8*mU3^2 + 
+             122*m3^12*mU3^4 - 369*m3^10*mQ3^2*mU3^4 + 503*m3^8*mQ3^4*mU3^4 - 
+             239*m3^6*mQ3^6*mU3^4 + 43*m3^4*mQ3^8*mU3^4 - 31*m3^10*mU3^6 + 
+             13*m3^8*mQ3^2*mU3^6 - 13*m3^6*mQ3^4*mU3^6 - 53*m3^4*mQ3^6*
+              mU3^6 + 24*m3^2*mQ3^8*mU3^6 + 30*m3^8*mU3^8 - 
+             49*m3^6*mQ3^2*mU3^8 + 61*m3^4*mQ3^4*mU3^8 - 6*m3^2*mQ3^6*mU3^8 - 
+             6*mQ3^8*mU3^8 - 7*m3^6*mU3^10 + 13*m3^4*mQ3^2*mU3^10 - 
+             18*m3^2*mQ3^4*mU3^10 + 6*mQ3^6*mU3^10))/(9*(m3^2 - mQ3^2)^3*
+            (m3^2 - mU3^2)^4*(mQ3^2 - mU3^2)) - 
+          (4*(68*m3^11 - 137*m3^9*mQ3^2 + 75*m3^7*mQ3^4 - 183*m3^9*mU3^2 + 
+             353*m3^7*mQ3^2*mU3^2 - 184*m3^5*mQ3^4*mU3^2 + 120*m3^7*mU3^4 - 
+             215*m3^5*mQ3^2*mU3^4 + 105*m3^3*mQ3^4*mU3^4 + 3*m3^5*mU3^6 - 
+             17*m3^3*mQ3^2*mU3^6 + 12*m3*mQ3^4*mU3^6)*Xt)/(9*(m3^2 - mQ3^2)^2*
+            (m3^2 - mU3^2)^3*(mQ3^2 - mU3^2)) + (128*m3^4*mU3^2*Xt^2)/
+           (9*(m3^2 - mQ3^2)*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)))*
+         Log[mU3^2/MR^2]) + Log[mQ3^2/MR^2]*
+       ((308*m3^10*mQ3^2 - 365*m3^8*mQ3^4 - 18*m3^6*mQ3^6 + 106*m3^4*mQ3^8 + 
+          9*m3^2*mQ3^10 - 90*m3^6*mQ3^4*msq^2 - 30*m3^4*mQ3^6*msq^2 - 
+          52*m3^10*mU3^2 - 764*m3^8*mQ3^2*mU3^2 + 985*m3^6*mQ3^4*mU3^2 - 
+          25*m3^4*mQ3^6*mU3^2 - 279*m3^2*mQ3^8*mU3^2 + 3*mQ3^10*mU3^2 + 
+          90*m3^6*mQ3^2*msq^2*mU3^2 + 210*m3^4*mQ3^4*msq^2*mU3^2 + 
+          60*m3^2*mQ3^6*msq^2*mU3^2 + 105*m3^8*mU3^4 + 622*m3^6*mQ3^2*mU3^4 - 
+          942*m3^4*mQ3^4*mU3^4 + 246*m3^2*mQ3^6*mU3^4 + 125*mQ3^8*mU3^4 - 
+          180*m3^4*mQ3^2*msq^2*mU3^4 - 150*m3^2*mQ3^4*msq^2*mU3^4 - 
+          30*mQ3^6*msq^2*mU3^4 - 53*m3^6*mU3^6 - 163*m3^4*mQ3^2*mU3^6 + 
+          271*m3^2*mQ3^4*mU3^6 - 131*mQ3^6*mU3^6 + 90*m3^2*mQ3^2*msq^2*
+           mU3^6 + 30*mQ3^4*msq^2*mU3^6 + 9*m3^2*mQ3^2*mU3^8 + 3*mQ3^4*mU3^8)/
+         (9*(m3^2 - mQ3^2)^3*(m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)) - 
+        (8*(16*m3^7 + 55*m3^5*mQ3^2 - 61*m3^3*mQ3^4 + 3*m3*mQ3^6 - 
+           30*m3^3*mQ3^2*msq^2 - 16*m3^5*mU3^2 - 53*m3^3*mQ3^2*mU3^2 + 
+           53*m3*mQ3^4*mU3^2 + 30*m3*mQ3^2*msq^2*mU3^2 + 3*m3*mQ3^2*mU3^4)*
+          Xt)/(9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)*(mQ3^2 - mU3^2)) + 
+        ((-10*(2*m3^4*mQ3^2 - 3*m3^2*mQ3^4 + mQ3^6 + 6*m3^4*msq^2 + 
+             18*m3^2*mQ3^2*msq^2 - 9*m3^2*msq^4 - 3*mQ3^2*msq^4))/
+           (9*(m3^2 - mQ3^2)^3) + (40*(m3^3*mQ3^2 - m3*mQ3^4 + 
+             12*m3*mQ3^2*msq^2 - 6*m3*msq^4)*Xt)/(9*(m3^2 - mQ3^2)^2*
+            (mQ3^2 - mU3^2)))*Log[msq^2/MR^2] + 
+        ((-14*m3^10*mQ3^2 + 17*m3^8*mQ3^4 - 35*m3^6*mQ3^6 + 29*m3^4*mQ3^8 - 
+            9*m3^2*mQ3^10 - 2*m3^10*mU3^2 + 28*m3^8*mQ3^2*mU3^2 + 
+            53*m3^6*mQ3^4*mU3^2 - 75*m3^4*mQ3^6*mU3^2 + 35*m3^2*mQ3^8*mU3^2 - 
+            3*mQ3^10*mU3^2 + 3*m3^8*mU3^4 - 57*m3^6*mQ3^2*mU3^4 + 
+            23*m3^4*mQ3^4*mU3^4 - m3^2*mQ3^6*mU3^4 - 4*mQ3^8*mU3^4 - 
+            m3^6*mU3^6 + 19*m3^4*mQ3^2*mU3^6 - 9*m3^2*mQ3^4*mU3^6 + 
+            3*mQ3^6*mU3^6)/(9*(m3^2 - mQ3^2)^3*(m3^2 - mU3^2)^3) + 
+          (4*(m3^7*mQ3^4 + 9*m3^5*mQ3^6 - 10*m3^3*mQ3^8 + 6*m3*mQ3^10 - 
+             34*m3^7*mQ3^2*mU3^2 + 29*m3^5*mQ3^4*mU3^2 + 11*m3^3*mQ3^6*
+              mU3^2 - 20*m3*mQ3^8*mU3^2 + m3^7*mU3^4 + 59*m3^5*mQ3^2*mU3^4 - 
+             88*m3^3*mQ3^4*mU3^4 + 38*m3*mQ3^6*mU3^4 - m3^5*mU3^6 - 
+             9*m3^3*mQ3^2*mU3^6 + 8*m3*mQ3^4*mU3^6)*Xt)/(9*(m3^2 - mQ3^2)^2*
+            (m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)^2) - (128*m3^2*mQ3^2*mU3^2*Xt^2)/
+           (9*(m3^2 - mQ3^2)*(m3^2 - mU3^2)*(-mQ3^2 + mU3^2)^2))*
+         Log[mU3^2/MR^2]) + 
+      (-(-128*m3^12 + 294*m3^10*mQ3^2 - 98*m3^8*mQ3^4 - 9*m3^6*mQ3^6 - 
+           20*m3^4*mQ3^8 + 9*m3^2*mQ3^10 + 346*m3^10*mU3^2 - 
+           902*m3^8*mQ3^2*mU3^2 + 251*m3^6*mQ3^4*mU3^2 + 151*m3^4*mQ3^6*
+            mU3^2 - 41*m3^2*mQ3^8*mU3^2 + 3*mQ3^10*mU3^2 - 280*m3^8*mU3^4 + 
+           1025*m3^6*mQ3^2*mU3^4 - 417*m3^4*mQ3^4*mU3^4 - 
+           41*m3^2*mQ3^6*mU3^4 + mQ3^8*mU3^4 + 13*m3^6*mU3^6 - 
+           391*m3^4*mQ3^2*mU3^6 + 167*m3^2*mQ3^4*mU3^6 + 19*mQ3^6*mU3^6 + 
+           37*m3^4*mU3^8 + 34*m3^2*mQ3^2*mU3^8 - 23*mQ3^4*mU3^8)/
+         (9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^3*(mQ3^2 - mU3^2)) + 
+        (8*(18*m3^5 + m3^3*mQ3^2 + 3*m3*mQ3^4 - 37*m3^3*mU3^2 - 
+           7*m3*mQ3^2*mU3^2 + 22*m3*mU3^4)*Xt)/(9*(m3^2 - mU3^2)^2*
+          (-mQ3^2 + mU3^2)))*PolyLog[2, 1 - m3^2/mQ3^2] + 
+      (((2*m3^2 - 2*msq^2)*((40*mQ3^4)/(3*(-m3^2 + mQ3^2)^3) - 
+           (10*mQ3^2)/(-m3^2 + mQ3^2)^2 - 10/(3*(-m3^2 + mQ3^2)) - 
+           (40*mQ3^2*msq^2)/(3*(-m3^2 + mQ3^2)^3) + (10*msq^2)/
+            (-m3^2 + mQ3^2)^2 - (40*msq^2*mU3^2)/(3*(-m3^2 + mU3^2)^3) + 
+           (40*mU3^4)/(3*(-m3^2 + mU3^2)^3) + (10*msq^2)/(-m3^2 + mU3^2)^2 - 
+           (10*mU3^2)/(-m3^2 + mU3^2)^2 - 10/(3*(-m3^2 + mU3^2))))/2 + 
+        (80*(m3^2 - msq^2)*(m3^3*mQ3^2 - 2*m3^3*msq^2 + m3*mQ3^2*msq^2 + 
+           m3^3*mU3^2 - 2*m3*mQ3^2*mU3^2 + m3*msq^2*mU3^2)*Xt)/
+         (3*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2))*PolyLog[2, 1 - m3^2/msq^2] + 
+      ((-5*(2*mQ3^2 - 2*msq^2)*(-2*m3^4 - 3*m3^2*mQ3^2 + mQ3^4 + 
+           3*m3^2*msq^2 + mQ3^2*msq^2))/(3*(-m3^2 + mQ3^2)^3) + 
+        (80*m3*(mQ3^2 - msq^2)^2*Xt)/(3*(m3^2 - mQ3^2)^2*(mQ3^2 - mU3^2)))*
+       PolyLog[2, 1 - msq^2/mQ3^2] + 
+      ((-128*m3^12 + 346*m3^10*mQ3^2 - 280*m3^8*mQ3^4 + 13*m3^6*mQ3^6 + 
+          37*m3^4*mQ3^8 + 294*m3^10*mU3^2 - 902*m3^8*mQ3^2*mU3^2 + 
+          1025*m3^6*mQ3^4*mU3^2 - 391*m3^4*mQ3^6*mU3^2 + 
+          34*m3^2*mQ3^8*mU3^2 - 98*m3^8*mU3^4 + 251*m3^6*mQ3^2*mU3^4 - 
+          417*m3^4*mQ3^4*mU3^4 + 167*m3^2*mQ3^6*mU3^4 - 23*mQ3^8*mU3^4 - 
+          9*m3^6*mU3^6 + 151*m3^4*mQ3^2*mU3^6 - 41*m3^2*mQ3^4*mU3^6 + 
+          19*mQ3^6*mU3^6 - 20*m3^4*mU3^8 - 41*m3^2*mQ3^2*mU3^8 + 
+          mQ3^4*mU3^8 + 9*m3^2*mU3^10 + 3*mQ3^2*mU3^10)/(9*(m3^2 - mQ3^2)^3*
+          (m3^2 - mU3^2)^2*(mQ3^2 - mU3^2)) + 
+        (8*(18*m3^5 - 37*m3^3*mQ3^2 + 22*m3*mQ3^4 + m3^3*mU3^2 - 
+           7*m3*mQ3^2*mU3^2 + 3*m3*mU3^4)*Xt)/(9*(m3^2 - mQ3^2)^2*
+          (mQ3^2 - mU3^2)))*PolyLog[2, 1 - m3^2/mU3^2] + 
+      ((-24*m3^10*mQ3^2 + 28*m3^8*mQ3^4 - 68*m3^6*mQ3^6 + 58*m3^4*mQ3^8 - 
+          18*m3^2*mQ3^10 + 24*m3^10*mU3^2 + 220*m3^6*mQ3^4*mU3^2 - 
+          188*m3^4*mQ3^6*mU3^2 + 70*m3^2*mQ3^8*mU3^2 - 6*mQ3^10*mU3^2 - 
+          28*m3^8*mU3^4 - 220*m3^6*mQ3^2*mU3^4 + 16*m3^2*mQ3^6*mU3^4 - 
+          8*mQ3^8*mU3^4 + 68*m3^6*mU3^6 + 188*m3^4*mQ3^2*mU3^6 - 
+          16*m3^2*mQ3^4*mU3^6 - 58*m3^4*mU3^8 - 70*m3^2*mQ3^2*mU3^8 + 
+          8*mQ3^4*mU3^8 + 18*m3^2*mU3^10 + 6*mQ3^2*mU3^10)/
+         (18*(-m3^2 + mQ3^2)^3*(m3^2 - mU3^2)^3) - 
+        (4*(10*m3^5*mQ3^2 - 10*m3^3*mQ3^4 + 6*m3*mQ3^6 - 10*m3^5*mU3^2 - 
+           8*m3*mQ3^4*mU3^2 + 10*m3^3*mU3^4 + 8*m3*mQ3^2*mU3^4 - 6*m3*mU3^6)*
+          Xt)/(9*(m3^2 - mQ3^2)^2*(m3^2 - mU3^2)^2))*
+       PolyLog[2, 1 - mQ3^2/mU3^2] + 
+      ((-5*(-2*msq^2 + 2*mU3^2)*(-2*m3^4 + 3*m3^2*msq^2 - 3*m3^2*mU3^2 + 
+           msq^2*mU3^2 + mU3^4))/(3*(-m3^2 + mU3^2)^3) + 
+        (80*m3*(-msq^2 + mU3^2)^2*Xt)/(3*(m3^2 - mU3^2)^2*(-mQ3^2 + mU3^2)))*
+       PolyLog[2, 1 - msq^2/mU3^2])))
+    )
+    ];
+
+lambda3LATASASDegenerate = With[{
+    k = 1/(4*Pi)^2,
+    gt = Yu[3,3],
+    MR = SCALE,
+    MS = Sqrt[Sqrt[Abs[msq2[3,3] msu2[3,3]]]],
+    Xtt = xt/Sqrt[Sqrt[Abs[msq2[3,3] msu2[3,3]]]]
+    },
+    (1/2)*k^3*(gt^4 g3^4) (
+    (* 16/27 Xtt^3 (3568 - 1664 Log[MS^2/MR^2] + 444 Log[MS^2/MR^2]^2 - 2259 Zeta[3]) +  *)
+     8/9 Xtt^2 (149 - 448 Log[MS^2/MR^2] + 912 Log[MS^2/MR^2]^2 - 990 Zeta[3]) - 
+     64/27 Xtt (823 - 200 Log[MS^2/MR^2] + 954 Log[MS^2/MR^2]^2 - 477 Zeta[3]) - 
+     4/135 (176 \[Pi]^4 + 960 \[Pi]^2 Log[2]^2 + 9900 Log[MS^2/MR^2]^2 - 24840 Log[MS^2/MR^2]^3 - 
+        5 (4577 + 192 Log[2]^4 + 4608 PolyLog[4, 1/2] - 9864 Zeta[3]) + 
+        10 Log[MS^2/MR^2] (-877 + 432 Zeta[3]))
+    ) /. { a:PolyLog[_,_] :> N[a], a:Zeta[__] :> N[a] }
+];

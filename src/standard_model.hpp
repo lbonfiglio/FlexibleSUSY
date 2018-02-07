@@ -171,6 +171,7 @@ public:
    virtual void set(const Eigen::ArrayXd&) override;
 
    Standard_model calc_beta() const;
+   Standard_model calc_beta(int) const;
    void clear();
    void clear_running_parameters();
    void clear_DRbar_parameters();
@@ -497,6 +498,8 @@ public:
    double self_energy_hh_2loop(double p) const;
    /// calculates Higgs 3-loop self-energy
    double self_energy_hh_3loop() const;
+   /// calculates Higgs 4-loop self-energy
+   double self_energy_hh_4loop() const;
 
    void calculate_MVG_pole();
    void calculate_MFv_pole();
@@ -574,12 +577,15 @@ private:
    double calc_beta_g3_one_loop(const Beta_traces&) const;
    double calc_beta_g3_two_loop(const Beta_traces&) const;
    double calc_beta_g3_three_loop(const Beta_traces&) const;
+   double calc_beta_g3_four_loop(const Beta_traces&) const;
    double calc_beta_Lambdax_one_loop(const Beta_traces&) const;
    double calc_beta_Lambdax_two_loop(const Beta_traces&) const;
    double calc_beta_Lambdax_three_loop(const Beta_traces&) const;
+   double calc_beta_Lambdax_four_loop(const Beta_traces&) const;
    Eigen::Matrix<double,3,3> calc_beta_Yu_one_loop(const Beta_traces&) const;
    Eigen::Matrix<double,3,3> calc_beta_Yu_two_loop(const Beta_traces&) const;
    Eigen::Matrix<double,3,3> calc_beta_Yu_three_loop(const Beta_traces&) const;
+   Eigen::Matrix<double,3,3> calc_beta_Yu_four_loop(const Beta_traces&) const;
    Eigen::Matrix<double,3,3> calc_beta_Yd_one_loop(const Beta_traces&) const;
    Eigen::Matrix<double,3,3> calc_beta_Yd_two_loop(const Beta_traces&) const;
    Eigen::Matrix<double,3,3> calc_beta_Yd_three_loop(const Beta_traces&) const;

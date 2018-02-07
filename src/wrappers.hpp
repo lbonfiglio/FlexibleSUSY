@@ -50,6 +50,7 @@ static constexpr double oneOver16PiSqr = 1./(16. * Pi * Pi);
 static constexpr double oneLoop = oneOver16PiSqr;
 static constexpr double twoLoop = oneOver16PiSqr * oneOver16PiSqr;
 static constexpr double threeLoop = oneOver16PiSqr * oneOver16PiSqr * oneOver16PiSqr;
+static constexpr double fourLoop = twoLoop * twoLoop;
 static constexpr bool True = true;
 
 template <typename T>
@@ -200,6 +201,12 @@ inline std::complex<double> Conj(const std::complex<double>& a) noexcept
    return std::conj(a);
 }
 
+template<typename Scalar, int M, int N>
+Eigen::Matrix<Scalar,M,N> Conj(const Eigen::Matrix<Scalar,M,N>& a) noexcept
+{
+   return a.conjugate();
+}
+
 template <class T>
 T Conjugate(T a) noexcept
 {
@@ -296,7 +303,19 @@ inline bool IsFinite(const std::complex<double>& x) noexcept
 template <class Derived>
 bool IsFinite(const Eigen::DenseBase<Derived>& m)
 {
-   return m.allFinite();
+   // workaround for intel compiler / Eigen bug that causes unexpected
+   // behavior from allFinite()
+   const auto nr = m.rows();
+   const auto nc = m.cols();
+
+   for (int r = 0; r < nr; r++) {
+      for (int c = 0; c < nc; c++) {
+         if (!std::isfinite(m(r,c)))
+            return false;
+      }
+   }
+
+   return true;
 }
 
 inline constexpr int KroneckerDelta(int i, int j) noexcept

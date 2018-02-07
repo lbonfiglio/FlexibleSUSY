@@ -29,6 +29,8 @@ himalayalibs="@HIMALAYALIBS@"
 lapacklibs="@LAPACKLIBS@"
 ldflags="@LDFLAGS@"
 ldlibs="@LDLIBS@"
+llflags="@LLFLAGS@"
+lllibs="@LLLIBS@"
 loopfuncflags="@LOOPFUNCFLAGS@"
 loopfunclibs="@LOOPFUNCLIBS@"
 math="@MATH@"
@@ -44,7 +46,7 @@ static_lib_cmd="@STATIC_LIB_CMD@"
 threadlibs="@THREADLIBS@"
 tsilflags="@TSILFLAGS@"
 tsillibs="@TSILLIBS@"
-gm2calclibs="${ABSBASEDIR}/addons/GM2Calc/libGM2Calc${module_lib_ext}"
+gm2calclibs=""
 
 create_module_list() {
     echo "config src fflite slhaea doc $models $addons $optional_modules"
@@ -92,13 +94,23 @@ create_flexiblesusy_libs() {
     echo "$flexiblesusylibs"
 }
 
+create_gm2calc_libs() {
+    for a in $addons ; do
+        [ "x$(basename $a)" = "xGM2Calc" ] && {
+            echo "${ABSBASEDIR}/addons/GM2Calc/libGM2Calc${module_lib_ext}"
+            return
+        }
+    done
+    echo ""
+}
+
 incl_FS_modules="$(create_include_directives_for_FS_modules)"
 incl_external_modules="$(create_include_directives_for_external_modules)"
 cppflags_without_modules="$cppflags_from_configure $incl_external_modules"
 cppflags="$cppflags_from_configure $incl_FS_modules $incl_external_modules"
 flexiblesusy_libs="$(create_flexiblesusy_libs)"
 compile_cmd="$cxx $cppflags $cxxflags"
-libs="$ldflags $flexiblesusy_libs $gm2calclibs $loopfunclibs $himalayalibs $gsllibs $boostthreadlibs $lapacklibs $blaslibs $flibs $sqlitelibs $tsillibs $threadlibs $ldlibs"
+libs="$ldflags $flexiblesusy_libs $(create_gm2calc_libs) $loopfunclibs $himalayalibs $gsllibs $boostthreadlibs $lapacklibs $blaslibs $flibs $sqlitelibs $tsillibs $threadlibs $ldlibs"
 modules="$(create_module_list)"
 
 help() {
@@ -151,6 +163,8 @@ Options:
   --ldflags             Print flags for optional libraries, LDFLAGS
   --ldlibs              Print optional libraries, LDLIBS
   --libs                Print all libraries linked to an executable
+  --llflags             Print preprocessor commands for LibraryLink, LLFLAGS
+  --lllibs              Print flags for LibraryLink libraries, LLLIBS
   --loopfuncflags       Print compiler flags for loop function library, LOOPFUNCFLAGS
   --loopfunclibs        Print loop function libraries, LOOPFUNCLIBS
   --math-cmd            Print Mathematica kernel command, MATH
@@ -169,8 +183,8 @@ Options:
   --with-<addon>        Test if <addon> is compiled in
   --with-<solver>       Test if BVP <solver> is compiled in
   --with-<model>        Test if <model> is compiled in
-  --version             Print the $packagename version
-  --help                Print this message
+  --version, -v         Print the $packagename version
+  --help, -h            Print this message
 EOF
 }
 
@@ -207,6 +221,8 @@ while test $# -gt 0; do
         --ldflags)               out="$out $ldflags" ;;
         --ldlibs)                out="$out $ldlibs" ;;
         --libs)                  out="$out $libs" ;;
+        --llflags)               out="$out $llflags" ;;
+        --lllibs)                out="$out $lllibs" ;;
         --loopfuncflags)         out="$out $loopfuncflags" ;;
         --loopfunclibs)          out="$out $loopfunclibs" ;;
         --math-cmd)              out="$out $math" ;;
@@ -256,8 +272,8 @@ while test $# -gt 0; do
         --enable-tsil)                out="$out @ENABLE_TSIL@" ;;
         --enable-verbose)             out="$out @ENABLE_VERBOSE@" ;;
 
-        --version)                    out="$out $version"  ;;
-        --help)
+        --version|-v)                 out="$out $version"  ;;
+        --help|-h)
             help
             exit 0
             ;;

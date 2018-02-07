@@ -53,7 +53,8 @@ const std::array<std::string, Spectrum_generator_settings::NUMBER_OF_OPTIONS> de
    "Higgs 3-loop corrections O(alpha_t alpha_s^2)",
    "Higgs 3-loop corrections O(alpha_b alpha_s^2)",
    "Higgs 3-loop corrections O(alpha_t^2 alpha_s)",
-   "Higgs 3-loop corrections O(alpha_t^3)"
+   "Higgs 3-loop corrections O(alpha_t^3)",
+   "Higgs 4-loop corrections O(alpha_t alpha_s^3)"
 };
 } // anonymous namespace
 
@@ -73,6 +74,12 @@ double Spectrum_generator_settings::get(Settings o) const
    return values.at(o);
 }
 
+Spectrum_generator_settings::Settings_t Spectrum_generator_settings::get() const
+{
+   Settings_t s(&values[0]);
+   return s;
+}
+
 std::string Spectrum_generator_settings::get_description(Settings o) const
 {
    return descriptions.at(o);
@@ -81,6 +88,11 @@ std::string Spectrum_generator_settings::get_description(Settings o) const
 void Spectrum_generator_settings::set(Settings o, double value)
 {
    values.at(o) = value;
+}
+
+void Spectrum_generator_settings::set(const Spectrum_generator_settings::Settings_t& s)
+{
+   std::copy(s.data(), s.data() + s.size(), values.begin());
 }
 
 /**
@@ -94,7 +106,7 @@ void Spectrum_generator_settings::set(Settings o, double value)
  * | calculate_sm_masses              | 0 (no) or 1 (yes)                               | 0 (= no)        |
  * | pole_mass_loop_order             | 0, 1, 2                                         | 2 (= 2-loop)    |
  * | ewsb_loop_order                  | 0, 1, 2                                         | 2 (= 2-loop)    |
- * | beta_loop_order                  | 0, 1, 2, 3                                      | 3 (= 3-loop)    |
+ * | beta_loop_order                  | 0, 1, 2, 3, 4                                   | 4 (= 4-loop)    |
  * | threshold_corrections_loop_order | 0, 1, 2                                         | 2 (= 2-loop)    |
  * | higgs_2loop_correction_at_as     | 0, 1                                            | 1 (= enabled)   |
  * | higgs_2loop_correction_ab_as     | 0, 1                                            | 1 (= enabled)   |
@@ -118,6 +130,7 @@ void Spectrum_generator_settings::set(Settings o, double value)
  * | higgs_3loop_correction_ab_as2    | 0, 1                                            | 1 (= enabled)   |
  * | higgs_3loop_correction_at2_as    | 0, 1                                            | 1 (= enabled)   |
  * | higgs_3loop_correction_at3       | 0, 1                                            | 1 (= enabled)   |
+ * | higgs_4loop_correction_at_as3    | 0, 1                                            | 1 (= enabled)   |
  */
 void Spectrum_generator_settings::reset()
 {
@@ -127,7 +140,7 @@ void Spectrum_generator_settings::reset()
    values[calculate_sm_masses]   = 0.; // 0 = false
    values[pole_mass_loop_order]  = 2.;
    values[ewsb_loop_order]       = 2.;
-   values[beta_loop_order]       = 3.;
+   values[beta_loop_order]       = 4.;
    values[threshold_corrections_loop_order] = 2.;
    values[higgs_2loop_correction_at_as]     = 1.;
    values[higgs_2loop_correction_ab_as]     = 1.;
@@ -152,6 +165,7 @@ void Spectrum_generator_settings::reset()
    values[higgs_3loop_correction_ab_as2]    = 1.;
    values[higgs_3loop_correction_at2_as]    = 1.;
    values[higgs_3loop_correction_at3]       = 1.;
+   values[higgs_4loop_correction_at_as3]    = 1.;
 }
 
 Loop_corrections Spectrum_generator_settings::get_loop_corrections() const
@@ -165,6 +179,7 @@ Loop_corrections Spectrum_generator_settings::get_loop_corrections() const
    loop_corrections.higgs_ab_as_as  = get(higgs_3loop_correction_ab_as2);
    loop_corrections.higgs_at_at_as  = get(higgs_3loop_correction_at2_as);
    loop_corrections.higgs_at_at_at  = get(higgs_3loop_correction_at3);
+   loop_corrections.higgs_at_as_as_as   = get(higgs_4loop_correction_at_as3);
    loop_corrections.higgs_3L_mdr_scheme = get(higgs_3loop_ren_scheme_atb_as2);
    loop_corrections.top_qcd         = get(top_pole_qcd_corrections);
 
@@ -182,6 +197,7 @@ void Spectrum_generator_settings::set_loop_corrections(
    set(higgs_3loop_correction_ab_as2, loop_corrections.higgs_ab_as_as);
    set(higgs_3loop_correction_at2_as, loop_corrections.higgs_at_at_as);
    set(higgs_3loop_correction_at3   , loop_corrections.higgs_at_at_at);
+   set(higgs_4loop_correction_at_as3, loop_corrections.higgs_at_as_as_as);
    set(higgs_3loop_ren_scheme_atb_as2, loop_corrections.higgs_3L_mdr_scheme);
    set(top_pole_qcd_corrections, loop_corrections.top_qcd);
 }

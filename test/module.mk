@@ -43,9 +43,9 @@ TEST_SRC := \
 		$(DIR)/test_sminput.cpp \
 		$(DIR)/test_slha_io.cpp \
 		$(DIR)/test_sum.cpp \
-		$(DIR)/test_thread_pool.cpp \
 		$(DIR)/test_threshold_corrections.cpp \
 		$(DIR)/test_threshold_loop_functions.cpp \
+		$(DIR)/test_spectrum_generator_settings.cpp \
 		$(DIR)/test_which.cpp \
 		$(DIR)/test_wrappers.cpp
 
@@ -72,6 +72,7 @@ TEST_META := \
 		$(DIR)/test_RGIntegrator.m \
 		$(DIR)/test_SelfEnergies.m \
 		$(DIR)/test_SemiAnalytic.m \
+		$(DIR)/test_SM_higgs_loop_corrections.m \
 		$(DIR)/test_TextFormatting.m \
 		$(DIR)/test_THDM_threshold_corrections.m \
 		$(DIR)/test_THDM_threshold_corrections_gauge.m \
@@ -80,6 +81,12 @@ TEST_META := \
 		$(DIR)/test_TreeMasses.m \
 		$(DIR)/test_Vertices_SortCp.m \
 		$(DIR)/test_Vertices_colorsum.m
+
+
+ifeq ($(ENABLE_THREADS),yes)
+TEST_SRC += \
+		$(DIR)/test_thread_pool.cpp
+endif
 
 ifneq ($(findstring lattice,$(SOLVERS)),)
 TEST_SRC +=
@@ -145,6 +152,8 @@ TEST_SRC += \
 		$(DIR)/test_CMSSMCKM_high_scale_constraint.cpp \
 		$(DIR)/test_CMSSMCKM_low_scale_constraint.cpp \
 		$(DIR)/test_CMSSMCKM_tree_level_spectrum.cpp
+TEST_SH += \
+		$(DIR)/test_CMSSMCKM_spectrum.sh
 endif
 
 ifeq ($(WITH_SoftsusyNMSSM) $(WITH_NMSSM),yes yes)
@@ -368,7 +377,7 @@ TEST_PV_EXE := \
 		$(DIR)/test_pv_looptools.x \
 		$(DIR)/test_pv_softsusy.x
 
-$(DIR)/test_pv_crosschecks.sh.log: $(TEST_PV_EXE)
+$(DIR)/test_pv_crosschecks.sh.xml: $(TEST_PV_EXE)
 
 ifneq (,$(findstring test,$(MAKECMDGOALS)))
 ALLDEP += $(LIBFFLITE_DEP)
@@ -422,6 +431,11 @@ endif
 ifeq ($(WITH_SMHighPrecision),yes)
 TEST_SRC += \
 		$(DIR)/test_SMHighPrecision_two_loop_spectrum.cpp
+endif
+
+ifeq ($(WITH_SMSU3),yes)
+TEST_SRC += \
+		$(DIR)/test_SMSU3_low_scale_constraint.cpp
 endif
 
 ifeq ($(WITH_NSM),yes)
@@ -498,6 +512,11 @@ endif
 ifeq ($(WITH_HSSUSY) $(WITH_MSSMEFTHiggs) $(WITH_MSSMMuBMu),yes yes yes)
 TEST_SH += \
 		$(DIR)/test_MSSMEFTHiggs.sh
+endif
+
+ifeq ($(WITH_HSSUSY) $(WITH_MSSMEFTHiggs) $(WITH_NUHMSSMNoFVHimalaya),yes yes yes)
+TEST_SH += \
+		$(DIR)/test_Mh_uncertainties.sh
 endif
 
 ifeq ($(WITH_MSSMEFTHiggs),yes)
@@ -583,16 +602,16 @@ TEST_DEP := \
 TEST_EXE := \
 		$(TEST_OBJ:.o=.x)
 
-TEST_EXE_LOG  := $(TEST_EXE:.x=.x.log)
-
-TEST_SH_LOG   := $(TEST_SH:.sh=.sh.log)
-
-TEST_META_LOG := $(TEST_META:.m=.m.log)
-
-TEST_LOG      := $(TEST_EXE_LOG) $(TEST_SH_LOG)
+TEST_XML      := $(DIR)/test.xml
+TEST_EXE_XML  := $(TEST_EXE:.x=.x.xml)
+TEST_SH_XML   := $(TEST_SH:.sh=.sh.xml)
+TEST_META_XML := $(TEST_META:.m=.m.xml)
+TEST_ALL_XML  := $(TEST_EXE_XML) $(TEST_SH_XML)
 ifeq ($(ENABLE_META),yes)
-TEST_LOG      += $(TEST_META_LOG)
+TEST_ALL_XML  += $(TEST_META_XML)
 endif
+
+TEST_ALL_LOG  := $(TEST_ALL_XML:.xml=.log)
 
 ifeq ($(ENABLE_LOOPTOOLS),yes)
 TEST_EXE += $(TEST_PV_EXE)
@@ -608,7 +627,7 @@ endif
 		execute-tests execute-meta-tests execute-compiled-tests \
 		execute-shell-tests
 
-all-$(MODNAME): $(LIBTEST) $(TEST_EXE) $(TEST_LOG)
+all-$(MODNAME): $(LIBTEST) $(TEST_EXE) $(TEST_XML)
 		@true
 
 clean-$(MODNAME)-dep:
@@ -623,7 +642,9 @@ clean-$(MODNAME)-obj:
 		-rm -f $(LIBTEST_OBJ)
 
 clean-$(MODNAME)-log:
-		-rm -f $(TEST_LOG)
+		-rm -f $(TEST_XML)
+		-rm -f $(TEST_ALL_XML)
+		-rm -f $(TEST_ALL_LOG)
 
 clean-$(MODNAME): clean-$(MODNAME)-dep clean-$(MODNAME)-obj \
                   clean-$(MODNAME)-lib clean-$(MODNAME)-log
@@ -638,19 +659,28 @@ clean::         clean-$(MODNAME)
 
 distclean::     distclean-$(MODNAME)
 
-execute-tests:  $(TEST_LOG)
+execute-tests:  $(TEST_XML)
 
 ifeq ($(ENABLE_META),yes)
-execute-meta-tests: $(TEST_META_LOG)
+execute-meta-tests: $(TEST_META_XML)
 else
 execute-meta-tests:
 endif
 
-execute-compiled-tests: $(TEST_EXE_LOG)
+execute-compiled-tests: $(TEST_EXE_XML)
 
-execute-shell-tests: $(TEST_SH_LOG)
+execute-shell-tests: $(TEST_SH_XML)
 
-PTR = print_test_result() { \
+# creates .xml file with test result
+PTR = write_test_result_file() { \
+	echo "\
+<test>\n\
+\t<name>$$2</name>\n\
+\t<date>$$(date)</date>\n\
+\t<commit>$$(git describe --tags 2> /dev/null || echo unknown)</commit>\n\
+\t<status>$$1</status>\n\
+\t<logfile>$$(basename $$4)</logfile>\n\
+</test>" > "$$3" ; \
 	if [ $$1 = 0 ]; then \
 		printf "%-66s %4s\n" "$$2" "OK"; \
 	else \
@@ -658,27 +688,36 @@ PTR = print_test_result() { \
 	fi \
 }
 
-$(DIR)/%.x.log: $(DIR)/%.x
-		@rm -f $@
+$(DIR)/%.x.xml: $(DIR)/%.x
+		@rm -f $@ $(@:.xml=.log)
 		@$(PTR); \
 		BOOST_TEST_CATCH_SYSTEM_ERRORS="no" \
-		$< --log_level=test_suite >> $@ 2>&1; \
-		print_test_result $$? $<
+		$< --log_level=test_suite >> $(@:.xml=.log) 2>&1; \
+		write_test_result_file $$? $< $@ $(@:.xml=.log)
 
-$(DIR)/%.m.log: $(DIR)/%.m $(META_SRC)
-		@rm -f $@
+$(DIR)/%.m.xml: $(DIR)/%.m $(META_SRC)
+		@rm -f $@ $(@:.xml=.log)
 		@$(PTR); \
 		"$(MATH)" -run "AppendTo[\$$Path, \"./meta/\"]; Get[\"$<\"]; \
-		Quit[TestSuite\`GetNumberOfFailedTests[]]" >> $@ 2>&1; \
-		print_test_result $$? $<
+		Quit[TestSuite\`GetNumberOfFailedTests[]]" >> $(@:.xml=.log) 2>&1; \
+		write_test_result_file $$? $< $@ $(@:.xml=.log)
 
-$(DIR)/%.sh.log: $(DIR)/%.sh
-		@rm -f $@
+$(DIR)/%.sh.xml: $(DIR)/%.sh
+		@rm -f $@ $(@:.xml=.log)
 		@$(PTR); \
-		MATH_CMD="$(MATH)" $< >> $@ 2>&1; \
-		print_test_result $$? $<
+		MATH_CMD="$(MATH)" $< >> $(@:.xml=.log) 2>&1; \
+		write_test_result_file $$? $< $@ $(@:.xml=.log)
 
-$(DIR)/test_lowMSSM.sh.log: $(RUN_CMSSM_EXE) $(RUN_lowMSSM_EXE)
+$(TEST_XML): $(TEST_ALL_XML)
+		@echo "Creating $@"
+		@echo "\
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
+<?xml-stylesheet type=\"text/xsl\" href=\"test.xsl\"?>\n\
+<tests>\n\
+$$(for f in $^ ; do echo "\t<test filename=\"$$(basename $$f)\"/>"; done)\n\
+</tests>" > $@
+
+$(DIR)/test_lowMSSM.sh.xml: $(RUN_CMSSM_EXE) $(RUN_lowMSSM_EXE)
 
 $(DIR)/test_cast_model.x: $(DIR)/test_cast_model.o $(LIBFLEXI) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
 		$(CXX) -o $@ $(call abspathx,$^) $(filter -%,$(LOOPFUNCLIBS)) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(GSLLIBS) $(FLIBS)
@@ -757,6 +796,9 @@ $(DIR)/test_threshold_corrections.x: $(DIR)/test_threshold_corrections.o $(LIBFL
 $(DIR)/test_threshold_loop_functions.x: $(DIR)/test_threshold_loop_functions.o $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(LIBTEST)
 		$(CXX) -o $@ $(call abspathx,$^) $(filter -%,$(LOOPFUNCLIBS)) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(FLIBS) $(LIBTEST)
 
+$(DIR)/test_spectrum_generator_settings.x: $(DIR)/test_spectrum_generator_settings.o $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(LIBTEST)
+		$(CXX) -o $@ $(call abspathx,$^) $(filter -%,$(LOOPFUNCLIBS)) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(FLIBS) $(LIBTEST)
+
 $(DIR)/test_wrappers.x: $(DIR)/test_wrappers.o $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(LIBTEST)
 		$(CXX) -o $@ $(call abspathx,$^) $(filter -%,$(LOOPFUNCLIBS)) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(FLIBS) $(LIBTEST)
 
@@ -805,6 +847,8 @@ $(DIR)/test_sfermions.x: $(LIBSoftsusyMSSM) $(LIBCMSSM) $(LIBFLEXI) $(LIBTEST) $
 $(DIR)/test_CMSSM_database.x: $(DIR)/test_CMSSM_database.o $(LIBCMSSM) $(LIBFLEXI) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
 		$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $(call abspathx,$^) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(GSLLIBS) $(FLIBS) $(SQLITELIBS) $(THREADLIBS)
 
+$(DIR)/test_CMSSM_gluino.sh: $(RUN_SOFTPOINT_EXE)
+
 $(DIR)/test_MRSSM2_gmm2.x: $(LIBMRSSM2) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
 
 $(DIR)/test_CMSSM_model.x: $(LIBSoftsusyMSSM) $(LIBCMSSM) $(LIBFLEXI) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
@@ -825,7 +869,7 @@ $(DIR)/test_CMSSM_low_scale_constraint.x: $(LIBSoftsusyMSSM) $(LIBCMSSM) $(LIBFL
 
 $(DIR)/test_CMSSM_susy_scale_constraint.x: $(LIBSoftsusyMSSM) $(LIBCMSSM) $(LIBFLEXI) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
 
-$(DIR)/test_CMSSM_slha_output.x: $(DIR)/test_CMSSM_slha_output.o $(LIBCMSSM) $(LIBSoftsusyMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(EXAMPLES_EXE) $(DIR)/test_CMSSM_slha_output.in.spc
+$(DIR)/test_CMSSM_slha_output.x: $(DIR)/test_CMSSM_slha_output.o $(LIBCMSSM) $(LIBSoftsusyMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(EXAMPLES_EXE) $(DIR)/test_CMSSM_slha_output.in.spc $(RUN_SOFTPOINT_EXE)
 		$(CXX) -o $@ $(call abspathx,$< $(LIBCMSSM) $(LIBSoftsusyMSSM) $(LIBFLEXI) $(LOOPFUNCLIBS)) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(GSLLIBS) $(FLIBS)
 
 $(DIR)/test_CMSSM_slha_input.x: $(LIBCMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
@@ -843,6 +887,8 @@ $(DIR)/test_CMSSMCKM_high_scale_constraint.x \
 $(DIR)/test_CMSSMCKM_low_scale_constraint.x \
 $(DIR)/test_CMSSMCKM_tree_level_spectrum.x: \
 	$(LIBSoftsusyFlavourMSSM) $(LIBSoftsusyMSSM) $(LIBCMSSMCKM) $(LIBFLEXI) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
+
+$(DIR)/test_CMSSMCKM_spectrum.sh: $(RUN_SOFTPOINT_EXE)
 
 $(DIR)/test_CMSSM_effective_couplings.x: $(LIBCMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
 
@@ -888,7 +934,7 @@ $(DIR)/test_NMSSM_benchmark.x: CPPFLAGS += $(BOOSTFLAGS) $(EIGENFLAGS)
 $(DIR)/test_NMSSM_benchmark.x: $(DIR)/test_NMSSM_benchmark.cpp $(RUN_NMSSM_EXE) $(RUN_SOFTPOINT_EXE) $(LIBTEST)
 		$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $(call abspathx,$<) $(LIBTEST) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(GSLLIBS) $(FLIBS)
 
-$(DIR)/test_NMSSM_slha_output.x: $(DIR)/test_NMSSM_slha_output.o $(LIBNMSSM) $(LIBSoftsusyMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(EXAMPLES_EXE) $(DIR)/test_NMSSM_slha_output.in.spc
+$(DIR)/test_NMSSM_slha_output.x: $(DIR)/test_NMSSM_slha_output.o $(LIBNMSSM) $(LIBSoftsusyMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS)) $(EXAMPLES_EXE) $(DIR)/test_NMSSM_slha_output.in.spc $(RUN_SOFTPOINT_EXE)
 		$(CXX) -o $@ $(call abspathx,$< $(LIBNMSSM) $(LIBSoftsusyMSSM) $(LIBFLEXI) $(LOOPFUNCLIBS)) $(BOOSTTESTLIBS) $(BOOSTTHREADLIBS) $(GSLLIBS) $(FLIBS)
 
 $(DIR)/test_SMSSM_beta_functions.x: $(LIBSMSSM) $(LIBSoftsusyMSSM) $(LIBSoftsusyNMSSM) $(LIBFLEXI) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
@@ -940,6 +986,8 @@ $(DIR)/test_CMSSMNoFV_weinberg_angle_meta.x: $(LIBCMSSM) $(LIBCMSSMNoFV) $(LIBFL
 
 $(DIR)/test_SMHighPrecision_two_loop_spectrum.x: $(LIBSMHighPrecision) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
 
+$(DIR)/test_SMSU3_low_scale_constraint.x: $(LIBSMSU3) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
+
 $(DIR)/test_NSM_low_scale_constraint.x: $(LIBNSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
 
 $(DIR)/test_VCMSSM_ewsb.x: $(LIBVCMSSM) $(LIBCMSSM) $(LIBFLEXI) $(filter-out -%,$(LOOPFUNCLIBS))
@@ -967,6 +1015,8 @@ $(DIR)/test_CE6SSM_ewsb.x: $(LIBCE6SSM) $(LIBFLEXI) $(LIBLEGACY) $(filter-out -%
 $(DIR)/test_CE6SSM_semi_analytic_solutions.x: $(LIBCE6SSM) $(LIBFLEXI) $(LIBLEGACY) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
 
 $(DIR)/test_CE6SSM_consistent_solutions.x: $(LIBCE6SSM) $(LIBE6SSM) $(LIBFLEXI) $(LIBLEGACY) $(LIBTEST) $(filter-out -%,$(LOOPFUNCLIBS))
+
+$(DIR)/test_lowNMSSM_spectrum.sh: $(RUN_SOFTPOINT_EXE)
 
 $(DIR)/test_lowNUHMSSMSemiAnalytic_ewsb.x: $(LIBlowNUHMSSMSemiAnalytic) $(LIBFLEXI) $(LIBLEGACY) $(filter-out -%,$(LOOPFUNCLIBS))
 

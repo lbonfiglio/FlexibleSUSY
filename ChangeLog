@@ -1,3 +1,145 @@
+FlexibleSUSY 2.0.2 [not released yet]
+
+ * Feature: Allow user to perform replacements on beta functions,
+   self-energies/tadpoles and vertices.  The replacement rules are
+   specified as:
+
+   FSBetaFunctionRules = {
+       {g1 -> 0, g2 -> 0}, (* applied to 1L beta functions *)
+       {g1 -> 0, g2 -> 0}, (* applied to 2L beta functions *)
+       {g1 -> 0, g2 -> 0}  (* applied to 3L beta functions *)
+   };
+
+   FSSelfEnergyRules = {
+       (* applied to 1L self-energies/tadpoles *)
+       { (Mass|Mass2)[VZ|gZ] -> 0 }
+   };
+
+   (* applied to all vertices *)
+   FSVertexRules = { g1 -> 0, g2 -> 0 };
+
+ * Feature: Adding three new input parameters to the HSSUSY model file
+   which can be used to estimate the theoretical uncertainty:
+
+   - By setting EXTPAR[201] to 0 or 1, the parametrization of the
+     2-loop threshold correction to lambda can be switched between
+     yt(SM,MS-bar) and yt(MSSM,DR-bar).
+
+   - By setting EXTPAR[202] to 0 or 1, the parametrization of the
+     2-loop threshold correction to lambda can be switched between
+     DR-bar or on-shell stop mass parameters.
+
+   - A non-zero value of EXTPAR[203] is interpreted as matching scale
+     Q_match.  EXTPAR[203] = 0 corresponds to Q_match = MSUSY.
+
+   SLHA input field | Mathematica symbol | Description
+   -----------------|--------------------|----------------------------
+   EXTPAR[201]      | DeltaYt            | 0 = yt(SM), 1 = yt(MSSM)
+   EXTPAR[202]      | DeltaOS            | 0 = OS stops, 1 = DR stops
+   EXTPAR[203]      | Qmatch             | matching scale
+
+ * Feature: The Mathematica script
+   model_files/HSSUSY/HSSUSY_uncertainty_estimate.m has been added.
+   The script defines the CalcHSSUSYDMh[] function, which performs an
+   uncertainty estimate of the predicted SM-like Higgs mass.  The
+   three sources of uncertainty defined in [1504.05200] are taken into
+   account: SM uncertainty, EFT uncertainty and SUSY uncertainty.  See
+   ?CalcHSSUSYDMh for more information.
+
+ * Feature: The Mathematica script
+   model_files/MSSMEFTHiggs/MSSMEFTHiggs_uncertainty_estimate.m has
+   been added.  The script defines the CalcMSSMEFTHiggsDMh[] function,
+   which performs an uncertainty estimate of the predicted SM-like
+   Higgs mass.  Two sources of uncertainty defined in [1609.00371] are
+   taken into account: SM uncertainty and SUSY uncertainty.  See
+   ?CalcMSSMEFTHiggsDMh for more information.  Note, that there is no
+   "EFT uncertainty" in MSSMEFTHiggs, because all 1-loop v^n/MS^n
+   terms are included.
+
+ * Feature: The Mathematica script
+   model_files/NUHMSSMNoFVHimalaya/NUHMSSMNoFVHimalaya_uncertainty_estimate.m
+   has been added.  The script defines the
+   CalcNUHMSSMNoFVHimalayaDMh[] function, which performs an
+   uncertainty estimate of the predicted SM-like Higgs mass.  The
+   uncertainty is estimated by: 1) varying the renormalisation scale,
+   2) changing the top Yukawa coupling by higher orders (if available)
+   and 3) changing the stong coupling by higher orders.
+
+ * Feature: Implementing the strong corrections to the 4-loop beta
+   functions of the strong gauge, Yukawa and quartic Higgs couplings
+   in the SM from [1508.00912, 1604.00853, 1508.02680].  These 4-loop
+   beta function contributions are enabled in all FlexibleEFTHiggs
+   models by default and can be enabled in other SM-like models by
+   setting the flag
+
+      UseSM4LoopRGEs = True
+
+   in the corresponding model file.
+
+   Many thanks to Alexander Bednyakov for providing the expression for
+   the 4-loop beta function for the strong gauge coupling.
+
+ * Feature: Implementing 4-loop contributions to the Higgs pole mass
+   in the Standard Model from [arxiv:1508.00912].  The 4-loop
+   contributions are enabled in all FlexibleEFTHiggs models by default
+   and can be enabled in other SM-like models by setting the flag
+
+      UseHiggs4LoopSM = True
+
+   in the corresponding model file.
+
+ * Bugfix (commit b85e723): Fix diagonalization of complex symmetric
+   matrices when some of the eigenvalues are degenerate.
+
+ * Bugfix (commit d00b4f5): Extract electric charge from
+   particle-anti-particle-photon vertex if the user has not defined
+   the electric charge in SARAH's particles.m file.
+
+ * Bugfix (commits 398bb00, d1699bf): Correcting CKM mixing of up-type
+   quarks at the low-energy scale and of the soft-breaking parameters
+   at the GUT scale in the CMSSMCKM.
+
+ * Bugfix (commit c95a9b81): Fix compilation error in 4-scalar
+   couplings in models with scalar color triplets due to an unresolved
+   SARAH Clebsch-Gordan coefficient CG[__][__].
+
+ * Bugfix (commit c053fbab): Adding missing particle multiplicity
+   factor w.r.t. unbroken non-abelian non-SM gauge groups in the
+   low-energy 1-loop threshold corrections for alpha_em and alpha_s.
+   This bugfix affects BSM models with additional unbroken non-abelian
+   gauge groups.
+
+ * Bugfix (commit c275b60): Fix linking error on Darwin platforms.
+
+ * Bugfix (commit dd4292a): Adding the user-defined $(CXXFLAGS) to the
+   command that creates config/depgen.x in order to avoid linking
+   errors on machines where the -parallel flag is needed during
+   linking.
+
+ * Bugfix (commit 996caef): Workaround intel compiler / Eigen bug in
+   allFinite() function, which may affect FS output.
+
+FlexibleSUSY 2.0.1 [October, 20 2017]
+
+ * Feature: For each FlexibleSUSY <model> the TeX file
+   <model>/<model>_references.tex is created, which contains \cite{}
+   commands with references to be cited.  Note, that the references to
+   be cited are model-specific due to the different switches in the
+   FlexibleSUSY model files.
+
+ * Bugfix (commit 682de11c): Include 2-loop gluino contribution in the
+   extraction of yt from the top pole mass in the split-MSSM, Eq.(4.7)
+   of arxiv:1312.5220, if UseHiggs3LoopSplit == True.
+
+   Thanks to Pietro Slavich.
+
+ * Bugfix (commits 88009cac, 5ac9366c): Now configure script does not
+   hang even if Mathematica fails to find a valid license.  The script
+   does not quit even if Mathematica does not meet the version
+   requirement, unless --enable-meta or --enable-librarylink is given.
+
+   Thanks to Anders Kvellestad.
+
 FlexibleSUSY 2.0.0 [October, 10 2017]
 
  * Feature: The weak mixing angle can now be calculated from the muon

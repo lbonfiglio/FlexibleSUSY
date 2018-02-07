@@ -31,6 +31,7 @@ META_MSSM_SRC:= \
 		$(DIR)/MSSM/gamma_SlL.m \
 		$(DIR)/MSSM/gamma_SqL.m \
 		$(DIR)/MSSM/gamma_SuR.m \
+		$(DIR)/MSSM/Mh2_3loop_DR_SQCD.m \
 		$(DIR)/MSSM/das2.m \
 		$(DIR)/MSSM/dmtauas2.m \
 		$(DIR)/MSSM/bquark_2loop_sqcd_decoupling.m \
@@ -50,7 +51,11 @@ META_SM_SRC  := \
 		$(DIR)/SM/beta_gt.m \
 		$(DIR)/SM/beta_lambda.m \
 		$(DIR)/SM/beta_m2.m \
-		$(DIR)/SM/HSSUSY_corrections.m
+		$(DIR)/SM/HSSUSY_corrections.m \
+		$(DIR)/SM/HSSUSY_scale_variation.m \
+		$(DIR)/SM/HSSUSY_scale_variation_1L.m \
+		$(DIR)/SM/HSSUSY_scale_variation_2L.m \
+		$(DIR)/SM/HSSUSY_scale_variation_3L.m
 
 META_THDM_SRC:= \
 		$(DIR)/THDM/Thresholds_1L_full.m
@@ -78,6 +83,7 @@ META_SRC     := \
 		$(DIR)/Parameters.m \
 		$(DIR)/Phases.m \
 		$(DIR)/ReadSLHA.m \
+		$(DIR)/References.m \
 		$(DIR)/RGIntegrator.m \
 		$(DIR)/SelfEnergies.m \
 		$(DIR)/SemiAnalytic.m \

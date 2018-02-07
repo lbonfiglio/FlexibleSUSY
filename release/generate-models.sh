@@ -42,6 +42,7 @@ echo "Using $number_of_jobs parallel jobs"
 # models and corresponding SARAH model files
 models_array="             \
    CMSSM,MSSM              \
+   CMSSMSemiAnalytic,MSSM  \
    MSSM,MSSM               \
    MSSMatMGUT,MSSM         \
    MSSMNoFV,MSSMNoFV       \
@@ -54,6 +55,7 @@ models_array="             \
    NUTNMSSM,NMSSM          \
    NUTSMSSM,SMSSM          \
    lowNMSSM,NMSSM          \
+   lowNMSSMTanBetaAtMZ,NMSSM \
    SMSSM,SMSSM             \
    UMSSM,UMSSM             \
    E6SSM,E6SSM             \
@@ -62,13 +64,19 @@ models_array="             \
    SM,SM                   \
    HSSUSY,SM               \
    SplitMSSM,SplitMSSM     \
+   THDMII,THDM-II          \
    THDMIIMSSMBC,THDM-II    \
    HTHDMIIMSSMBC,HTHDM-II  \
    HGTHDMIIMSSMBC,HGTHDM-II \
-   MSSMEFTHiggs,MSSM          \
-   NMSSMEFTHiggs,NMSSM        \
-   E6SSMEFTHiggs,E6SSM        \
-   MRSSMEFTHiggs,MRSSM        \
+   MSSMEFTHiggs,MSSM       \
+   NMSSMEFTHiggs,NMSSM     \
+   E6SSMEFTHiggs,E6SSM     \
+   MRSSMEFTHiggs,MRSSM     \
+   CNMSSM,NMSSM            \
+   CE6SSM,E6SSM            \
+   MSSMNoFVatMGUTHimalaya,MSSMNoFV \
+   MSSMNoFVHimalaya,MSSMNoFV \
+   NUHMSSMNoFVHimalaya,MSSMNoFV \
 "
 
 models="`echo $models_array | sed 's/,[a-zA-Z0-9-]*//g'`"
@@ -96,7 +104,10 @@ models_comma=$(echo $models | tr ' ' ',')
 
 ./configure \
     --with-models=${models_comma} \
-    --with-math-cmd=${MATH}
+    --with-math-cmd=${MATH} \
+    --enable-himalaya \
+    --with-himalaya-incdir=$HIMALAYA_INC \
+    --with-himalaya-libdir=$HIMALAYA_LIB
 
 if test "x$?" != "x0"; then
     exit 1
