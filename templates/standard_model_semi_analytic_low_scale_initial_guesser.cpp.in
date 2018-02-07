@@ -102,7 +102,7 @@ void @ModelName@_standard_model_initial_guesser<Semi_analytic>::guess_eft_parame
    mtau_guess = leAtMt.displayMass(softsusy::mTau);
 
    // guess gauge couplings at mt
-   const auto alpha_sm(leAtMt.guess_alpha_SM5(mtpole);
+   const auto alpha_sm(leAtMt.guess_alpha_SM5(mtpole));
 
    eft->set_g1(sqrt(4.0 * M_PI * alpha_sm(0)));
    eft->set_g2(sqrt(4.0 * M_PI * alpha_sm(1)));
