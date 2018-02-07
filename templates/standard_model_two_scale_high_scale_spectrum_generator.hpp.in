@@ -25,7 +25,6 @@
 #include "@ModelName@_spectrum_generator.hpp"
 #include "@ModelName@_two_scale_model.hpp"
 #include "@ModelName@_model_slha.hpp"
-#include "@ModelName@_input_parameters.hpp"
 #include "standard_model_two_scale_model.hpp"
 
 namespace softsusy { class QedQcd; }
