@@ -15,14 +15,6 @@ add_library(flexisusy
   gsl_vector.cpp
   lowe.cpp
   sfermions.cpp
-  mssm_twoloop_as.cpp
-  mssm_twoloop_mb.cpp
-  mssm_twoloop_mt.cpp
-  mssm_twoloop_mtau.cpp
-  mssm_twoloophiggs.cpp
-  mssm_twoloophiggs_impl.f
-  nmssm_twoloophiggs.cpp
-  nmssm2loop.f
   numerics.cpp
   numerics2.cpp
   physical_input.cpp
@@ -32,19 +24,8 @@ add_library(flexisusy
   rkf_integrator.cpp
   scan.cpp
   slha_io.cpp
-  sm_threeloop_as.cpp
-  sm_threeloophiggs.cpp
-  sm_twoloophiggs.cpp
   spectrum_generator_problems.cpp
   spectrum_generator_settings.cpp
-  splitmssm_threeloophiggs.cpp
-  splitmssm_thresholds.cpp
-  standard_model.cpp
-  standard_model_effective_couplings.cpp
-  standard_model_physical.cpp
-  standard_model_two_scale_convergence_tester.cpp
-  standard_model_two_scale_low_scale_constraint.cpp
-  standard_model_two_scale_model.cpp
   string_utils.cpp
   threshold_corrections.cpp
   threshold_loop_functions.cpp
