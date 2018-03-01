@@ -171,12 +171,14 @@ UseHiggs3LoopMSSM = False;
 EffectiveMu;
 EffectiveMASqr;
 UseSM3LoopRGEs = False;
+UseSM4LoopRGEs = False;
 UseSMAlphaS3Loop = False;
 UseMSSM3LoopRGEs = False;
 UseMSSMYukawa2Loop = False;
 UseMSSMAlphaS2Loop = False;
 UseHiggs2LoopSM = False;
 UseHiggs3LoopSM = False;
+UseHiggs4LoopSM = False;
 UseHiggs3LoopSplit = False;
 UseYukawa3LoopQCD = Automatic;
 FSRGELoopOrder = 2; (* RGE loop order (0, 1 or 2) *)
@@ -1416,6 +1418,7 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
             twoLoopTadpolePrototypes = "", twoLoopTadpoleFunctions = "",
             twoLoopSelfEnergyPrototypes = "", twoLoopSelfEnergyFunctions = "",
             threeLoopSelfEnergyPrototypes = "", threeLoopSelfEnergyFunctions = "",
+            fourLoopSelfEnergyPrototypes = "", fourLoopSelfEnergyFunctions = "",
             secondGenerationHelperPrototypes = "", secondGenerationHelperFunctions = "",
             thirdGenerationHelperPrototypes = "", thirdGenerationHelperFunctions = "",
             phasesDefinition = "", phasesGetterSetters = "",
@@ -1440,7 +1443,7 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
             copyDRbarMassesToPoleMasses = "",
             reorderDRbarMasses = "", reorderPoleMasses = "",
             checkPoleMassesForTachyons = "",
-            twoLoopHiggsHeaders = "", threeLoopHiggsHeaders = "",
+            twoLoopHiggsHeaders = "", threeLoopHiggsHeaders = "", fourLoopHiggsHeaders = "",
             twoLoopThresholdHeaders = "",
             lspGetters = "", lspFunctions = "",
             convertMixingsToSLHAConvention = "",
@@ -1489,6 +1492,10 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
            If[FlexibleSUSY`UseHiggs3LoopSM === True,
               {threeLoopSelfEnergyPrototypes, threeLoopSelfEnergyFunctions} = SelfEnergies`CreateThreeLoopSelfEnergiesSM[{SARAH`HiggsBoson}];
               threeLoopHiggsHeaders = "#include \"sm_threeloophiggs.hpp\"\n";
+             ];
+           If[FlexibleSUSY`UseHiggs4LoopSM === True,
+              {fourLoopSelfEnergyPrototypes, fourLoopSelfEnergyFunctions} = SelfEnergies`CreateFourLoopSelfEnergiesSM[{SARAH`HiggsBoson}];
+              fourLoopHiggsHeaders = "#include \"sm_fourloophiggs.hpp\"\n";
              ];
            If[FlexibleSUSY`UseHiggs3LoopSplit === True,
               {threeLoopSelfEnergyPrototypes, threeLoopSelfEnergyFunctions} = SelfEnergies`CreateThreeLoopSelfEnergiesSplit[{SARAH`HiggsBoson}];
@@ -1593,6 +1600,18 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
            parametersToSave = Join[parametersToSave,
                                    #[[1]]& /@ (Select[ewsbSubstitutions,
                                                       Function[sub, Or @@ (!FreeQ[sub[[2]], #]& /@ parametersToSave)]])];
+           parametersToSave = DeleteDuplicates[parametersToSave /.
+                                               {
+                                                   Susyno`LieGroups`conj -> Identity,
+                                                   SARAH`Conj            -> Identity,
+                                                   SARAH`Tp              -> Identity,
+                                                   SARAH`Adj             -> Identity,
+                                                   SARAH`bar             -> Identity,
+                                                   Conjugate             -> Identity,
+                                                   Transpose             -> Identity,
+                                                   Re                    -> Identity,
+                                                   Im                    -> Identity
+                                               }];
            saveEWSBOutputParameters = Parameters`SaveParameterLocally[parametersToSave];
            (ewsbSolverHeaders = ewsbSolverHeaders
                                 <> EnableForBVPSolver[#, ("#include \"" <> FlexibleSUSY`FSModelName
@@ -1640,6 +1659,9 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                             "@threeLoopSelfEnergyPrototypes@" -> IndentText[threeLoopSelfEnergyPrototypes],
                             "@threeLoopSelfEnergyFunctions@"  -> threeLoopSelfEnergyFunctions,
                             "@threeLoopHiggsHeaders@"         -> threeLoopHiggsHeaders,
+                            "@fourLoopSelfEnergyPrototypes@"  -> IndentText[fourLoopSelfEnergyPrototypes],
+                            "@fourLoopSelfEnergyFunctions@"   -> fourLoopSelfEnergyFunctions,
+                            "@fourLoopHiggsHeaders@"          -> fourLoopHiggsHeaders,
                             "@secondGenerationHelperPrototypes@"-> IndentText[secondGenerationHelperPrototypes],
                             "@secondGenerationHelperFunctions@" -> secondGenerationHelperFunctions,
                             "@thirdGenerationHelperPrototypes@" -> IndentText[thirdGenerationHelperPrototypes],
@@ -1846,7 +1868,7 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
                                        "@getObservablesNames@" -> IndentText[getObservablesNames],
                                        "@clearObservables@" -> IndentText[clearObservables],
                                        "@setObservables@" -> IndentText[setObservables],
-                                       "@calculateObservables@" -> IndentText[calculateObservables],
+                                       "@calculateObservables@" -> IndentText @ IndentText[calculateObservables],
                                        Sequence @@ GeneralReplacementRules[]
                                    } ];
            ];
@@ -2459,6 +2481,15 @@ FSCheckFlags[] :=
               FlexibleSUSY`UseSM3LoopRGEs = True;
              ];
 
+           If[FlexibleSUSY`UseHiggs4LoopSM === True,
+              FlexibleSUSY`UseHiggs2LoopSM = True;
+              FlexibleSUSY`UseHiggs3LoopSM = True;
+              FlexibleSUSY`UseSMAlphaS3Loop = True;
+              FlexibleSUSY`UseYukawa3LoopQCD = True;
+              FlexibleSUSY`UseSM3LoopRGEs = True;
+              FlexibleSUSY`UseSM4LoopRGEs = True;
+             ];
+
            If[FlexibleSUSY`FlexibleEFTHiggs,
               References`AddReference["Athron:2016fuq"];
              ];
@@ -2528,6 +2559,12 @@ FSCheckFlags[] :=
               References`AddReference["Martin:2014cxa"];
              ];
 
+           If[FlexibleSUSY`UseHiggs4LoopSM || FlexibleSUSY`FlexibleEFTHiggs,
+              Print["Adding 4-loop SM Higgs mass contributions from ",
+                    "[arxiv:1508.00912]"];
+              References`AddReference["Martin:2015eia"];
+             ];
+
            If[FlexibleSUSY`UseHiggs3LoopSplit,
               Print["Adding 3-loop split-MSSM Higgs mass contributions from ",
                     "[arxiv:1312.5220]"];
@@ -2551,6 +2588,14 @@ FSCheckFlags[] :=
               References`AddReference["Bednyakov:2013eba"];
               References`AddReference["Buttazzo:2013uya"];
               References`AddReference["Vega:2015fna"];
+             ];
+
+           If[FlexibleSUSY`UseSM4LoopRGEs || FlexibleSUSY`FlexibleEFTHiggs,
+              Print["Adding 4-loop SM beta-function from ",
+                    "[arxiv:1508.00912, arXiv:1604.00853, 1508.02680]"];
+              References`AddReference["Martin:2015eia"];
+              References`AddReference["Chetyrkin:2016ruf"];
+              References`AddReference["Bednyakov:2015ooa"];
              ];
 
            If[FlexibleSUSY`UseMSSM3LoopRGEs,
@@ -2916,8 +2961,10 @@ GetVEVPhases[eigenstates_:FlexibleSUSY`FSEigenstates] :=
 AddSM3LoopRGE[beta_List, couplings_List] :=
     Module[{rules, MakeRule},
            MakeRule[coupling_] := {
-               RuleDelayed[{coupling         , b1_, b2_}, {coupling       , b1, b2, Last[ThreeLoopSM`BetaSM[coupling]]}],
-               RuleDelayed[{coupling[i1_,i2_], b1_, b2_}, {coupling[i1,i2], b1, b2, Last[ThreeLoopSM`BetaSM[coupling]] CConversion`PROJECTOR}]
+               RuleDelayed[{coupling         , b1_, b2_},
+                           {coupling         , b1 , b2, Part[ThreeLoopSM`BetaSM[coupling], 3]}],
+               RuleDelayed[{coupling[i1_,i2_], b1_, b2_},
+                           {coupling[i1,i2]  , b1 , b2, Part[ThreeLoopSM`BetaSM[coupling], 3] CConversion`PROJECTOR}]
            };
            rules = Flatten[MakeRule /@ couplings];
            beta /. rules
@@ -2937,6 +2984,28 @@ AddSM3LoopRGEs[] := Module[{
     SARAH`BetaYijk  = AddSM3LoopRGE[SARAH`BetaYijk , yuks];
     SARAH`BetaLijkl = AddSM3LoopRGE[SARAH`BetaLijkl, quart];
     SARAH`BetaBij   = AddSM3LoopRGE[SARAH`BetaBij  , bilin];
+    ];
+
+AddSM4LoopRGE[beta_List, couplings_List] :=
+    Module[{rules, MakeRule},
+           MakeRule[coupling_] := {
+               RuleDelayed[{coupling         , b1_, b2_, b3_},
+                           {coupling         , b1 , b2 , b3, Part[ThreeLoopSM`BetaSM[coupling], 4]}],
+               RuleDelayed[{coupling[i1_,i2_], b1_, b2_, b3_},
+                           {coupling[i1,i2]  , b1 , b2 , b3, Part[ThreeLoopSM`BetaSM[coupling], 4] CConversion`PROJECTOR}]
+           };
+           rules = Flatten[MakeRule /@ couplings];
+           beta /. rules
+          ];
+
+AddSM4LoopRGEs[] := Module[{
+    gauge = { SARAH`strongCoupling },
+    yuks  = { SARAH`UpYukawa },
+    quart = { Parameters`GetParameterFromDescription["SM Higgs Selfcouplings"] }
+    },
+    SARAH`BetaGauge = AddSM4LoopRGE[SARAH`BetaGauge, gauge];
+    SARAH`BetaYijk  = AddSM4LoopRGE[SARAH`BetaYijk , yuks];
+    SARAH`BetaLijkl = AddSM4LoopRGE[SARAH`BetaLijkl, quart];
     ];
 
 AddMSSM3LoopRGE[beta_List, couplings_List] :=
@@ -3098,6 +3167,10 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
            If[FlexibleSUSY`UseSM3LoopRGEs,
               AddSM3LoopRGEs[];
+             ];
+
+           If[FlexibleSUSY`UseSM4LoopRGEs,
+              AddSM4LoopRGEs[];
              ];
 
            If[FlexibleSUSY`UseMSSM3LoopRGEs,
@@ -3891,7 +3964,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                       
                       
            Print["Setting up CXXDiagrams..."];
-           CXXDiagrams`Initialize[];
+           CXXDiagrams`CXXDiagramsInitialize[];
            
            Print["Creating EDM class..."];
            edmFields = DeleteDuplicates @ Cases[Observables`GetRequestedObservables[extraSLHAOutputBlocks],

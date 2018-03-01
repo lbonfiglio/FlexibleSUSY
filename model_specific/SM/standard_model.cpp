@@ -42,6 +42,7 @@
 
 #include "sm_twoloophiggs.hpp"
 #include "sm_threeloophiggs.hpp"
+#include "sm_fourloophiggs.hpp"
 #include "sm_threeloop_as.hpp"
 
 #include <cmath>
@@ -143,15 +144,16 @@ const int Standard_model::numberOfParameters;
 
 #define PHYSICAL(parameter) physical.parameter
 
-#define HIGGS_2LOOP_CORRECTION_AT_AS     loop_corrections.higgs_at_as
-#define HIGGS_2LOOP_CORRECTION_AB_AS     loop_corrections.higgs_ab_as
-#define HIGGS_2LOOP_CORRECTION_AT_AT     loop_corrections.higgs_at_at
-#define HIGGS_2LOOP_CORRECTION_ATAU_ATAU loop_corrections.higgs_atau_atau
-#define TOP_POLE_QCD_CORRECTION          loop_corrections.top_qcd
-#define HIGGS_3LOOP_CORRECTION_AT_AS_AS  loop_corrections.higgs_at_as_as
-#define HIGGS_3LOOP_CORRECTION_AB_AS_AS  loop_corrections.higgs_ab_as_as
-#define HIGGS_3LOOP_CORRECTION_AT_AT_AS  loop_corrections.higgs_at_at_as
-#define HIGGS_3LOOP_CORRECTION_AT_AT_AT  loop_corrections.higgs_at_at_at
+#define HIGGS_2LOOP_CORRECTION_AT_AS       loop_corrections.higgs_at_as
+#define HIGGS_2LOOP_CORRECTION_AB_AS       loop_corrections.higgs_ab_as
+#define HIGGS_2LOOP_CORRECTION_AT_AT       loop_corrections.higgs_at_at
+#define HIGGS_2LOOP_CORRECTION_ATAU_ATAU   loop_corrections.higgs_atau_atau
+#define TOP_POLE_QCD_CORRECTION            loop_corrections.top_qcd
+#define HIGGS_3LOOP_CORRECTION_AT_AS_AS    loop_corrections.higgs_at_as_as
+#define HIGGS_3LOOP_CORRECTION_AB_AS_AS    loop_corrections.higgs_ab_as_as
+#define HIGGS_3LOOP_CORRECTION_AT_AT_AS    loop_corrections.higgs_at_at_as
+#define HIGGS_3LOOP_CORRECTION_AT_AT_AT    loop_corrections.higgs_at_at_at
+#define HIGGS_4LOOP_CORRECTION_AT_AS_AS_AS loop_corrections.higgs_at_as_as_as
 
 Standard_model::Standard_model()
 {
@@ -1154,7 +1156,7 @@ Eigen::ArrayXd Standard_model::beta() const
    return calc_beta().get().unaryExpr(Chop<double>(get_zero_threshold()));
 }
 
-Standard_model Standard_model::calc_beta() const
+Standard_model Standard_model::calc_beta(int loops) const
 {
    double beta_g1 = 0.;
    double beta_g2 = 0.;
@@ -1166,7 +1168,7 @@ Standard_model Standard_model::calc_beta() const
    double beta_mu2 = 0.;
    double beta_v = 0.;
 
-   if (get_loops() > 0) {
+   if (loops > 0) {
       Beta_traces traces;
       calc_beta_traces(traces);
 
@@ -1180,7 +1182,7 @@ Standard_model Standard_model::calc_beta() const
       beta_mu2 += calc_beta_mu2_one_loop(traces);
       beta_v += calc_beta_v_one_loop(traces);
 
-      if (get_loops() > 1) {
+      if (loops > 1) {
          beta_g1 += calc_beta_g1_two_loop(traces);
          beta_g2 += calc_beta_g2_two_loop(traces);
          beta_g3 += calc_beta_g3_two_loop(traces);
@@ -1191,7 +1193,7 @@ Standard_model Standard_model::calc_beta() const
          beta_mu2 += calc_beta_mu2_two_loop(traces);
          beta_v += calc_beta_v_two_loop(traces);
 
-         if (get_loops() > 2) {
+         if (loops > 2) {
             beta_g1 += calc_beta_g1_three_loop(traces);
             beta_g2 += calc_beta_g2_three_loop(traces);
             beta_g3 += calc_beta_g3_three_loop(traces);
@@ -1201,13 +1203,23 @@ Standard_model Standard_model::calc_beta() const
             beta_Ye += calc_beta_Ye_three_loop(traces);
             beta_mu2 += calc_beta_mu2_three_loop(traces);
 
+            if (loops > 3) {
+               beta_g3 += calc_beta_g3_four_loop(traces);
+               beta_Lambdax += calc_beta_Lambdax_four_loop(traces);
+               beta_Yu += calc_beta_Yu_four_loop(traces);
+            }
          }
       }
    }
 
-   return Standard_model(get_scale(), get_loops(), get_thresholds(),
+   return Standard_model(get_scale(), loops, get_thresholds(),
                          beta_g1, beta_g2, beta_g3, beta_Lambdax, beta_Yu, beta_Yd, beta_Ye,
                          beta_mu2, beta_v);
+}
+
+Standard_model Standard_model::calc_beta() const
+{
+   return calc_beta(get_loops());
 }
 
 void Standard_model::calc_beta_traces(Beta_traces& traces) const
@@ -1352,6 +1364,21 @@ double Standard_model::calc_beta_g3_three_loop(const Beta_traces&) const
    return beta_g3;
 }
 
+double Standard_model::calc_beta_g3_four_loop(const Beta_traces&) const
+{
+   DEFINE_PROJECTOR(3,3,3,3)
+
+   double beta_g3;
+
+   beta_g3 = Re(-2472.2837425797156*Cube(g3)*Quad(oneOver16PiSqr)*(1.*
+      Power6(g3) + 0.04569149546770327*Power6(Yu(2,2)) + 0.0060672647486441755*
+      Lambdax*Quad(Yu(2,2)) - 0.12603833934188147*Quad(Yu(2,2))*Sqr(g3) +
+      0.16927060578749137*Quad(g3)*Sqr(Yu(2,2)) - 0.003640358849186505*Sqr(
+      Lambdax)*Sqr(Yu(2,2))));
+
+   return beta_g3;
+}
+
 double Standard_model::calc_beta_Lambdax_one_loop(const Beta_traces& traces) const
 {
    const double traceYdAdjYd = traces.traceYdAdjYd;
@@ -1447,6 +1474,16 @@ double Standard_model::calc_beta_Lambdax_three_loop(const Beta_traces&) const
    return beta_Lambdax;
 }
 
+double Standard_model::calc_beta_Lambdax_four_loop(const Beta_traces&) const
+{
+   double beta_Lambdax;
+
+   beta_Lambdax = Re(16616.34*Power6(g3)*Quad(oneOver16PiSqr)*Quad(Yu(2,2
+      )));
+
+   return beta_Lambdax;
+}
+
 Eigen::Matrix<double,3,3> Standard_model::calc_beta_Yu_one_loop(const Beta_traces& traces) const
 {
    const double traceYdAdjYd = traces.traceYdAdjYd;
@@ -1509,6 +1546,17 @@ Eigen::Matrix<double,3,3> Standard_model::calc_beta_Yu_three_loop(const Beta_tra
       990000*Lambdax*Quad(Yu(2,2)) + 3637640*Quad(g3)*Sqr(Yu(2,2)) + 9375*Sqr(
       Lambdax)*Sqr(Yu(2,2)) + 10000*Sqr(g3)*(-157*Quad(Yu(2,2)) + 8*Lambdax*Sqr
       (Yu(2,2)))))*Yu(2,2)).real();
+
+   return beta_Yu;
+}
+
+Eigen::Matrix<double,3,3> Standard_model::calc_beta_Yu_four_loop(const Beta_traces&) const
+{
+   DEFINE_PROJECTOR(3,3,3,3)
+
+   Eigen::Matrix<double,3,3> beta_Yu;
+
+   beta_Yu = (1154.09*PROJECTOR*Power8(g3)*Quad(oneOver16PiSqr)).real();
 
    return beta_Yu;
 }
@@ -4189,6 +4237,24 @@ double Standard_model::self_energy_hh_3loop() const
    return self_energy;
 }
 
+double Standard_model::self_energy_hh_4loop() const
+{
+   using namespace flexiblesusy::sm_fourloophiggs;
+
+   const double mt = MFu(2);
+   const double yt = Yu(2,2);
+   const double gs = g3;
+   const double mh = Mhh;
+   const double scale = get_scale();
+   double self_energy = 0.;
+
+   if (HIGGS_4LOOP_CORRECTION_AT_AS_AS_AS) {
+      self_energy -= delta_mh_4loop_at_as_as_as_sm(scale, mt, yt, gs);
+   }
+
+   return self_energy;
+}
+
 
 
 
@@ -4223,6 +4289,8 @@ void Standard_model::calculate_Mhh_pole()
          self_energy += self_energy_hh_2loop(p);
       if (pole_mass_loop_order > 2)
          self_energy += self_energy_hh_3loop();
+      if (pole_mass_loop_order > 3)
+         self_energy += self_energy_hh_4loop();
       const double mass_sqr = M_tree - self_energy;
 
       PHYSICAL(Mhh) = SignedAbsSqrt(mass_sqr);

@@ -46,6 +46,52 @@ FlexibleSUSY 2.0.2 [not released yet]
    account: SM uncertainty, EFT uncertainty and SUSY uncertainty.  See
    ?CalcHSSUSYDMh for more information.
 
+ * Feature: The Mathematica script
+   model_files/MSSMEFTHiggs/MSSMEFTHiggs_uncertainty_estimate.m has
+   been added.  The script defines the CalcMSSMEFTHiggsDMh[] function,
+   which performs an uncertainty estimate of the predicted SM-like
+   Higgs mass.  Two sources of uncertainty defined in [1609.00371] are
+   taken into account: SM uncertainty and SUSY uncertainty.  See
+   ?CalcMSSMEFTHiggsDMh for more information.  Note, that there is no
+   "EFT uncertainty" in MSSMEFTHiggs, because all 1-loop v^n/MS^n
+   terms are included.
+
+ * Feature: The Mathematica script
+   model_files/NUHMSSMNoFVHimalaya/NUHMSSMNoFVHimalaya_uncertainty_estimate.m
+   has been added.  The script defines the
+   CalcNUHMSSMNoFVHimalayaDMh[] function, which performs an
+   uncertainty estimate of the predicted SM-like Higgs mass.  The
+   uncertainty is estimated by: 1) varying the renormalisation scale,
+   2) changing the top Yukawa coupling by higher orders (if available)
+   and 3) changing the stong coupling by higher orders.
+
+ * Feature: Implementation of the strong corrections to the 4-loop
+   beta functions of the strong gauge, Yukawa and quartic Higgs
+   couplings in the SM from [1508.00912, 1604.00853, 1508.02680].
+   These 4-loop beta function contributions are enabled in all
+   FlexibleEFTHiggs models by default and can be enabled in other
+   SM-like models by setting the flag
+
+      UseSM4LoopRGEs = True
+
+   in the corresponding model file.
+
+   Many thanks to Alexander Bednyakov for providing the expression for
+   the 4-loop beta function for the strong gauge coupling.
+
+ * Feature: Implementing 4-loop effective potential contributions to
+   the Higgs pole mass in the Standard Model from [arxiv:1508.00912].
+   The 4-loop contributions are enabled in all FlexibleEFTHiggs models
+   by default and can be enabled in other SM-like models by setting
+   the flag
+
+      UseHiggs4LoopSM = True
+
+   in the corresponding model file.
+
+ * Bugfix (commit b85e723): Fix diagonalization of complex symmetric
+   matrices when some of the eigenvalues are degenerate.
+
  * Bugfix (commit d00b4f5): Extract electric charge from
    particle-anti-particle-photon vertex if the user has not defined
    the electric charge in SARAH's particles.m file.
@@ -64,7 +110,20 @@ FlexibleSUSY 2.0.2 [not released yet]
    This bugfix affects BSM models with additional unbroken non-abelian
    gauge groups.
 
- * Bugfix: Fix linking error on Darwin platforms.
+ * Bugfix (commit a1fa5e7f): Fix multiple local definitions of EWSB
+   output parameters in models with complex parameters.
+
+   Thanks to Simonas Drauksas.
+
+ * Bugfix (commit c275b60): Fix linking error on Darwin platforms.
+
+ * Bugfix (commit dd4292a): Adding the user-defined $(CXXFLAGS) to the
+   command that creates config/depgen.x in order to avoid linking
+   errors on machines where the -parallel flag is needed during
+   linking.
+
+ * Bugfix (commit 996caef): Workaround intel compiler / Eigen bug in
+   allFinite() function, which may affect FS output.
 
 FlexibleSUSY 2.0.1 [October, 20 2017]
 
@@ -79,6 +138,10 @@ FlexibleSUSY 2.0.1 [October, 20 2017]
    of arxiv:1312.5220, if UseHiggs3LoopSplit == True.
 
    Thanks to Pietro Slavich.
+
+ * Bugfix (commit a783e318): Distinguish between tree- and loop-level
+   EWSB failures, so problem points where only one fails (but not the
+   other) get handled properly.
 
  * Bugfix (commits 88009cac, 5ac9366c): Now configure script does not
    hang even if Mathematica fails to find a valid license.  The script
