@@ -18,4 +18,6 @@ else()
   add_library(fflite INTERFACE)
 endif()
 
+target_include_directories(fflite PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
 add_library(FlexibleSUSY::fflite ALIAS fflite)

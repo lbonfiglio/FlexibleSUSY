@@ -141,7 +141,6 @@ DEFINE_ENABLE_LIBRARYLINK="#undef ENABLE_LIBRARYLINK"
 DEFINE_ENABLE_ILP64MKL_WORKAROUND="#undef ENABLE_ILP64MKL_WORKAROUND"
 DEFINE_ENABLE_LOOPTOOLS="#undef ENABLE_LOOPTOOLS"
 DEFINE_ENABLE_ODEINT="#undef ENABLE_ODEINT"
-DEFINE_ENABLE_RANDOM="#undef ENABLE_RANDOM"
 DEFINE_ENABLE_SILENT="#undef ENABLE_SILENT"
 DEFINE_ENABLE_SQLITE="#undef ENABLE_SQLITE"
 DEFINE_ENABLE_THREADS="#define ENABLE_THREADS 1"
@@ -2384,22 +2383,6 @@ EOF
 }
 
 #_____________________________________________________________________
-check_random_number_generator() {
-    # check for random number generator
-    checking_msg "random number generator"
-    if try_compile_cpp_program "#include <random>" "std::minstd_rand generator; std::uniform_real_distribution<double> distribution(0., 1.);";
-    then
-        result "ok"
-        DEFINE_ENABLE_RANDOM="#define ENABLE_RANDOM 1"
-        logmsg "Enabling random number generator: ${DEFINE_ENABLE_RANDOM}"
-    else
-        result "not found"
-        DEFINE_ENABLE_RANDOM="#undef ENABLE_RANDOM"
-        logmsg "Disabling random number generator: ${DEFINE_ENABLE_RANDOM}"
-    fi
-}
-
-#_____________________________________________________________________
 check_sarah() {
     checking_msg "SARAH installation"
     rm -f ${sarahconfig}
@@ -3093,7 +3076,6 @@ if test "x${enable_compile}" = "xyes"; then
     check_tsil
     check_static_lib_cmd
     check_shared_lib_cmd
-    check_random_number_generator
     check_std_threads
     check_thread_libs
 fi
@@ -3181,7 +3163,6 @@ sed -e "s|@FLEXIBLESUSY_VERSION@|$FLEXIBLESUSY_VERSION|" \
     -e "s|@DEFINE_ENABLE_LIBRARYLINK@|$DEFINE_ENABLE_LIBRARYLINK|" \
     -e "s|@DEFINE_ENABLE_ILP64MKL_WORKAROUND@|$DEFINE_ENABLE_ILP64MKL_WORKAROUND|" \
     -e "s|@DEFINE_ENABLE_LOOPTOOLS@|$DEFINE_ENABLE_LOOPTOOLS|" \
-    -e "s|@DEFINE_ENABLE_RANDOM@|$DEFINE_ENABLE_RANDOM|"       \
     -e "s|@DEFINE_ENABLE_SILENT@|$DEFINE_ENABLE_SILENT|"       \
     -e "s|@DEFINE_ENABLE_ODEINT@|$DEFINE_ENABLE_ODEINT|"       \
     -e "s|@DEFINE_ENABLE_SQLITE@|$DEFINE_ENABLE_SQLITE|"       \

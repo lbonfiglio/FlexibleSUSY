@@ -21,11 +21,8 @@
 
 #include "config.h"
 #include <cstddef>
-#include <vector>
-
-#ifdef ENABLE_RANDOM
-
 #include <random>
+#include <vector>
 
 /**
  * @file scan.hpp
@@ -60,12 +57,6 @@ public:
       return distribution(generator);
    }
 };
-
-} // namespace flexiblesusy
-
-#endif
-
-namespace flexiblesusy {
 
 /// returns range of floating point values between start and stop
 std::vector<double> float_range(double start, double stop,

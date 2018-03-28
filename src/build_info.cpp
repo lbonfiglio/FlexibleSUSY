@@ -208,13 +208,6 @@ void print_build_info(std::ostream& ostr)
       "no"
 #endif
       "\n"
-      "Use <random> header:                    "
-#ifdef ENABLE_RANDOM
-      "yes"
-#else
-      "no"
-#endif
-      "\n"
       "Use SQLite3:                            "
 #ifdef ENABLE_SQLITE
       "yes"

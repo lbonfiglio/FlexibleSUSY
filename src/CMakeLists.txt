@@ -49,10 +49,19 @@ endif()
 
 add_library(flexisusy ${FLEXISUSY_SRC})
 
+target_include_directories(flexisusy
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 target_link_libraries(flexisusy
+  PUBLIC
   Eigen3::Eigen
   FlexibleSUSY::config
   FlexibleSUSY::fflite
-  FlexibleSUSY::slhaea)
+  FlexibleSUSY::slhaea
+  GSL::gsl
+  ${LAPACK_LIBRARIES}
+)
 
 add_library(FlexibleSUSY::flexisusy ALIAS flexisusy)

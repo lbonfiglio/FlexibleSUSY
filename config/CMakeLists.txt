@@ -6,6 +6,6 @@ get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
 configure_file(config_cmake.h.in config.h)
 
 add_library(config INTERFACE)
-target_include_directories(config INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(config INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_library(FlexibleSUSY::config ALIAS config)

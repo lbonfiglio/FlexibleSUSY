@@ -1,0 +1,5 @@
+add_subdirectory(MSSM_higgs)
+add_subdirectory(MSSM_thresholds)
+add_subdirectory(NMSSM_higgs)
+add_subdirectory(SM)
+add_subdirectory(SplitMSSM)
