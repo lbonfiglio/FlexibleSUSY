@@ -1,4 +1,6 @@
 if(ENABLE_GM2Calc)
+  set(WITH_GM2Calc 1 CACHE INTERNAL WITH_GM2Calc)
+
   add_library(GM2Calc
     ffunctions.cpp
     gm2_1loop.cpp

@@ -61,3 +61,8 @@ add_flexiblesusy_bin_test(test_threshold_loop_functions)
 add_flexiblesusy_bin_test(test_spectrum_generator_settings)
 add_flexiblesusy_bin_test(test_which)
 add_flexiblesusy_bin_test(test_wrappers)
+
+if(WITH_GM2Calc)
+  add_flexiblesusy_bin_test(test_gm2calc)
+  add_flexiblesusy_bin_test(test_MSSMNoFV_onshell)
+endif()
