@@ -23,17 +23,17 @@ if(ENABLE_COMPILE)
   endif()
 endif()
 
-add_subdirectory(config)
-add_subdirectory(doc)
-
 if(ENABLE_COMPILE)
+  add_subdirectory(config)
   add_subdirectory(fflite)
   add_subdirectory(model_specific)
   add_subdirectory(slhaea)
   add_subdirectory(src)
-
-  if(ENABLE_TEST AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test)
-    enable_testing()
-    add_subdirectory(test)
-  endif()
 endif()
+
+if(ENABLE_TEST AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test)
+  enable_testing()
+  add_subdirectory(test)
+endif()
+
+add_subdirectory(doc)

@@ -12,20 +12,22 @@ target_link_libraries(flexiblesusy_test
 add_library(FlexibleSUSY::flexiblesusy_test ALIAS flexiblesusy_test)
 
 function(add_flexiblesusy_bin_test name)
-  add_executable(
-    ${name}
-    ${name}.cpp
-    )
-  target_link_libraries(
-    ${name}
-    FlexibleSUSY::flexiblesusy_test
-    FlexibleSUSY::model_specific::MSSM_higgs
-    FlexibleSUSY::model_specific::MSSM_thresholds
-    FlexibleSUSY::model_specific::NMSSM_higgs
-    FlexibleSUSY::model_specific::SM
-    FlexibleSUSY::model_specific::SplitMSSM
-    )
-  add_test(NAME ${name} COMMAND ${name})
+  if(ENABLE_COMPILE)
+    add_executable(
+      ${name}
+      ${name}.cpp
+      )
+    target_link_libraries(
+      ${name}
+      FlexibleSUSY::flexiblesusy_test
+      FlexibleSUSY::model_specific::MSSM_higgs
+      FlexibleSUSY::model_specific::MSSM_thresholds
+      FlexibleSUSY::model_specific::NMSSM_higgs
+      FlexibleSUSY::model_specific::SM
+      FlexibleSUSY::model_specific::SplitMSSM
+      )
+    add_test(NAME ${name} COMMAND ${name})
+  endif()
 endfunction()
 
 add_flexiblesusy_bin_test(test_array_view)
