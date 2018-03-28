@@ -20,6 +20,7 @@ if(ENABLE_COMPILE)
 endif()
 
 add_subdirectory(config)
+add_subdirectory(doc)
 
 if(ENABLE_COMPILE)
   add_subdirectory(slhaea)

@@ -12,7 +12,7 @@ DOC_TMPL     := \
 		$(DIR)/hssusy.dox \
 		$(DIR)/install.dox \
 		$(DIR)/librarylink.dox \
-		$(DIR)/mainpage.dox.in \
+		$(DIR)/mainpage.dox \
 		$(DIR)/meta_code.dox \
 		$(DIR)/model_file.dox \
 		$(DIR)/mssmefthiggs.dox \
