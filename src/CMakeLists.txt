@@ -1,4 +1,4 @@
-add_library(flexisusy
+set(FLEXISUSY_SRC
   betafunction.cpp
   build_info.cpp
   bvp_solver_problems.cpp
@@ -30,8 +30,24 @@ add_library(flexisusy
   threshold_corrections.cpp
   threshold_loop_functions.cpp
   weinberg_angle.cpp
-  wrappers.cpp
-)
+  wrappers.cpp)
+
+if(ENABLE_TWO_SCALE_SOLVER)
+  set(FLEXISUSY_SRC
+    ${FLEXISUSY_SRC}
+    two_scale_running_precision.cpp
+    two_scale_solver.cpp)
+endif()
+
+if(ENABLE_SEMI_ANALYTIC_SOLVER)
+  set(FLEXISUSY_SRC
+    ${FLEXISUSY_SRC}
+    semi_analytic_solver.cpp
+    two_scale_running_precision.cpp
+    two_scale_solver.cpp)
+endif()
+
+add_library(flexisusy ${FLEXISUSY_SRC})
 
 target_link_libraries(flexisusy
   Eigen3::Eigen
