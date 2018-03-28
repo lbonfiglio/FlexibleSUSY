@@ -24,6 +24,7 @@ if(ENABLE_COMPILE)
 endif()
 
 if(ENABLE_COMPILE)
+  add_subdirectory(addons)
   add_subdirectory(config)
   add_subdirectory(fflite)
   add_subdirectory(model_specific)

@@ -3,6 +3,8 @@ string(TIMESTAMP DATE "%a %d %b %Y %H:%M:%SZ UTC" UTC)
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_COMMIT)
 
+set(GM2CALC_VERSION 1.3.3)
+
 configure_file(config_cmake.h.in config.h @ONLY)
 
 add_library(config INTERFACE)

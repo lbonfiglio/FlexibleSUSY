@@ -85,6 +85,6 @@
 #cmakedefine ENABLE_SEMI_ANALYTIC_SOLVER 1
 
 /* Enable statements for addons */
-#cmakedefine ENABLE_ADDONS 1
+#cmakedefine ENABLE_GM2Calc 1
 
 #endif

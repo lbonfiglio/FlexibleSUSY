@@ -59,6 +59,7 @@ target_link_libraries(flexisusy
   Eigen3::Eigen
   FlexibleSUSY::config
   FlexibleSUSY::fflite
+  FlexibleSUSY::GM2Calc # TODO: remove this dependency!
   FlexibleSUSY::slhaea
   GSL::gsl
   ${LAPACK_LIBRARIES}
