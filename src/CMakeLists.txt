@@ -52,6 +52,7 @@ add_library(flexisusy ${FLEXISUSY_SRC})
 target_link_libraries(flexisusy
   Eigen3::Eigen
   FlexibleSUSY::config
+  FlexibleSUSY::fflite
   FlexibleSUSY::slhaea)
 
 add_library(FlexibleSUSY::flexisusy ALIAS flexisusy)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(FlexibleSUSY VERSION 2.0.1 LANGUAGES CXX)
+project(FlexibleSUSY VERSION 2.0.1 LANGUAGES CXX Fortran)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -23,6 +23,7 @@ add_subdirectory(config)
 add_subdirectory(doc)
 
 if(ENABLE_COMPILE)
+  add_subdirectory(fflite)
   add_subdirectory(slhaea)
   add_subdirectory(src)
 endif()
