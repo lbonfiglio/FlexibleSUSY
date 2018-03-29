@@ -1,3 +1,5 @@
+add_subdirectory(SOFTSUSY)
+
 add_library(flexiblesusy_test
   error_count.cpp
   run_cmd.cpp
@@ -26,6 +28,7 @@ function(add_flexiblesusy_bin_test name)
       FlexibleSUSY::model_specific::NMSSM_higgs
       FlexibleSUSY::model_specific::SM
       FlexibleSUSY::model_specific::SplitMSSM
+      FlexibleSUSY::SOFTSUSY
       )
     add_test(NAME ${name} COMMAND ${name})
   endif()
@@ -66,4 +69,19 @@ add_flexiblesusy_bin_test(test_wrappers)
 if(WITH_GM2Calc)
   add_flexiblesusy_bin_test(test_gm2calc)
   add_flexiblesusy_bin_test(test_MSSMNoFV_onshell)
+endif()
+
+if(ENABLE_TWO_SCALE_SOLVER)
+  add_flexiblesusy_bin_test(test_two_scale_running_precision)
+  add_flexiblesusy_bin_test(test_two_scale_solver)
+
+  if(WITH_SOFTSUSY)
+    add_flexiblesusy_bin_test(test_betafunction)
+    add_flexiblesusy_bin_test(test_legacy_diagonalization)
+    add_flexiblesusy_bin_test(test_lowe)
+    add_flexiblesusy_bin_test(test_QedQcd)
+    add_flexiblesusy_bin_test(test_rk)
+    add_flexiblesusy_bin_test(test_two_scale_mssm_solver)
+    add_flexiblesusy_bin_test(test_two_scale_mssm_initial_guesser)
+  endif()
 endif()
