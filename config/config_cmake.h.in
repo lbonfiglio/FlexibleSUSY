@@ -72,9 +72,6 @@
 /* Enable multi-threading */
 #cmakedefine ENABLE_THREADS 1
 
-/* Enable tsil */
-#cmakedefine ENABLE_TSIL 1
-
 /* Enable two-scale BVP solver */
 #cmakedefine ENABLE_TWO_SCALE_SOLVER 1
 

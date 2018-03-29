@@ -43,8 +43,6 @@ sqliteflags="@SQLITEFLAGS@"
 sqlitelibs="@SQLITELIBS@"
 static_lib_cmd="@STATIC_LIB_CMD@"
 threadlibs="@THREADLIBS@"
-tsilflags="@TSILFLAGS@"
-tsillibs="@TSILLIBS@"
 gm2calclibs=""
 
 #_____________________________________________________________________
@@ -128,9 +126,6 @@ create_include_directives_for_external_modules() {
     [ "x@ENABLE_HIMALAYA@" = xyes ] && \
         incl="$incl $himalayaflags"
 
-    [ "x@ENABLE_TSIL@" = xyes ] && \
-        incl="$incl $tsilflags"
-
     [ "x@ENABLE_LOOPTOOLS@" = xyes -a "x@ENABLE_FFLITE@" = xyes ] && \
         incl="$incl $loopfuncflags"
 
@@ -176,7 +171,7 @@ cppflags_without_modules="$cppflags_from_configure $incl_external_modules"
 cppflags="$cppflags_from_configure $incl_FS_modules $incl_external_modules"
 flexiblesusy_libs="$(create_flexiblesusy_libs)"
 compile_cmd="$cxx $cppflags $cxxflags"
-libs="$ldflags $flexiblesusy_libs $(create_gm2calc_libs) $loopfunclibs $himalayalibs $gsllibs $boostthreadlibs $lapacklibs $blaslibs $flibs $sqlitelibs $tsillibs $threadlibs $ldlibs"
+libs="$ldflags $flexiblesusy_libs $(create_gm2calc_libs) $loopfunclibs $himalayalibs $gsllibs $boostthreadlibs $lapacklibs $blaslibs $flibs $sqlitelibs $threadlibs $ldlibs"
 modules="$(create_module_list)"
 
 help() {
@@ -215,7 +210,6 @@ Options:
   --enable-sqlite       Test if SQLite is enabled
   --enable-static       Test if static executables are build
   --enable-threads      Test if multi-threading is enabled
-  --enable-tsil         Test if TSIL is linked in
   --enable-verbose      Test if verbose mode is enabled
   --fc                  Print Fortran compiler, FC
   --fflags              Print Fortran flags, FFLAGS
@@ -244,8 +238,6 @@ Options:
   --sqlitelibs          Print SQLite libararies, SQLITELIBS, SQLITELIBS
   --static-lib-cmd      Print command to build static library, STATIC_LIB_CMD
   --threadlibs          Print thread library, THREADLIBS
-  --tsilflags           Print TSIL flags, TSILFLAGS
-  --tsillibs            Print TSIL libraries, TSILLIBS
   --with-<addon>        Test if <addon> is compiled in
   --with-<solver>       Test if BVP <solver> is compiled in
   --with-<model>        Test if <model> is compiled in
@@ -302,8 +294,6 @@ while test $# -gt 0; do
         --sqlitelibs)            out="$out $sqlitelibs" ;;
         --static-lib-cmd)        out="$out $static_lib_cmd" ;;
         --threadlibs)            out="$out $threadlibs" ;;
-        --tsilflags)             out="$out $tsilflags" ;;
-        --tsillibs)              out="$out $tsillibs" ;;
         --with-*)
       ### Check for models and addons
             f=`echo $1 | sed 's/--with-//'`
@@ -335,7 +325,6 @@ while test $# -gt 0; do
         --enable-sqlite)              out="$out @ENABLE_SQLITE@" ;;
         --enable-static)              out="$out @ENABLE_STATIC@" ;;
         --enable-threads)             out="$out @ENABLE_THREADS@" ;;
-        --enable-tsil)                out="$out @ENABLE_TSIL@" ;;
         --enable-verbose)             out="$out @ENABLE_VERBOSE@" ;;
 
         --version|-v)                 out="$out $version"  ;;

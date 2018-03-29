@@ -128,7 +128,6 @@ _configure()
 --enable-sqlite
 --enable-static
 --enable-threads
---enable-tsil
 --enable-verbose
 
 --disable-colors
@@ -147,7 +146,6 @@ _configure()
 --disable-sqlite
 --disable-static
 --disable-threads
---disable-tsil
 --disable-verbose
 
 --with-addons=
@@ -184,8 +182,6 @@ _configure()
 --with-static-ldlibs=
 --with-static-lib-cmd=
 --with-static-lib-ext=
---with-tsil-libdir=
---with-tsil-incdir=
 
 --help
 --version

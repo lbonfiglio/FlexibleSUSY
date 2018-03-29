@@ -28,4 +28,3 @@ option(ENABLE_FFLITE "Enable use of the FFLite loop functions (default: no)" OFF
 option(ENABLE_LAPACK "Enable use of the LAPACK library (default: yes)" ON)
 # option(ENABLE_LOOPTOOLS "Enable use of the LoopTools library (default: no)" OFF)
 # option(ENABLE_SQLITE "Enable use of the SQLite3 library (default: ON)" ON)
-# option(ENABLE_TSIL "Enable use of the TSIL library (default: ON)" ON)

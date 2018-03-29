@@ -22,7 +22,6 @@ ENABLE_SHARED_LIBS := @ENABLE_SHARED_LIBS@
 ENABLE_SQLITE      := @ENABLE_SQLITE@
 ENABLE_STATIC      := @ENABLE_STATIC@
 ENABLE_THREADS     := @ENABLE_THREADS@
-ENABLE_TSIL        := @ENABLE_TSIL@
 
 # C/C++ preprocessor defines
 ENABLE_COLORS         := @ENABLE_COLORS@
@@ -78,8 +77,6 @@ HIMALAYALIBS       := @HIMALAYALIBS@
 SQLITEFLAGS        := @SQLITEFLAGS@
 SQLITELIBS         := @SQLITELIBS@
 THREADLIBS         := @THREADLIBS@
-TSILFLAGS          := @TSILFLAGS@
-TSILLIBS           := @TSILLIBS@
 
 # the modules add their dependency files to this variable
 ALLDEP   :=
@@ -288,8 +285,6 @@ showbuild:
 	@echo "SQLITELIBS         = $(SQLITELIBS)"
 	@echo "SQLITEFLAGS        = $(SQLITEFLAGS)"
 	@echo "THREADLIBS         = $(THREADLIBS)"
-	@echo "TSILLIBS           = $(TSILLIBS)"
-	@echo "TSILFLAGS          = $(TSILFLAGS)"
 	@echo ""
 	@echo "ENABLE_COLORS      = $(ENABLE_COLORS)"
 	@echo "ENABLE_COMPILE     = $(ENABLE_COMPILE)"
@@ -307,7 +302,6 @@ showbuild:
 	@echo "ENABLE_SQLITE      = $(ENABLE_SQLITE)"
 	@echo "ENABLE_STATIC      = $(ENABLE_STATIC)"
 	@echo "ENABLE_THREADS     = $(ENABLE_THREADS)"
-	@echo "ENABLE_TSIL        = $(ENABLE_TSIL)"
 	@echo "ENABLE_VERBOSE     = $(ENABLE_VERBOSE)"
 	@echo ""
 	@echo "The list of modules to be built:"

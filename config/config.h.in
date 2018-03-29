@@ -53,8 +53,6 @@
 #define SQLITELIBS            "@SQLITELIBS@"
 #define SQLITEFLAGS           "@SQLITEFLAGS@"
 #define THREADLIBS            "@THREADLIBS@"
-#define TSILLIBS              "@TSILLIBS@"
-#define TSILFLAGS             "@TSILFLAGS@"
 
 /* Switches */
 
@@ -99,9 +97,6 @@
 
 /* Enable multi-threading */
 @DEFINE_ENABLE_THREADS@
-
-/* Enable tsil */
-@DEFINE_ENABLE_TSIL@
 
 /* Enable two-scale BVP solver */
 @DEFINE_ENABLE_TWO_SCALE_SOLVER@

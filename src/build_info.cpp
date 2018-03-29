@@ -188,13 +188,6 @@ void print_build_info(std::ostream& ostr)
       "no"
 #endif
       "\n"
-      "Use TSIL:                               "
-#ifdef ENABLE_TSIL
-      "yes"
-#else
-      "no"
-#endif
-      "\n"
       "Mass eigenvalue error check:            "
 #ifdef CHECK_EIGENVALUE_ERROR
       "yes"
