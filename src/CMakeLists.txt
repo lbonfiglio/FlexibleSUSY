@@ -61,6 +61,7 @@ target_link_libraries(flexisusy
   FlexibleSUSY::slhaea
   GSL::gsl
   ${LAPACK_LIBRARIES}
+  Threads::Threads
 )
 
 add_library(FlexibleSUSY::flexisusy ALIAS flexisusy)

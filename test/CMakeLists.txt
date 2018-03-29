@@ -71,6 +71,10 @@ if(WITH_GM2Calc)
   add_flexiblesusy_bin_test(test_MSSMNoFV_onshell)
 endif()
 
+if(ENABLE_THREADS)
+  add_flexiblesusy_bin_test(test_thread_pool)
+endif()
+
 if(ENABLE_TWO_SCALE_SOLVER)
   add_flexiblesusy_bin_test(test_two_scale_running_precision)
   add_flexiblesusy_bin_test(test_two_scale_solver)
