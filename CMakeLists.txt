@@ -45,6 +45,10 @@ if(ENABLE_COMPILE)
   endif()
 endif()
 
+if("${CMAKE_EXECUTABLE_SUFFIX}" STREQUAL "")
+  set(CMAKE_EXECUTABLE_SUFFIX .x)
+endif()
+
 if(ENABLE_COMPILE)
   add_subdirectory(addons)
   add_subdirectory(config)

@@ -55,8 +55,8 @@ target_link_libraries(SOFTSUSY
 
 add_library(FlexibleSUSY::SOFTSUSY ALIAS SOFTSUSY)
 
-add_executable(run_softpoint.x run_softpoint.cpp)
-target_link_libraries(run_softpoint.x FlexibleSUSY::SOFTSUSY)
+add_executable(run_softpoint run_softpoint.cpp)
+target_link_libraries(run_softpoint FlexibleSUSY::SOFTSUSY)
 
-add_executable(run_softsusy.x run_softsusy.cpp)
-target_link_libraries(run_softsusy.x FlexibleSUSY::SOFTSUSY)
+add_executable(run_softsusy run_softsusy.cpp)
+target_link_libraries(run_softsusy FlexibleSUSY::SOFTSUSY)
