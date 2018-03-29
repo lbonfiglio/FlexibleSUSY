@@ -20,6 +20,7 @@ function(add_flexiblesusy_bin_test name)
     target_link_libraries(
       ${name}
       FlexibleSUSY::flexiblesusy_test
+      FlexibleSUSY::GM2Calc
       FlexibleSUSY::model_specific::MSSM_higgs
       FlexibleSUSY::model_specific::MSSM_thresholds
       FlexibleSUSY::model_specific::NMSSM_higgs

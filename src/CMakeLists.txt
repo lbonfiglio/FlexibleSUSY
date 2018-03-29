@@ -10,7 +10,6 @@ set(FLEXISUSY_SRC
   dilogc.f
   effective_couplings.cpp
   global_thread_pool.cpp
-  gm2calc_interface.cpp
   gsl_utils.cpp
   gsl_vector.cpp
   lowe.cpp
@@ -59,7 +58,6 @@ target_link_libraries(flexisusy
   Eigen3::Eigen
   FlexibleSUSY::config
   FlexibleSUSY::fflite
-  FlexibleSUSY::GM2Calc # TODO: remove this dependency!
   FlexibleSUSY::slhaea
   GSL::gsl
   ${LAPACK_LIBRARIES}

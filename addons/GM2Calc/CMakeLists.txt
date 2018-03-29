@@ -8,6 +8,7 @@ if(ENABLE_GM2Calc)
     gm2_mb.cpp
     gm2_slha_io.cpp
     gm2_uncertainty.cpp
+    gm2calc_interface.cpp
     MSSMNoFV_onshell.cpp
     MSSMNoFV_onshell_mass_eigenstates.cpp
     MSSMNoFV_onshell_physical.cpp
