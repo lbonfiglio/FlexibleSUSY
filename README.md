@@ -10,9 +10,9 @@ extension and reuse.
  * Mailing list:            flexiblesusy@projects.hepforge.org
  * Source code repository:  https://github.com/FlexibleSUSY
  * Bug reports:             https://github.com/FlexibleSUSY/FlexibleSUSY/issues
- * References:              [CPC 190 (2015) 139-172 (arxiv:1406.2319),
-                             JHEP 1701 (2017) 079 (arXiv:1609.00371)
-                             arXiv:1710.03760]
+ * References: [[CPC 190 (2015) 139-172 (arxiv:1406.2319)](https://arxiv.org/abs/1406.2319),
+                [JHEP 1701 (2017) 079 (arXiv:1609.00371)](https://arxiv.org/abs/1609.00371)
+                [arXiv:1710.03760](https://arxiv.org/abs/1710.03760)]
 
 
 Requirements
@@ -430,43 +430,43 @@ Package content
 In the following all sub-directories within the FlexibleSUSY package
 are listed:
 
- * addons/ contains addons for FlexibleSUSY, such as GM2Calc
+ * `addons/` contains addons for FlexibleSUSY, such as GM2Calc
 
- * config/ contains helper scripts and makefile modules for the build
+ * `config/` contains helper scripts and makefile modules for the build
    system
 
- * doc/ contains the FlexibleSUSY documentation
+ * `doc/` contains the FlexibleSUSY documentation
 
- * examples/ contains examples how to build you own spectrum generator
+ * `examples/` contains examples how to build you own spectrum generator
    based on FlexibleSUSY
 
- * fflite/ contains an alternative implementation of the
+ * `fflite/` contains an alternative implementation of the
    Passarino-Veltman loop functions, based on FF
 
- * meta/ contains the Mathematica meta code which generates the
+ * `meta/` contains the Mathematica meta code which generates the
    spectrum generators
 
- * model_files/ contains default model files for some frequently used
+ * `model_files/` contains default model files for some frequently used
    models (SM, SplitMSSM, MSSM, NMSSM, SMSSM, UMSSM, etc.)
 
- * model_specific/ contains model-specific higher order corrections
+ * `model_specific/` contains model-specific higher order corrections
    for the MSSM, NMSSM, SM and SplitMSSM from the literature
 
- * models/ This is the output directory where the generated C++ code
+ * `models/` This is the output directory where the generated C++ code
    for the spectrum generators will be stored.
 
- * Output/ contains SARAHs model-specific output files
+ * `Output/` contains SARAHs model-specific output files
 
- * sarah/ contains SARAH model files shipped with FlexibleSUSY
+ * `sarah/` contains SARAH model files shipped with FlexibleSUSY
 
- * slhaea/ contains the SLHA reader library from
+ * `slhaea/` contains the SLHA reader library from
    [https://github.com/fthomas/slhaea]
 
- * src/ contains non-model specific FlexibleSUSY C++ source code
+ * `src/` contains non-model specific FlexibleSUSY C++ source code
 
- * templates/ contains C++ template files for the spectrum generators
+ * `templates/` contains C++ template files for the spectrum generators
 
- * test/ contains the FlexibleSUSY test suite
+ * `test/` contains the FlexibleSUSY test suite
 
- * utils/ contains some utility scripts to perform scans or extract
+ * `utils/` contains some utility scripts to perform scans or extract
    data from SLHA files
