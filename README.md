@@ -93,7 +93,10 @@ How to create a model
 
 2. Create the Makefile and register your model(s):
 
-       ./configure --with-models=<model>
+       mkdir build
+       cd build
+
+       cmake -DWITH_MODELS=<model> ..
 
    Multiple models can be specified, separated by a comma.  See
    `./configure --help` for more options.
@@ -117,7 +120,10 @@ Example
 =======
 
     ./createmodel --name=HSSUSY
-    ./configure --with-models=HSSUSY
+
+    mkdir build
+    cd build
+    cmake -DWITH_MODELS=HSSUSY ..
     make
     ./models/HSSUSY/run_HSSUSY.x \
        --slha-input-file=model_files/HSSUSY/LesHouches.in.HSSUSY
@@ -228,72 +234,21 @@ Dynamic libraries
 =================
 
 If you want to create dynamic model libraries (instead of static
-libraries, which is the default) you need to pass the
-`--enable-shared-libs` option to the configure script.  The file name
-extension for the shared libraries as well as the command to build
-them can be overwritten using the
+libraries, which is the default) you need to set
+`BUILD_SHARED_LIBS=ON` when calling cmake:
 
-    --with-shared-lib-ext=
-    --with-shared-lib-cmd=
+    cmake -DBUILD_SHARED_LIBS=ON ..
 
-parameters.  For example, when Intel compilers should be used, replace
-`gcc` by `icc` or `icpc`:
-
-    ./configure --with-models=CMSSM,NMSSM \
-       --enable-shared-libs \
-       --with-shared-lib-ext=".so" \
-       --with-shared-lib-cmd="gcc -shared -o"
-
-Important remark:
-
-The libraries are linked to the executables with _absolute_ paths.
-This means that, if you for example move the FlexibleSUSY directory to
-another location, the executables will no longer find the libraries.
-To make the executables find the libraries again, you have to relink
-them via
-
-    make clean-executables
-    make allexec
 
 Statically linked executables
 =============================
 
 External libraries can be linked statically to the spectrum generator
-executables by passing `--enable-static` to configure.  This is useful
-when the executable should be transferred to another computer, where
-some libraries are not available.
+executables by calling cmake as
 
-Example (using g++ on Debian Jessie):
-
-    ./configure --with-models=CMSSM --enable-static
-
-If --enable-static is used, the following linker flags and additional
-libraries will be used:
-
-    LDFLAGS = -static
-    LDLIBS  = -ldl
-
-These linker-specific flags and additional libraries can be
-overwritten using
-
-   --with-static-ldflags=
-   --with-static-ldlibs=
-
-Example:
-
-    ./configure --with-models=CMSSM \
-       --enable-static \
-       --with-static-ldflags="-static" \
-       --with-static-ldlibs="-lquadmath -ldl"
-
-In case of dynamic linking (--disable-static, which is the default),
-the options
-
-    --with-shared-ldflags=
-    --with-shared-ldlibs=
-
-must be used to set LDFLAGS and LDLIBS.
-
+    cmake -DBUILD_SHARED_LIBS=OFF \
+       -DCMAKE_EXE_LINKER_FLAGS="-static" \
+       -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" ..
 
 LoopTools
 =========
