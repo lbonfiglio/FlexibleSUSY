@@ -1,102 +1,104 @@
 FlexibleSUSY 2.1.0 [March, 05 2018]
+===================================
 
  * Feature: Allow user to perform replacements on beta functions,
    self-energies/tadpoles and vertices.  The replacement rules are
    specified as:
 
-   FSBetaFunctionRules = {
-       {g1 -> 0, g2 -> 0}, (* applied to 1L beta functions *)
-       {g1 -> 0, g2 -> 0}, (* applied to 2L beta functions *)
-       {g1 -> 0, g2 -> 0}  (* applied to 3L beta functions *)
-   };
-
-   FSSelfEnergyRules = {
-       (* applied to 1L self-energies/tadpoles *)
-       { (Mass|Mass2)[VZ|gZ] -> 0 }
-   };
-
-   (* applied to all vertices *)
-   FSVertexRules = { g1 -> 0, g2 -> 0 };
+       FSBetaFunctionRules = {
+           {g1 -> 0, g2 -> 0}, (* applied to 1L beta functions *)
+           {g1 -> 0, g2 -> 0}, (* applied to 2L beta functions *)
+           {g1 -> 0, g2 -> 0}  (* applied to 3L beta functions *)
+       };
+    
+       FSSelfEnergyRules = {
+           (* applied to 1L self-energies/tadpoles *)
+           { (Mass|Mass2)[VZ|gZ] -> 0 }
+       };
+    
+       (* applied to all vertices *)
+       FSVertexRules = { g1 -> 0, g2 -> 0 };
 
  * Feature: Adding three new input parameters to the HSSUSY model file
    which can be used to estimate the theoretical uncertainty:
 
-   - By setting EXTPAR[201] to 0 or 1, the parametrization of the
+   - By setting `EXTPAR[201]` to `0` or `1`, the parametrization of the
      2-loop threshold correction to lambda can be switched between
      yt(SM,MS-bar) and yt(MSSM,DR-bar).
 
-   - By setting EXTPAR[202] to 0 or 1, the parametrization of the
+   - By setting `EXTPAR[202]` to `0` or `1`, the parametrization of the
      2-loop threshold correction to lambda can be switched between
      DR-bar or on-shell stop mass parameters.
 
-   - A non-zero value of EXTPAR[203] is interpreted as matching scale
-     Q_match.  EXTPAR[203] = 0 corresponds to Q_match = MSUSY.
+   - A non-zero value of `EXTPAR[203]` is interpreted as matching scale
+     Q_match.  `EXTPAR[203] = 0` corresponds to Q_match = MSUSY.
 
    SLHA input field | Mathematica symbol | Description
    -----------------|--------------------|----------------------------
-   EXTPAR[201]      | DeltaYt            | 0 = yt(SM), 1 = yt(MSSM)
-   EXTPAR[202]      | DeltaOS            | 0 = OS stops, 1 = DR stops
-   EXTPAR[203]      | Qmatch             | matching scale
+   `EXTPAR[201]`    | `DeltaYt `         | 0 = yt(SM), 1 = yt(MSSM)
+   `EXTPAR[202]`    | `DeltaOS `         | 0 = OS stops, 1 = DR stops
+   `EXTPAR[203]`    | `Qmatch  `         | matching scale
 
  * Feature: The Mathematica script
-   model_files/HSSUSY/HSSUSY_uncertainty_estimate.m has been added.
-   The script defines the CalcHSSUSYDMh[] function, which performs an
+   `model_files/HSSUSY/HSSUSY_uncertainty_estimate.m` has been added.
+   The script defines the `CalcHSSUSYDMh[]` function, which performs an
    uncertainty estimate of the predicted SM-like Higgs mass.  The
    three sources of uncertainty defined in [1504.05200] are taken into
    account: SM uncertainty, EFT uncertainty and SUSY uncertainty.  See
-   ?CalcHSSUSYDMh for more information.
+   `?CalcHSSUSYDMh` for more information.
 
  * Feature: The Mathematica script
-   model_files/MSSMEFTHiggs/MSSMEFTHiggs_uncertainty_estimate.m has
-   been added.  The script defines the CalcMSSMEFTHiggsDMh[] function,
+   `model_files/MSSMEFTHiggs/MSSMEFTHiggs_uncertainty_estimate.m` has
+   been added.  The script defines the `CalcMSSMEFTHiggsDMh[]` function,
    which performs an uncertainty estimate of the predicted SM-like
    Higgs mass.  Two sources of uncertainty defined in [1609.00371] are
    taken into account: SM uncertainty and SUSY uncertainty.  See
-   ?CalcMSSMEFTHiggsDMh for more information.  Note, that there is no
+   `?CalcMSSMEFTHiggsDMh` for more information.  Note, that there is no
    "EFT uncertainty" in MSSMEFTHiggs, because all 1-loop v^n/MS^n
    terms are included.
 
  * Feature: The Mathematica script
-   model_files/NUHMSSMNoFVHimalaya/NUHMSSMNoFVHimalaya_uncertainty_estimate.m
+   `model_files/NUHMSSMNoFVHimalaya/NUHMSSMNoFVHimalaya_uncertainty_estimate.m`
    has been added.  The script defines the
-   CalcNUHMSSMNoFVHimalayaDMh[] function, which performs an
+   `CalcNUHMSSMNoFVHimalayaDMh[]` function, which performs an
    uncertainty estimate of the predicted SM-like Higgs mass.  The
-   uncertainty is estimated by: 1) varying the renormalisation scale,
-   2) changing the top Yukawa coupling by higher orders (if available)
-   and 3) changing the stong coupling by higher orders.
+   uncertainty is estimated by:
+   1) varying the renormalisation scale,
+   2) changing the top Yukawa coupling by higher orders (if available) and
+   3) changing the stong coupling by higher orders.
 
  * Feature: Implementing 2-loop effective potential contributions to
-   the Higgs pole mass in the Standard Model of O((at+ab)^2 + ab*as +
+   the Higgs pole mass in the Standard Model of O((at+ab)^2 + ab as +
    atau^2).  These corrections are enabled in all FlexibleEFTHiggs
    models by default and can be enabled in other SM-like models by
    setting the flag
 
-      UseHiggs2LoopSM = True
+       UseHiggs2LoopSM = True
 
    in the corresponding model file.  At run-time these corrections
-   (and the O(at*as) contributions) are enabled when the following
+   (and the O(at as) contributions) are enabled when the following
    switches are set in the SLHA input file:
 
-   Block FlexibleSUSY
-       4   2   # pole mass loop order
-       5   2   # EWSB loop order
-       8   1   # Higgs 2-loop corrections O(alpha_t alpha_s)
-       9   1   # Higgs 2-loop corrections O(alpha_b alpha_s)
-      10   1   # Higgs 2-loop corrections O((alpha_t + alpha_b)^2)
-      11   1   # Higgs 2-loop corrections O(alpha_tau^2)
+       Block FlexibleSUSY
+           4   2   # pole mass loop order
+           5   2   # EWSB loop order
+           8   1   # Higgs 2-loop corrections O(alpha_t alpha_s)
+           9   1   # Higgs 2-loop corrections O(alpha_b alpha_s)
+          10   1   # Higgs 2-loop corrections O((alpha_t + alpha_b)^2)
+          11   1   # Higgs 2-loop corrections O(alpha_tau^2)
 
    or in the Mathematica interface:
 
-   FSSMOpenHandle[
-      fsSettings -> {
-        poleMassLoopOrder -> 2,            (* FlexibleSUSY[4] *)
-        ewsbLoopOrder -> 2,                (* FlexibleSUSY[5] *)
-        higgs2loopCorrectionAtAs -> 1,     (* FlexibleSUSY[8] *)
-        higgs2loopCorrectionAbAs -> 1,     (* FlexibleSUSY[9] *)
-        higgs2loopCorrectionAtAt -> 1,     (* FlexibleSUSY[10] *)
-        higgs2loopCorrectionAtauAtau -> 1, (* FlexibleSUSY[11] *)
-      }, ...
-   ];
+       FSSMOpenHandle[
+          fsSettings -> {
+            poleMassLoopOrder -> 2,            (* FlexibleSUSY[4] *)
+            ewsbLoopOrder -> 2,                (* FlexibleSUSY[5] *)
+            higgs2loopCorrectionAtAs -> 1,     (* FlexibleSUSY[8] *)
+            higgs2loopCorrectionAbAs -> 1,     (* FlexibleSUSY[9] *)
+            higgs2loopCorrectionAtAt -> 1,     (* FlexibleSUSY[10] *)
+            higgs2loopCorrectionAtauAtau -> 1, (* FlexibleSUSY[11] *)
+          }, ...
+       ];
 
  * Feature: Implementation of the strong corrections to the 4-loop
    beta functions of the strong gauge, Yukawa and quartic Higgs
@@ -105,7 +107,7 @@ FlexibleSUSY 2.1.0 [March, 05 2018]
    FlexibleEFTHiggs models by default and can be enabled in other
    SM-like models by setting the flag
 
-      UseSM4LoopRGEs = True
+       UseSM4LoopRGEs = True
 
    in the corresponding model file.
 
@@ -118,7 +120,7 @@ FlexibleSUSY 2.1.0 [March, 05 2018]
    by default and can be enabled in other SM-like models by setting
    the flag
 
-      UseHiggs4LoopSM = True
+       UseHiggs4LoopSM = True
 
    in the corresponding model file.
 
@@ -135,7 +137,7 @@ FlexibleSUSY 2.1.0 [March, 05 2018]
 
  * Bugfix (commit c95a9b81): Fix compilation error in 4-scalar
    couplings in models with scalar color triplets due to an unresolved
-   SARAH Clebsch-Gordan coefficient CG[__][__].
+   SARAH Clebsch-Gordan coefficient `CG[__][__]`.
 
  * Bugfix (commit c053fbab): Adding missing particle multiplicity
    factor w.r.t. unbroken non-abelian non-SM gauge groups in the
@@ -150,25 +152,26 @@ FlexibleSUSY 2.1.0 [March, 05 2018]
 
  * Bugfix (commit c275b60): Fix linking error on Darwin platforms.
 
- * Bugfix (commit dd4292a): Adding the user-defined $(CXXFLAGS) to the
-   command that creates config/depgen.x in order to avoid linking
-   errors on machines where the -parallel flag is needed during
-   linking.
+ * Bugfix (commit dd4292a): Adding the user-defined `$(CXXFLAGS)` to
+   the command that creates `config/depgen.x` in order to avoid
+   linking errors on machines where the `-parallel` flag is needed
+   during linking.
 
  * Bugfix (commit 996caef): Workaround intel compiler / Eigen bug in
-   allFinite() function, which may affect FS output.
+   `allFinite()` function, which may affect FS output.
 
 FlexibleSUSY 2.0.1 [October, 20 2017]
+=====================================
 
- * Feature: For each FlexibleSUSY <model> the TeX file
-   <model>/<model>_references.tex is created, which contains \cite{}
-   commands with references to be cited.  Note, that the references to
-   be cited are model-specific due to the different switches in the
-   FlexibleSUSY model files.
+ * Feature: For each FlexibleSUSY `<model>` the TeX file
+   `<model>/<model>_references.tex` is created, which contains
+   `\cite{}` commands with references to be cited.  Note, that the
+   references to be cited are model-specific due to the different
+   switches in the FlexibleSUSY model files.
 
  * Bugfix (commit 682de11c): Include 2-loop gluino contribution in the
    extraction of yt from the top pole mass in the split-MSSM, Eq.(4.7)
-   of arxiv:1312.5220, if UseHiggs3LoopSplit == True.
+   of [arxiv:1312.5220], if `UseHiggs3LoopSplit == True`.
 
    Thanks to Pietro Slavich.
 
@@ -179,32 +182,34 @@ FlexibleSUSY 2.0.1 [October, 20 2017]
  * Bugfix (commits 88009cac, 5ac9366c): Now configure script does not
    hang even if Mathematica fails to find a valid license.  The script
    does not quit even if Mathematica does not meet the version
-   requirement, unless --enable-meta or --enable-librarylink is given.
+   requirement, unless `--enable-meta` or `--enable-librarylink` is
+   given.
 
    Thanks to Anders Kvellestad.
 
 FlexibleSUSY 2.0.0 [October, 10 2017]
+=====================================
 
  * Feature: The weak mixing angle can now be calculated from the muon
    decay constant at the full 1-loop level (including flavour mixing
    effects) in a wide range of models.  2-loop corrections of the
-   order O(alpha_em*alpha_s + alpha_t^2) are taken into account, if
+   order O(alpha_em alpha_s + alpha_t^2) are taken into account, if
    applicable.
 
    The method to calculate the weak mixing angle can be chosen in the
-   model file by setting the variable FSWeakMixingAngleInput to either
-   Automatic, FSFermiConstant or FSMassW.  If FSWeakMixingAngleInput
-   == FSFermiConstant, then the muon decay constant will be used to
-   determine the weak mixing angle.  If FSWeakMixingAngleInput ==
-   FSMassW, then the W mass will be used.  If FSWeakMixingAngleInput
-   == Automatic (this is the default), then most precise applicable
-   method is chosen automatically.
+   model file by setting the variable `FSWeakMixingAngleInput` to
+   either Automatic, `FSFermiConstant` or `FSMassW`.  If
+   `FSWeakMixingAngleInput == FSFermiConstant`, then the muon decay
+   constant will be used to determine the weak mixing angle.  If
+   `FSWeakMixingAngleInput == FSMassW`, then the W mass will be used.
+   If `FSWeakMixingAngleInput == Automatic` (this is the default),
+   then most precise applicable method is chosen automatically.
 
    Example:
 
-   FSWeakMixingAngleInput = Automatic; (* recommended *)
+       FSWeakMixingAngleInput = Automatic; (* recommended *)
 
-   The variable FSWeakMixingAngleOptions has been removed and can no
+   The variable `FSWeakMixingAngleOptions` has been removed and can no
    longer be used.
 
  * Feature: BSM contributions to the anomalous magnetic moment of the
@@ -212,16 +217,16 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    with non-SM vector bosons are not taken into account.
 
    In order to let FlexibleSUSY calculate a_mu, the symbol
-   FlexibleSUSYObservable`aMuon must be written into an SLHA output
-   block in the ExtraSLHAOutputBlocks variable in the FlexibleSUSY
-   model file.
+   ``FlexibleSUSYObservable`aMuon`` must be written into an SLHA
+   output block in the `ExtraSLHAOutputBlocks` variable in the
+   FlexibleSUSY model file.
 
    Example:
 
-   ExtraSLHAOutputBlocks = {
-      {FlexibleSUSYLowEnergy,
-         {{21, FlexibleSUSYObservable`aMuon}}}
-   };
+       ExtraSLHAOutputBlocks = {
+          {FlexibleSUSYLowEnergy,
+             {{21, FlexibleSUSYObservable`aMuon}}}
+       };
 
    Thanks to Jobst Ziebell.
 
@@ -230,63 +235,64 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    with non-SM vector bosons are not taken into account.
 
    In order to let FlexibleSUSY calculate the EDM of a fermion F, the
-   symbol FlexibleSUSYObservable`EDM[F] must be written into an SLHA
-   output block in the ExtraSLHAOutputBlocks variable in the
+   symbol ``FlexibleSUSYObservable`EDM[F]`` must be written into an
+   SLHA output block in the ExtraSLHAOutputBlocks variable in the
    FlexibleSUSY model file.  If F is a multiplet, the field index must
-   be specified, for example FlexibleSUSYObservable`EDM[F[1]] for the
-   first field in the multiplet.
+   be specified, for example ``FlexibleSUSYObservable`EDM[F[1]]`` for
+   the first field in the multiplet.
 
    Example:
 
-   ExtraSLHAOutputBlocks = {
-      {FlexibleSUSYLowEnergy,
-         {{23, FlexibleSUSYObservable`EDM[Fe[1]]},
-          {24, FlexibleSUSYObservable`EDM[Fe[2]]},
-          {25, FlexibleSUSYObservable`EDM[Fe[3]]} } }
-   };
+       ExtraSLHAOutputBlocks = {
+          {FlexibleSUSYLowEnergy,
+             {{23, FlexibleSUSYObservable`EDM[Fe[1]]},
+              {24, FlexibleSUSYObservable`EDM[Fe[2]]},
+              {25, FlexibleSUSYObservable`EDM[Fe[3]]} } }
+       };
 
    Thanks to Jobst Ziebell.
 
- * Feature: New functions, FS<model>GetProblems[],
-   FS<model>GetWarnings[] and FS<model>ToSLHA[], have been added to
-   FlexibleSUSY's spectrum generator Mathematica interface.  The first
-   two functions return details about problems / warnings for the
-   given parameter point.  The third one formats the output according
-   to the SLHA standard.
+ * Feature: New functions, `FS<model>GetProblems[]`,
+   `FS<model>GetWarnings[]` and `FS<model>ToSLHA[]`, have been added
+   to FlexibleSUSY's spectrum generator Mathematica interface.  The
+   first two functions return details about problems / warnings for
+   the given parameter point.  The third one formats the output
+   according to the SLHA standard.
 
  * Feature: 3-loop beta functions (if available) are calculated in
    parallel if multi-threading is enabled.  This leads to a ~25% speed
    improvement in the MSSM when 3-loop RG running is used.
 
- * Feature: Support for SLHA-2 input block IMEXTPAR.
+ * Feature: Support for SLHA-2 input block `IMEXTPAR`.
 
  * Feature: The full 2-loop O(alpha_s^2) corrections to the DR-bar top
    and bottom Yukawa couplings [arxiv:hep-ph/0210258,
    arxiv:hep-ph/0507139, arxiv:hep-ph/0707.0650] can be added by
    setting
 
-     UseMSSMYukawa2Loop = True
+       UseMSSMYukawa2Loop = True
 
    in the model file.
+
    Thanks to Alexander Bednyakov for providing the expressions.
 
- * Feature: The full 2-loop O(alpha_s^2 + alpha_t*alpha_s +
-   alpha_b*alpha_s) corrections to the strong coupling
+ * Feature: The full 2-loop O(alpha_s^2 + alpha_t alpha_s +
+   alpha_b alpha_s) corrections to the strong coupling
    [hep-ph/0509048, arXiv:0810.5101, arXiv:1009.5455] can be added by
    setting
 
-     UseMSSMAlphaS2Loop = True
+       UseMSSMAlphaS2Loop = True
 
    in the model file.
 
    Thanks to Ben Allanach for providing the expressions, which have
    been extracted from SOFTSUSY 4.0.1.
 
- * Feature: The 2- and 3-loop SM-QCD threshold corrections O(alpha_s^2
-   + alpha_s^3) corrections to the strong coupling [hep-ph/0004189]
+ * Feature: The 2- and 3-loop SM-QCD threshold corrections O(alpha_s^2 +
+   alpha_s^3) corrections to the strong coupling [hep-ph/0004189]
    can be added by setting
 
-     UseSMAlphaS3Loop = True
+       UseSMAlphaS3Loop = True
 
    in the model file.
 
@@ -296,25 +302,24 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
 
  * Feature: The loop orders of the threshold corrections of the SM(5)
    parameters to the BSM model can now be selected individually by
-   using the flag FlexibleSUSY[24] in the SLHA input file or the
+   using the flag `FlexibleSUSY[24]` in the SLHA input file or the
    thresholdCorrections variable in the Mathematica interface.  The
    given value consists of 9 digits, each one representing the
    threshold correction loop order of a parameter:
 
-     digit position n    | default value       | parameter
-                         | (prefactor of 10^n) |
-     -------------------:|---------------------|-------------------
-      0                  | 1 (1-loop)          | alpha_em
-      1                  | 2 (2-loop)          | sin(theta_W)
-      2                  | 3 (3-loop)          | alpha_s
-      3                  | 1 (1-loop)          | m_Z
-      4                  | 1 (1-loop)          | m_W
-      5                  | 1 (1-loop)          | m_h
-      6                  | 3 (3-loop)          | m_t
-      7                  | 2 (2-loop)          | m_b
-      8                  | 1 (1-loop)          | m_\tau
+    digit position n   | default value (prefactor of 10^n) | parameter
+   --------------------|-----------------------------------|-------------
+    0                  | 1 (1-loop)                        | alpha_em
+    1                  | 2 (2-loop)                        | sin(theta_W)
+    2                  | 3 (3-loop)                        | alpha_s
+    3                  | 1 (1-loop)                        | m_Z
+    4                  | 1 (1-loop)                        | m_W
+    5                  | 1 (1-loop)                        | m_h
+    6                  | 3 (3-loop)                        | m_t
+    7                  | 2 (2-loop)                        | m_b
+    8                  | 1 (1-loop)                        | m_\tau
 
-   The default value is 123111321, which corresponds to the loop
+   The default value is `123111321`, which corresponds to the loop
    orders given in the above table.
 
  * Feature: An additional boundary value problem solution algorithm,
@@ -323,15 +328,15 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    now be used to calculate the spectrum in a model.
 
    The boundary value solver algorithms to be used in a model can be
-   specified by setting the variable FSBVPSolvers to be a list
+   specified by setting the variable `FSBVPSolvers` to be a list
    containing all of the desired solvers in the model file.  By
-   default, this is set to FSBVPSolvers = { TwoScaleSolver },
+   default, this is set to `FSBVPSolvers = { TwoScaleSolver }`,
    corresponding to only the two-scale solver being enabled.
 
    Example: To enable only the semi-analytic solver instead, the
    model file should contain the setting
 
-      FSBVPSolvers = { SemiAnalyticSolver };
+       FSBVPSolvers = { SemiAnalyticSolver };
 
    Currently, the semi-analytic solver can be used in models where
    all of the parameters to be expanded are fixed in the same
@@ -341,19 +346,19 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    the order O(alpha_t^3 + alpha_t^2 alpha_s + alpha_t alpha_s^2) of
    [arxiv:1407.4336] can be taken into account by setting
 
-      UseHiggs3LoopSM = True;
+       UseHiggs3LoopSM = True;
 
    in the FlexibleSUSY model file.  In addition, the pole mass loop
    order must be set to a value greater or equal to 3 to switch the
-   corrections on (SLHA input: FlexibleSUSY[4], Mathematica interface:
-   poleMassLoopOrder).  To switch on/off the individual 3-loop
-   contributions, the SLHA input flags FlexibleSUSY[26-29] or the
-   Mathematica symbols
+   corrections on (SLHA input: `FlexibleSUSY[4]`, Mathematica
+   interface: poleMassLoopOrder).  To switch on/off the individual
+   3-loop contributions, the SLHA input flags `FlexibleSUSY[26-29]` or
+   the Mathematica symbols
 
-      higgs3loopCorrectionAtAsAs
-      higgs3loopCorrectionAbAsAs
-      higgs3loopCorrectionAtAtAs
-      higgs3loopCorrectionAtAtAt
+       higgs3loopCorrectionAtAsAs
+       higgs3loopCorrectionAbAsAs
+       higgs3loopCorrectionAtAtAs
+       higgs3loopCorrectionAtAtAt
 
    can be used.
 
@@ -363,30 +368,30 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    corrections are taken from the Himalaya package [arxiv:1708.05720].
    Himalaya can be downloaded from
 
-      https://github.com/jklappert/Himalaya
+   [https://github.com/jklappert/Himalaya]
 
    To build Himalaya, run
 
-      $ cd $HIMALAY_PATH
-      $ mkdir build
-      $ cd build
-      $ cmake ..
-      $ make
+       cd $HIMALAY_PATH
+       mkdir build
+       cd build
+       cmake ..
+       make
 
-   where $HIMALAY_PATH is the path to the Himalaya package.
+   where `$HIMALAY_PATH` is the path to the Himalaya package.
 
    To enable the 3-loop corrections in a FlexibleSUSY model, set the
    following flag in the FlexibleSUSY model file:
 
-      UseHiggs3LoopMSSM = True;
+       UseHiggs3LoopMSSM = True;
 
    In addition, we strongly recommend to set
 
-      UseHiggs2LoopMSSM = True;
-      EffectiveMu = \[Mu]; (* chose sign convention for mu parameter *)
-      UseMSSMYukawa2Loop = True;
-      UseMSSMAlphaS2Loop = True;
-      UseMSSM3LoopRGEs = True;
+       UseHiggs2LoopMSSM = True;
+       EffectiveMu = \[Mu]; (* chose sign convention for mu parameter *)
+       UseMSSMYukawa2Loop = True;
+       UseMSSMAlphaS2Loop = True;
+       UseMSSM3LoopRGEs = True;
 
    There are already three model files with all these corrections
    enabled: MSSMNoFVatMGUTHimalaya, MSSMNoFVHimalaya,
@@ -396,46 +401,46 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    corrections from Himalaya, the location of the Himalaya library and
    the Himalaya header files must be passed to the configure script:
 
-     $ ./configure --with-models=[...] \
-       --enable-himalaya \
-       --with-himalaya-incdir=$HIMALAY_PATH/source/include \
-       --with-himalaya-libdir=$HIMALAY_PATH/build
-     $ make
+       ./configure --with-models=[...] \
+          --enable-himalaya \
+          --with-himalaya-incdir=$HIMALAY_PATH/source/include \
+          --with-himalaya-libdir=$HIMALAY_PATH/build
+       make
 
    To enable the 3-loop corrections at run-time, the following flags
    should be set in the SLHA input:
 
-      Block FlexibleSUSY
-          4   3          # pole mass loop order
-          5   3          # EWSB loop order
-          6   3          # beta-functions loop order
-          7   2          # threshold corrections loop order
-          8   1          # Higgs 2-loop corrections O(alpha_t alpha_s)
-          9   1          # Higgs 2-loop corrections O(alpha_b alpha_s)
-         10   1          # Higgs 2-loop corrections O((alpha_t + alpha_b)^2)
-         11   1          # Higgs 2-loop corrections O(alpha_tau^2)
-         24   123111221  # individual threshold correction loop orders
-         25   0          # ren. scheme for Higgs 3L corrections (0 = DR, 1 = MDR)
-         26   1          # Higgs 3-loop corrections O(alpha_t alpha_s^2)
-         27   1          # Higgs 3-loop corrections O(alpha_b alpha_s^2)
+       Block FlexibleSUSY
+           4   3          # pole mass loop order
+           5   3          # EWSB loop order
+           6   3          # beta-functions loop order
+           7   2          # threshold corrections loop order
+           8   1          # Higgs 2-loop corrections O(alpha_t alpha_s)
+           9   1          # Higgs 2-loop corrections O(alpha_b alpha_s)
+          10   1          # Higgs 2-loop corrections O((alpha_t + alpha_b)^2)
+          11   1          # Higgs 2-loop corrections O(alpha_tau^2)
+          24   123111221  # individual threshold correction loop orders
+          25   0          # ren. scheme for Higgs 3L corrections (0 = DR, 1 = MDR)
+          26   1          # Higgs 3-loop corrections O(alpha_t alpha_s^2)
+          27   1          # Higgs 3-loop corrections O(alpha_b alpha_s^2)
 
    In FlexibleSUSY's Mathematica interface, the following settings
    should be used:
 
-      fsSettings -> {
-          poleMassLoopOrder -> 3,            (* FlexibleSUSY[4] *)
-          ewsbLoopOrder -> 3,                (* FlexibleSUSY[5] *)
-          betaFunctionLoopOrder -> 3,        (* FlexibleSUSY[6] *)
-          thresholdCorrectionsLoopOrder -> 2,(* FlexibleSUSY[7] *)
-          higgs2loopCorrectionAtAs -> 1,     (* FlexibleSUSY[8] *)
-          higgs2loopCorrectionAbAs -> 1,     (* FlexibleSUSY[9] *)
-          higgs2loopCorrectionAtAt -> 1,     (* FlexibleSUSY[10] *)
-          higgs2loopCorrectionAtauAtau -> 1, (* FlexibleSUSY[11] *)
-          thresholdCorrections -> 123111221, (* FlexibleSUSY[24] *)
-          higgs3loopCorrectionRenScheme -> 0,(* FlexibleSUSY[25] *)
-          higgs3loopCorrectionAtAsAs -> 1,   (* FlexibleSUSY[26] *)
-          higgs3loopCorrectionAbAsAs -> 1,   (* FlexibleSUSY[27] *)
-      }
+       fsSettings -> {
+           poleMassLoopOrder -> 3,            (* FlexibleSUSY[4] *)
+           ewsbLoopOrder -> 3,                (* FlexibleSUSY[5] *)
+           betaFunctionLoopOrder -> 3,        (* FlexibleSUSY[6] *)
+           thresholdCorrectionsLoopOrder -> 2,(* FlexibleSUSY[7] *)
+           higgs2loopCorrectionAtAs -> 1,     (* FlexibleSUSY[8] *)
+           higgs2loopCorrectionAbAs -> 1,     (* FlexibleSUSY[9] *)
+           higgs2loopCorrectionAtAt -> 1,     (* FlexibleSUSY[10] *)
+           higgs2loopCorrectionAtauAtau -> 1, (* FlexibleSUSY[11] *)
+           thresholdCorrections -> 123111221, (* FlexibleSUSY[24] *)
+           higgs3loopCorrectionRenScheme -> 0,(* FlexibleSUSY[25] *)
+           higgs3loopCorrectionAtAsAs -> 1,   (* FlexibleSUSY[26] *)
+           higgs3loopCorrectionAbAsAs -> 1,   (* FlexibleSUSY[27] *)
+       }
 
  * Feature: Adding complete 1-loop O(alpha_tau + alpha_b) and complete
    2-loop O((alpha_t + alpha_b)^2 + atau^2) threshold corrections for
@@ -447,71 +452,68 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
    2-loop corrections.  In the SLHA input the flags which control the
    inclusion of 2-loop corrections are:
 
-      Block EXTPAR                 # Input parameters
-        100   2                    # LambdaLoopOrder
-        101   1                    # TwoLoopAtAs
-        102   1                    # TwoLoopAbAs
-        103   1                    # TwoLoopAtAb
-        104   1                    # TwoLoopAtauAtau
-        105   1                    # TwoLoopAtAt
+       Block EXTPAR                 # Input parameters
+         100   2                    # LambdaLoopOrder
+         101   1                    # TwoLoopAtAs
+         102   1                    # TwoLoopAbAs
+         103   1                    # TwoLoopAtAb
+         104   1                    # TwoLoopAtauAtau
+         105   1                    # TwoLoopAtAt
 
    In the Mathematica interface the flags which control the inclusion
    of 2-loop corrections are:
 
-      handle = FSHSSUSYOpenHandle[
-         fsModelParameters -> {
-            ...
-            LambdaLoopOrder -> 2,
-            TwoLoopAtAs -> 1,
-            TwoLoopAbAs -> 1,
-            TwoLoopAtAb -> 1,
-            TwoLoopAtauAtau -> 1,
-            TwoLoopAtAt -> 1
-         }
-      ]
+       handle = FSHSSUSYOpenHandle[
+          fsModelParameters -> {
+             ...
+             LambdaLoopOrder -> 2,
+             TwoLoopAtAs -> 1,
+             TwoLoopAbAs -> 1,
+             TwoLoopAtAb -> 1,
+             TwoLoopAtauAtau -> 1,
+             TwoLoopAtAt -> 1
+          }
+       ]
 
  * Feature: Adding the new input parameter DeltaEFT to the HSSUSY
    spectrum generator to allow the user to estimate the EFT
    uncertainty.  Each 1-loop term in the threshold correction for
-   lambda(MS) is multiplied by the factor
-
-      (1 + DeltaEFT v^2/MS^2)
-
+   lambda(MS) is multiplied by the factor (1 + DeltaEFT v^2/MS^2).
    Thus, the standard calculation of HSSUSY is obtained by DeltaEFT =
-   0 (default).  Set DeltaEFT = 1 to obtain an alternative Higgs pole
+   0 (default).  Set `DeltaEFT = 1` to obtain an alternative Higgs pole
    mass with a shifted threshold correction to estimate the effect of
    the missing terms of O(v^2/MS^2).
 
  * Change: The interface for adding constraints and matching
    conditions to the Two_scale_solver class has been simplified.
-   Constrains and matching conditions are now added using the add()
+   Constrains and matching conditions are now added using the `add()`
    function.  The added constraints and matching conditions are
    imposed in the given order.
 
    Example: To first impose the low-scale, then the high-scale and
    finally the susy-scale constraint call
 
-   solver.add(&low_scale_constraint, &model);
-   solver.add(&high_scale_constraint, &model);
-   solver.add(&susy_scale_constraint, &model);
+       solver.add(&low_scale_constraint, &model);
+       solver.add(&high_scale_constraint, &model);
+       solver.add(&susy_scale_constraint, &model);
 
  * Change: The readability of the vertices and the self-energies has
-   been improved by using the SUM() and IF() macros.
+   been improved by using the `SUM()` and `IF()` macros.
 
  * Change: In FlexibleEFTHiggs models, the Standard Model parameters
    are written to the SLHA output in addition to the BSM parameters.
 
- * Change: The return value of FS<model>CalculateSpectrum[] and
-   FS<model>CalculateObservables[] has been changed.  They have now
+ * Change: The return value of `FS<model>CalculateSpectrum[]` and
+   `FS<model>CalculateObservables[]` has been changed.  They have now
    the structure
 
-      { <model> -> { model parameters ... } }
+       { <model> -> { model parameters ... } }
 
    In FlexibleEFTHiggs models, the Standard Model parameters are
    returned in addition and the output has the form
 
-      { <model> -> { model parameters ... },
-        StandardModel -> { ... } }
+       { <model> -> { model parameters ... },
+         StandardModel -> { ... } }
 
  * Change: In multi-threading mode pole masses are calculated using a
    thread pool instead of spawning threads manually.  This avoids over
@@ -538,13 +540,13 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
 
    Example:
 
-      ExtraSLHAOutputBlocks = {
-         {GAUGENORM, (* contains normalized gauge couplings *)
-                 {{1, g1},
-                  {2, g2},
-                  {3, g3},
-                  {4, gN} } }
-      };
+       ExtraSLHAOutputBlocks = {
+          {GAUGENORM, (* contains normalized gauge couplings *)
+                  {{1, g1},
+                   {2, g2},
+                   {3, g3},
+                   {4, gN} } }
+       };
 
  * Change (commit 9bfd5f1): tan(beta)-enhanced contributions to the
    down-lepton Yukawa couplings are now resummed.
@@ -563,16 +565,17 @@ FlexibleSUSY 2.0.0 [October, 10 2017]
 
    Thanks to Peter Athron and Pat Scott.
 
- * Bugfix (commit 0cb4042): Matrix products of the form A*B in the
+ * Bugfix (commit 0cb4042): Matrix products of the form `A*B` in the
    boundary conditions are now interpreted as element-wise products
-   (as in Mathematica).  For genuine matrix products use MatMul[A,B]
-   or A.B.
+   (as in Mathematica).  For genuine matrix products use `MatMul[A,B]`
+   or `A.B`.
 
  * Bugfix (commits 9738ba1, 118a9a70): Catch potential numerical
    instabilities during mass matrix diagonalization, which may result
    in eigenvectors with magnitude larger than 1.
 
 FlexibleSUSY-1.7.5 [September, 05 2017]
+=======================================
 
  * Bugfix (commit 03e9265): Correcting wrong vertex between
    chargino-smuon-neutrino and chargino-muon-sneutrino in muon decay.
@@ -581,12 +584,13 @@ FlexibleSUSY-1.7.5 [September, 05 2017]
  * Bugfix (commit f3f3850): Correcting coefficient in complex
    dilogarithm.
 
- * Bugfix (commit d8d8c0c): Make LibraryLink Set[] functions accept
+ * Bugfix (commit d8d8c0c): Make LibraryLink `Set[]` functions accept
    matrix-valued parameters.
 
  * Bugfix (commit 072be7e): Enable 3-loop RGEs in HSSUSY by default.
 
 FlexibleSUSY-1.7.4 [April, 12 2017]
+=======================================
 
  * Bugfix (commit f434e30): Rename internal IndexSum symbol which
    conflicts with SARAH version 4.11.0 and higher.
@@ -597,6 +601,7 @@ FlexibleSUSY-1.7.4 [April, 12 2017]
    prediction with FlexibleEFTHiggs by around 10 MeV.
 
 FlexibleSUSY-1.7.3 [February, 27 2017]
+=======================================
 
  * Change (commit 43bb03a): FlexibleSUSY now aborts the code
    generation if the user tries to fix an unknown parameter in a
@@ -607,12 +612,13 @@ FlexibleSUSY-1.7.3 [February, 27 2017]
    LibraryLink interface functions.
 
  * Bugfix (commit 4a5ada7): Adding missing return statement in
-   function recalculate_mw_pole().  This bug was only present if the W
-   pole mass is used as input (not GF).
+   function `recalculate_mw_pole()`.  This bug was only present if the
+   W pole mass is used as input (not GF).
 
  * Bugfix (commit bd5ee68): Correctly handle whitespace in directory
-   names inside the configure script and search for headers in $CPATH
-   and $CPLUS_INCLUDE_PATH .
+   names inside the configure script and search for headers in
+   `$CPATH` and `$CPLUS_INCLUDE_PATH` .
+
    Thanks to Joshua Ellis.
 
  * Bugfix (commit bc770ae): Ensure that phase of (complex) mu
@@ -630,17 +636,19 @@ FlexibleSUSY-1.7.3 [February, 27 2017]
    Higgs mass routines of Pietro Slavich.
 
 FlexibleSUSY-1.7.2 [December, 15 2016]
+=======================================
 
- * Feature (commit b052e35): New flag FlexibleSUSY[23] to disable the
-   pole mass calculation of the non-SM particles.  This flag is useful
-   in FlexibleEFTHiggs, when the SUSY scale is so high that the non-SM
-   particle masses become unreliable or tachyonic: If a non-SM pole
-   mass becomes tachyonic (maybe because the loop corrections become
-   too large) FlexibleSUSY would flag the given parameter point as
-   unphysical.  However, one might still be interested in the value of
-   the SM-like Higgs mass, which is valid in FlexibleEFTHiggs even for
-   very large SUSY scales.  In such a case FlexibleSUSY[23] could be
-   set to 0 to suppress the calculation of the non-SM pole masses.
+ * Feature (commit b052e35): New flag `FlexibleSUSY[23]` to disable
+   the pole mass calculation of the non-SM particles.  This flag is
+   useful in FlexibleEFTHiggs, when the SUSY scale is so high that the
+   non-SM particle masses become unreliable or tachyonic: If a non-SM
+   pole mass becomes tachyonic (maybe because the loop corrections
+   become too large) FlexibleSUSY would flag the given parameter point
+   as unphysical.  However, one might still be interested in the value
+   of the SM-like Higgs mass, which is valid in FlexibleEFTHiggs even
+   for very large SUSY scales.  In such a case `FlexibleSUSY[23]`
+   could be set to 0 to suppress the calculation of the non-SM pole
+   masses.
 
  * Feature (commit 998f11e): Slightly improved speed of the RG
    running.
@@ -684,7 +692,7 @@ FlexibleSUSY-1.7.2 [December, 15 2016]
  * Bugfix (commit 4a3fb5b): Input tan(beta) at the SUSY scale, instead
    of at the matching scale in the FlexibleEFTHiggs model files.  This
    difference matters when the (unphysical) matching scale is varied
-   through FlexibleSUSY[19].
+   through `FlexibleSUSY[19]`.
 
  * Bugfix (commit c35dcb2): Fixed linking problem of the LibraryLink
    on Mac.
@@ -693,13 +701,14 @@ FlexibleSUSY-1.7.2 [December, 15 2016]
    when multiple LibraryLink libraries are loaded into Mathematica at
    the same time.
 
- * Bugfix (commit 1f8e135): Correcting FS<model>Set[] function for
+ * Bugfix (commit 1f8e135): Correcting `FS<model>Set[]` function for
    models with matrix-valued parameters.
 
  * Bugfix (commit 4097708): The generated LibraryLink files are now
-   added to the model tarball created by `make pack-<model>-src'.
+   added to the model tarball created by `make pack-<model>-src`.
 
 FlexibleSUSY-1.7.1 [October, 15 2016]
+=======================================
 
  * Change (commit b1efa8c): Updated to GM2Calc 1.3.0.
 
@@ -708,13 +717,14 @@ FlexibleSUSY-1.7.1 [October, 15 2016]
    automatically to match the loop order of the matching condition
    from the SM to the BSM model.
 
-   Before this commit, the user had to set FlexibleEFTHiggs[13] = 0
-   and FlexibleEFTHiggs[20] = 1 when yt(BSM) should be calculated
+   Before this commit, the user had to set `FlexibleEFTHiggs[13] = 0`
+   and `FlexibleEFTHiggs[20] = 1` when yt(BSM) should be calculated
    using 1L QCD corrections.  Analogous, the user had to set
-   FlexibleEFTHiggs[13] = 1 and FlexibleEFTHiggs[20] = 2 when yt(BSM)
-   should be calculated using 2L QCD corrections.  Now,
-   FlexibleEFTHiggs[13] is set automatically to FlexibleEFTHiggs[20] -
-   1 when yt(BSM) is calculated in FlexibleEFTHiggs.
+   `FlexibleEFTHiggs[13] = 1` and `FlexibleEFTHiggs[20] = 2` when
+   yt(BSM) should be calculated using 2L QCD corrections.  Now,
+   `FlexibleEFTHiggs[13]` is set automatically to
+   `FlexibleEFTHiggs[20] - 1` when yt(BSM) is calculated in
+   FlexibleEFTHiggs.
 
  * Change (commit b533d67): Faster calculation of effective vertices h
    -> photon photon and h -> gluon gluon.
@@ -727,6 +737,7 @@ FlexibleSUSY-1.7.1 [October, 15 2016]
    throws an exception.
 
 FlexibleSUSY-1.7.0 [September, 19 2016]
+=======================================
 
  * Feature: FlexibleSUSY is now able to generate custom spectrum
    generators using the FlexibleEFTHiggs method described in
@@ -741,7 +752,7 @@ FlexibleSUSY-1.7.0 [September, 19 2016]
    generated spectrum generators.  For each model, an example
    Mathematica script
 
-      models/<model>/run_<model>.m
+       models/<model>/run_<model>.m
 
    is generated, which illustrates the usage.  The documentation of
    the Mathematica interface and several examples can be found in
@@ -756,11 +767,11 @@ FlexibleSUSY-1.7.0 [September, 19 2016]
 
    To generate shared FlexibleSUSY libraries, run
 
-      $ ./configure --enable-shared-libs ...
+       ./configure --enable-shared-libs ...
 
    To generate statically linked executables, run
 
-      $ ./configure --enable-static ...
+       ./configure --enable-static ...
 
    Please refer to the README file for more information.
 
@@ -780,10 +791,12 @@ FlexibleSUSY-1.7.0 [September, 19 2016]
    these 2-loop pieces.
 
 FlexibleSUSY-1.6.1 [August, 28 2016]
+====================================
 
  * Bugfix (commit db67c81): Fix compilation with --disable-threads .
 
 FlexibleSUSY-1.6.0 [August, 27 2016]
+=======================================
 
  * Feature (commit 4e9ef56): Allow user to access the beta-functions
    of the model parameters on the r.h.s. of the constraints.  BETA[p]
@@ -793,39 +806,39 @@ FlexibleSUSY-1.6.0 [August, 27 2016]
 
    Example in the SM:
 
-   HighScaleInput = {
-       {\[Lambda], BETA[g1] + BETA[g2] + BETA[1,Yu][3,3]}
-   };
+       HighScaleInput = {
+           {\[Lambda], BETA[g1] + BETA[g2] + BETA[1,Yu][3,3]}
+       };
 
  * Feature (commit 5e0bca1): Allow user to add 3-loop QCD corrections
    of [arxiv:hep-ph/9912391] when calculating the top pole mass in
    non-SUSY models.  The 3-loop QCD corrections are added if the flag
-   FlexibleSUSY[13] is set to 2 and the pole mass loop order,
-   FlexibleSUSY[4], is set to a value > 2.
+   `FlexibleSUSY[13]` is set to 2 and the pole mass loop order,
+   `FlexibleSUSY[4]`, is set to a value > 2.
 
-   FlexibleSUSY[13] = 0 and FlexibleSUSY[4] > 0: 1L QCD correction
-   FlexibleSUSY[13] = 1 and FlexibleSUSY[4] > 1: 2L QCD correction
-   FlexibleSUSY[13] = 2 and FlexibleSUSY[4] > 2: 3L QCD correction
-
+    * `FlexibleSUSY[13] = 0` and `FlexibleSUSY[4] > 0`: 1L QCD correction
+    * `FlexibleSUSY[13] = 1` and `FlexibleSUSY[4] > 1`: 2L QCD correction
+    * `FlexibleSUSY[13] = 2` and `FlexibleSUSY[4] > 2`: 3L QCD correction
+    
  * Feature (commits 98bc536, e8fd56a): Speed up of the RG running in
    models with very complicated beta functions.
 
- * Change (commit 728b5ea): `make clean' no longer removes generated
+ * Change (commit 728b5ea): `make clean` no longer removes generated
    source files to avoid the need to re-generate them.  To remove the
    generated files use either
 
-   $ make clean-<model>-src # deletes generated files for <model>
+       make clean-<model>-src # deletes generated files for <model>
 
    or
 
-   $ make clean-generated   # deletes all generated files
+       make clean-generated   # deletes all generated files
 
  * Bugfix (commit a5342eb): Avoid non-portable use of sed in
-   createmodel.  This fixes `make install-src' on Mac.
+   createmodel.  This fixes `make install-src` on Mac.
 
  * Bugfix (commit 44b31fa): Fix potential race condition when
    different model classes that make use of the (N)MSSM 2-loop Higgs
-   mass routines of P. Slavich call calculate_spectrum() at the same
+   mass routines of P. Slavich call `calculate_spectrum()` at the same
    time.
 
  * Bugfix (commit 0d08b99): Do not try to generate non-squared unit
@@ -836,6 +849,7 @@ FlexibleSUSY-1.6.0 [August, 27 2016]
    Thanks to Dylan Harries.
 
 FlexibleSUSY-1.5.1 [July, 12 2016]
+==================================
 
  * Bugfix (commit 63f5361): Fix numerical instability of SOFTSUSY's B1
    function in parameter regions with p << m1,m2 and m1 close to m2.
@@ -845,6 +859,7 @@ FlexibleSUSY-1.5.1 [July, 12 2016]
    the generated C++ code.
 
 FlexibleSUSY-1.5.0 [June, 29 2016]
+==================================
 
  * Feature: Write phases to SLHA output if a SLHA output block is
    defined for them in the SARAH model file.
@@ -853,9 +868,9 @@ FlexibleSUSY-1.5.0 [June, 29 2016]
  * Feature: Allow the user to calculate the pole masses at a fixed
    renormalisation scale at run-time, which is different from the one
    set by the SUSYScale model file variable.  The fixed
-   renormalisation scale can be given via the FlexibleSUSY[17] entry
-   in the SLHA input.  FlexibleSUSY[17] is equivalent to
-   SPhenoInput[33] in SPheno.
+   renormalisation scale can be given via the `FlexibleSUSY[17]` entry
+   in the SLHA input.  `FlexibleSUSY[17]` is equivalent to
+   `SPhenoInput[33]` in SPheno.
 
  * Feature: Updated to GM2Calc 1.2.0.
 
@@ -864,7 +879,7 @@ FlexibleSUSY-1.5.0 [June, 29 2016]
    Thanks to Dylan Harries.
 
  * Bugfix (commits fc748be, 9654a52): Fix compilation in case Greek
-   Symbols appear in If[] or Which[] functions in the model file.
+   Symbols appear in `If[]` or `Which[]` functions in the model file.
    Thanks to Dylan Harries.
 
  * Bugfix: Fix compilation with g++ 4.4.7.
@@ -877,17 +892,20 @@ FlexibleSUSY-1.5.0 [June, 29 2016]
    differ from SOFTSUSY by less than 0.5% at the electroweak scale.
 
 FlexibleSUSY-1.4.2 [May, 09 2016]
+=================================
 
  * Bugfix: Correcting handling of spaces in configure script if
-   /bin/sh is /bin/dash.
+   `/bin/sh` is `/bin/dash`.
 
 FlexibleSUSY-1.4.1 [May, 09 2016]
+=================================
 
  * Feature: Tab-completion for FlexibleSUSY's spectrum generators and
    scripts in the bash.
 
    Usage:
-   . utils/install-bash_completions.bash
+
+       . utils/install-bash_completions.bash
 
  * Feature: For each model an example SLHA input file is generated,
    which is located at models/<model>/LesHouches.in.<model>_generated
@@ -920,13 +938,14 @@ FlexibleSUSY-1.4.1 [May, 09 2016]
    models which don't have input parameters.
 
  * Bugfix (commits 637d099, 8b3a94f, 2e3a972): Fixing `make
-   install-src' in case the path to the FlexibleSUSY contains spaces.
+   install-src` in case the path to the FlexibleSUSY contains spaces.
 
  * Bugfix (commits ced2072, 8bc8fdd): Adding support for further
    debian-based multi-architecture linux distributions in the
    configure script.
 
 FlexibleSUSY-1.4.0 [March, 08 2016]
+===================================
 
  * Feature: Allow the user to chose the loop order of the RGEs to be
    generated by SARAH.  This is useful in pure low-energy models,
@@ -934,15 +953,15 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    the generation of the RGEs takes a very long time.
 
    The RGE loop order can be set in the model file using the
-   `FSRGELoopOrder' variable.
+   `FSRGELoopOrder` variable.
 
    Example:
-   FSRGELoopOrder = 0; (* no RGEs generated *)
-   FSRGELoopOrder = 1; (* only 1-loop RGEs generated *)
-   FSRGELoopOrder = 2; (* 1- and 2-loop RGEs generated (default) *)
+       FSRGELoopOrder = 0; (* no RGEs generated *)
+       FSRGELoopOrder = 1; (* only 1-loop RGEs generated *)
+       FSRGELoopOrder = 2; (* 1- and 2-loop RGEs generated (default) *)
 
    Note: The RGE loop order can also be specified at run-time in the
-   SLHA input block FlexibleSUSY[6] .
+   SLHA input block `FlexibleSUSY[6]`.
 
  * Feature: FlexibleSUSY no longer requires that the weak mixing angle
    and potential Z-Z' mixing angles are provided in terms of
@@ -961,24 +980,24 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
 
    Example for the MRSSM:
 
-   (* determine weak mixing angle from W and Z masses *)
-   FSWeakMixingAngleOptions = FSSetOption[
-       FSWeakMixingAngleOptions,
-       FSWeakMixingAngleInput -> FSMassW
-   ];
-   (* need to provide expression for weak mixing angle *)
-   FSWeakMixingAngleOptions = FSSetOption[
-       FSWeakMixingAngleOptions,
-       FSWeakMixingAngleExpr  -> ArcSin[Sqrt[1 - (Mass[VWm]^2 - g2^2*vT^2)/Mass[VZ]^2]]
-   ];
+       (* determine weak mixing angle from W and Z masses *)
+       FSWeakMixingAngleOptions = FSSetOption[
+           FSWeakMixingAngleOptions,
+           FSWeakMixingAngleInput -> FSMassW
+       ];
+       (* need to provide expression for weak mixing angle *)
+       FSWeakMixingAngleOptions = FSSetOption[
+           FSWeakMixingAngleOptions,
+           FSWeakMixingAngleExpr  -> ArcSin[Sqrt[1 - (Mass[VWm]^2 - g2^2*vT^2)/Mass[VZ]^2]]
+       ];
 
    Important note: In the SARAH model file a mass ordering of the
    vector bosons is assumed.  For example, the statement
 
-   DEFINITION[EWSB][GaugeSector] = {
-       {{VB,VWB[3],VBp}, {VP,VZ,VZp}, ZZ},
-       ...
-   };
+       DEFINITION[EWSB][GaugeSector] = {
+           {{VB,VWB[3],VBp}, {VP,VZ,VZp}, ZZ},
+           ...
+       };
 
    assumes MVP < MZ < MZp.  Thus, the user has to make sure that the
    studied parameter region leads to Photon, Z and Z' masses which are
@@ -987,16 +1006,16 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    region shall be studied where MVP < MZp < MZ, then the ordering of
    vector bosons in the SARAH model file has to be changed to
 
-   DEFINITION[EWSB][GaugeSector] = {
-       {{VB,VWB[3],VBp}, {VP,VZp,VZ}, ZZ},
-       ...
-   };
+       DEFINITION[EWSB][GaugeSector] = {
+           {{VB,VWB[3],VBp}, {VP,VZp,VZ}, ZZ},
+           ...
+       };
 
- * Feature: By setting the entry FlexibleSUSY[16] = 1 in the SLHA
+ * Feature: By setting the entry `FlexibleSUSY[16] = 1` in the SLHA
    input file, the user can force majorana fermion masses to be
    positive.  In this case, the corresponding mixing matrix is not
    purely real and its imaginary part will be written to the output in
-   addition.  Note, that setting FlexibleSUSY[16] = 1 is therefore a
+   addition.  Note, that setting `FlexibleSUSY[16] = 1` is therefore a
    violation of the SLHA standard.
 
  * Feature: FlexibleSUSY calculates the effective 1-loop couplings of
@@ -1010,28 +1029,28 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    output, extra SLHA output blocks have to defined in the
    FlexibleSUSY model file, which contain the symbols
 
-   FlexibleSUSYObservable`CpHiggsPhotonPhoton
-   FlexibleSUSYObservable`CpHiggsGluonGluon
-   FlexibleSUSYObservable`CpPseudoScalarPhotonPhoton
-   FlexibleSUSYObservable`CpPseudoScalarGluonGluon
+       FlexibleSUSYObservable`CpHiggsPhotonPhoton
+       FlexibleSUSYObservable`CpHiggsGluonGluon
+       FlexibleSUSYObservable`CpPseudoScalarPhotonPhoton
+       FlexibleSUSYObservable`CpPseudoScalarGluonGluon
 
    Example:
 
-   Definition of an extra SLHA output block named `EFFHIGGSCOUPLINGS',
+   Definition of an extra SLHA output block named `EFFHIGGSCOUPLINGS`,
    containing the effective 1-loop CP-even and CP-odd Higgs -> photon
    + photon and Higgs -> gluon + gluon couplings:
 
-   ExtraSLHAOutputBlocks = {
-      {EFFHIGGSCOUPLINGS,
-              {{1, FlexibleSUSYObservable`CpHiggsPhotonPhoton},
-               {2, FlexibleSUSYObservable`CpHiggsGluonGluon},
-               {3, FlexibleSUSYObservable`CpPseudoScalarPhotonPhoton},
-               {4, FlexibleSUSYObservable`CpPseudoScalarGluonGluon} } }
-   };
+       ExtraSLHAOutputBlocks = {
+          {EFFHIGGSCOUPLINGS,
+                  {{1, FlexibleSUSYObservable`CpHiggsPhotonPhoton},
+                   {2, FlexibleSUSYObservable`CpHiggsGluonGluon},
+                   {3, FlexibleSUSYObservable`CpPseudoScalarPhotonPhoton},
+                   {4, FlexibleSUSYObservable`CpPseudoScalarGluonGluon} } }
+       };
 
    The calculation of the effective couplings can be disabled (or
-   enabled) by setting the flag FlexibleSUSY[15] to 0 (or 1) in the
-   SLHA input file.
+   enabled) by setting the flag `FlexibleSUSY[15]` to `0` (or `1`) in
+   the SLHA input file.
 
  * Feature: Allow the user to temporarily re-define model parameters
    in the boundary conditions, which are restored to their original
@@ -1041,11 +1060,11 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    Example: Temporarily scale the gauge coupling g1 by a factor 1/2
    and set the up-quark Yukawa coupling to zero:
 
-   LowScaleInput = {
-      {Temporary[g1], g1 / 2},
-      {Temporary[Yu[1,1]], 0},
-      ...
-   };
+       LowScaleInput = {
+          {Temporary[g1], g1 / 2},
+          {Temporary[Yu[1,1]], 0},
+          ...
+       };
 
  * Feature: The three THDM-like models, which have been used in
    arxiv:1512.07761, are provided.  The models implement the 1- and
@@ -1061,13 +1080,13 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    corrections to the MS-bar Yukawa coupling of the order O(alpha_s^3)
    [arxiv:hep-ph/9911434, arxiv:hep-ph/9912391] are added
    automatically.  They are taken into account at run-time if the
-   threshold correction loop (FlexibleSUSY[7]) order is set to a value
-   > 2 in the SLHA input file.
+   threshold correction loop (`FlexibleSUSY[7]`) order is set to a
+   value > 2 in the SLHA input file.
 
    The generation of 3-loop QCD corrections can be disabled by setting
    in the model file
 
-   UseYukawa3LoopQCD = False;
+       UseYukawa3LoopQCD = False;
 
  * Change (commit f2f913e, 002c904): When threshold corrections are
    disabled, the charged lepton and top quark pole masses are used to
@@ -1079,7 +1098,7 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
  * Change (commit 1c7e4a7): The 2-loop QCD contribution to the top
    Yukawa coupling [hep-ph/0210258 Eq. (60)-(61), hep-ph/9803493
    Eq. (17)] is taken into account only if the threshold correction
-   loop order (flag FlexibleSUSY[7]) is set to a value > 1.  Before
+   loop order (flag `FlexibleSUSY[7]`) is set to a value > 1.  Before
    commit 1c7e4a7 the 2-loop QCD contribution was always taken into
    account and could not be disabled.  This change allows the user to
    consistently disable 2-loop contributions.
@@ -1093,7 +1112,8 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    user-defined SLHA input value of the Z pole mass.
 
    Example:
-   SUSYScale = LowEnergyConstant[MZ];
+
+       SUSYScale = LowEnergyConstant[MZ];
 
  * Bugfix (commit 0a7934e): Fix compilation error in models in which a
    multiplet exists, which consists only of Goldstone bosons.
@@ -1124,42 +1144,47 @@ FlexibleSUSY-1.4.0 [March, 08 2016]
    but larger than 3x3.
 
 FlexibleSUSY-1.3.2 [January, 10 2016]
+=====================================
 
  * Bugfix (commit d76ca79): Fix compilation error with Eigen
    3.3-beta1.
 
 FlexibleSUSY-1.3.1 [January, 08 2016]
+=====================================
 
  * Bugfix (commit aa8dc76): Re-enable the output of gauge eigenstate
    masses of 1st and 2nd generation sfermions in the CMSSMNoFV for
    SLHA-1 compatibility.
 
 FlexibleSUSY-1.3.0 [January, 08 2016]
+=====================================
 
  * Feature: The output of the spectrum generator can be written into
-   an SQLite database using the --database-output-file= option.  At
-   the C++ level, a to_database() and from_database() function is
+   an SQLite database using the `--database-output-file=` option.  At
+   the C++ level, a `to_database()` and `from_database()` function is
    provided for each model, which write/read a model object (including
    the DR-bar parameters and the pole mass spectrum) to/from a
    database file.
 
    Example:
-   $ models/CMSSM/run_CMSSM.x \
-     --slha-input-file=model_files/CMSSM/LesHouches.in.CMSSM \
-     --slha-output-file= --database-output-file=point.db
+
+       models/CMSSM/run_CMSSM.x \
+         --slha-input-file=model_files/CMSSM/LesHouches.in.CMSSM \
+         --slha-output-file= --database-output-file=point.db
 
    Example using the scan script:
-   $ utils/scan-database.sh \
-     --spectrum-generator=models/CMSSM/run_CMSSM.x \
-     --slha-input-file=model_files/CMSSM/LesHouches.in.CMSSM \
-     --scan-range=MINPAR[3]=1~30:21 \
-     --database-output-file=scan.db
+
+       utils/scan-database.sh \
+         --spectrum-generator=models/CMSSM/run_CMSSM.x \
+         --slha-input-file=model_files/CMSSM/LesHouches.in.CMSSM \
+         --scan-range=MINPAR[3]=1~30:21 \
+         --database-output-file=scan.db
 
  * Feature: Models can now be matched to the Standard Model at Q =
    MZ_pole, Q = MT_pole or any other dynamically calculated scale, as
    MT_DRbar for example.
-   To match at MZ_pole set in the model file: LowScale = LowEnergyConstant[MZ]
-   To match at MT_pole set in the model file: LowScale = LowEnergyConstant[MT]
+   To match at MZ_pole set in the model file: LowScale = LowEnergyConstant[MZ].
+   To match at MT_pole set in the model file: LowScale = LowEnergyConstant[MT].
    To match at MT_DRbar set in the model file: LowScale = M[Fu[3]],
    depending on your chosen name for the top quark.
 
@@ -1190,8 +1215,8 @@ FlexibleSUSY-1.3.0 [January, 08 2016]
    have to be added to ExtraSLHAOutputBlocks variable in the
    FlexibleSUSY model file (they are already added in the MSSMNoFV and
    CMSSMNoFV example models).  In addition, the SLHA input file entry
-   FlexibleSUSY[15] has to be set to 1 to perform the calculation.  If
-   FlexibleSUSY[15] is set to 0, (g-2)/2 is not calculated.
+   `FlexibleSUSY[15]` has to be set to 1 to perform the calculation.
+   If `FlexibleSUSY[15]` is set to 0, (g-2)/2 is not calculated.
 
  * Change (commit d553af8): No SLHA output is written if the option
    --slha-output-file= is set to the empty string.  To write the SLHA
@@ -1215,11 +1240,12 @@ FlexibleSUSY-1.3.0 [January, 08 2016]
 
  * Bugfix (commit 9ccdb4d): Workaround a SARAH issue where the list
    SARAH`Masses[EWSB] contains replacement rules of the form `0 ->
-   MassGiven[X]', instead of `Mass[X] -> MassGiven[X]'.  Due to this
+   MassGiven[X]`, instead of `Mass[X] -> MassGiven[X]`.  Due to this
    issue some massless particles have been missing in FlexibleSUSY
    before commit 9ccdb4d.
 
 FlexibleSUSY-1.2.4 [October, 27 2015]
+=====================================
 
  * Change (commit 33af37c): The spectrum generator, run_<model>.x,
    will no longer overwrite the user-given input parameters of the
@@ -1239,8 +1265,9 @@ FlexibleSUSY-1.2.4 [October, 27 2015]
    Thanks to Dylan Harries and Roman Nevzorov.
 
 FlexibleSUSY-1.2.3 [October, 18 2015]
+=====================================
 
- * Feature: Adding support for If[] and Which[] statements at the
+ * Feature: Adding support for `If[]` and `Which[]` statements at the
    r.h.s. of contraints.  In addition, the IsClose[a,b,eps] and
    IsCloseRel[a,b,eps] functions have been added to allow for a
    comparison of parameters.
@@ -1274,7 +1301,7 @@ FlexibleSUSY-1.2.3 [October, 18 2015]
    The 3-loop gluino contribution is enabled by default in the
    SplitMSSM.
 
- * Change (commit f7cd242): The `test' and `examples' modules are no
+ * Change (commit f7cd242): The `test` and `examples` modules are no
    longer loaded into the makefile by default.  To load them, run
    ./configure --with-optional-modules="test,examples"
 
@@ -1291,17 +1318,18 @@ FlexibleSUSY-1.2.3 [October, 18 2015]
    the (heavy) tau self-energy was used to convert the running MS-bar
    electron and muon masses to DR-bar masses in *NoFV models.
    Corresponding test case:
-   test_CMSSMNoFV_low_scale_constraint::test_delta_Yf()
+   `test_CMSSMNoFV_low_scale_constraint::test_delta_Yf()`
 
 FlexibleSUSY-1.2.2 [September, 08 2015]
+=======================================
 
  * Feature: The scale at which the EWSB output parameters are fixed
    can now be chosen by the user via the FSSolveEWSBFor[{...}] symbol.
    By default, the susy-scale is chosen.
 
  * Change (commit 5b9d653): If ./configure is run without the
-   `--with-models=<models>' argument, no models will be build.  In
-   former FlexibleSUSY versions if the `--with-models=<models>'
+   `--with-models=<models>` argument, no models will be build.  In
+   former FlexibleSUSY versions if the `--with-models=<models>`
    argument was missing, all models were build.
 
  * Bugfix (commit 5530bf9): Defining a scale to be a running mass, for
@@ -1319,10 +1347,11 @@ FlexibleSUSY-1.2.2 [September, 08 2015]
    arguments.  Fixes #5.  Thanks to Dylan Harries.
 
  * Bugfix (commit f4eed5d): Put class Complex into softsusy namespace
-   to avoid ambiguities in operator*().  Fixes #6.  Thanks to Dylan
+   to avoid ambiguities in `operator*()`.  Fixes #6.  Thanks to Dylan
    Harries.
 
 FlexibleSUSY-1.2.1 [July, 07 2015]
+==================================
 
  * Feature: The model name is printed in SPINFO[5] and the SARAH
    version is printed in SPINFO[9].
@@ -1332,6 +1361,7 @@ FlexibleSUSY-1.2.1 [July, 07 2015]
    Drechsel.
 
 FlexibleSUSY-1.2.0 [June, 26 2015]
+==================================
 
  * Feature: Allow the user to add 3-loop beta-functions in the SM.
    The beta-functions are taken from SUSYHD v1.0.1 (arXiv:1504.05200)
@@ -1343,9 +1373,11 @@ FlexibleSUSY-1.2.0 [June, 26 2015]
 
  * Feature: Allow the user to provide SLHA input via stdin if the SLHA
    input file name is set to - .
+
    Example:
-   $ cat model_files/CMSSM/LesHouches.in.CMSSM | \
-        models/CMSSM/run_CMSSM.x --slha-input-file=-
+
+      cat model_files/CMSSM/LesHouches.in.CMSSM | \
+         models/CMSSM/run_CMSSM.x --slha-input-file=-
 
  * Feature: Allow the user create standalone executables that don't
    depend on dynamically linked libraries.  See README for more
@@ -1366,11 +1398,13 @@ FlexibleSUSY-1.2.0 [June, 26 2015]
    input at MZ.
 
 FlexibleSUSY-1.1.1 [June, 08 2015]
+==================================
 
  * Bugfix (commit e1ea433): Catch NaNs from Slavich's NMSSM 2-loop
    self-energies.
 
 FlexibleSUSY-1.1.0 [May, 31 2015]
+=================================
 
  * Feature: Calculation of DR-bar weak mixing angle from Fermi
    constant and Z pole mass.  The implementation is based on
@@ -1394,7 +1428,9 @@ FlexibleSUSY-1.1.0 [May, 31 2015]
  * Feature: In the shipped FlexibleSUSY model files, the corresponding
    default SARAH model file is specified.  This allows a user to
    create a new model with the simplified command:
-   ./createmodel --name=CMSSM
+
+       ./createmodel --name=CMSSM
+
    The default SARAH model file to be used with a given FlexibleSUSY
    model file can be set via FSDefaultSARAHModel = <model>;
 
@@ -1431,20 +1467,21 @@ FlexibleSUSY-1.1.0 [May, 31 2015]
  * Bugfix (commit d035544): Ignore trivial EWSB eqs.  Makes the MRSSM
    work in FlexibleSUSY with SARAH 4.5.x.
 
- * Bugfix (commit d8a1521): The SM() preprocessor macro has been
-   renamed to LowEnergyConstant() in order to avoid collisions with
+ * Bugfix (commit d8a1521): The `SM()` preprocessor macro has been
+   renamed to `LowEnergyConstant()` in order to avoid collisions with
    the copy constructor of the SM model class.
 
  * Bugfix (commit 0c7a7ac): chop beta-function values smaller than the
    zero-threshold to avoid failures of the RK integrator.  The
    zero-threshold is 1e-11 by default and can be changed via
-   Beta_function::set_zero_threshold() or entry 14 in the SLHA input
+   `Beta_function::set_zero_threshold()` or entry 14 in the SLHA input
    file.
 
  * Bugfix (commit 29a1578): Ignore goldstone boson "pole mass"
    tachyons.
 
 FlexibleSUSY-1.0.4 [January, 15 2015]
+=====================================
 
  * Add new user example program run_cmd_line_<model>.x to run a
    parameter point using command line parameters instead of an SLHA
@@ -1456,13 +1493,13 @@ FlexibleSUSY-1.0.4 [January, 15 2015]
 
  * Adding support for FlexibleSUSY addons.  They are placed inside the
    addons/ directory and can be configued and compiled via
-   ./configure --with-addons=<addon> && make
+   `./configure --with-addons=<addon> && make`
 
  * Adding EWSB solvers using a fixed-point iteration (FPIRelative,
    FPIAbsolute, FPITadpole).  FPIRelative is now the first default
    solver used.  Thanks to Dylan Harries.
 
- * Adding new NMSSM model file `NUTNMSSM' with non-universal soft
+ * Adding new NMSSM model file `NUTNMSSM` with non-universal soft
    Higgs masses (EWSB output) and non-universal trilinear couplings
    A_lambda and A_kappa at MX.
 
@@ -1500,6 +1537,7 @@ FlexibleSUSY-1.0.4 [January, 15 2015]
  * More descriptive error message when an exception is thrown.
 
 FlexibleSUSY-1.0.3 [November, 21 2014]
+======================================
 
  * Allow selection of Higgs 2-loop contributions in SLHA input file
 
@@ -1521,6 +1559,7 @@ FlexibleSUSY-1.0.3 [November, 21 2014]
    overwrite former entries.
 
 FlexibleSUSY-1.0.2 [July, 15 2014]
+==================================
 
  * Bugfix (commit 689141da): Enable non-quadratic superpotential
    coupling matrices.
@@ -1534,22 +1573,24 @@ FlexibleSUSY-1.0.2 [July, 15 2014]
  * Install specimen SLHA input files in the model directory when one
    runs the createmodel script.
 
- * Work around fields in Cp[] carrying an invalid index that cause
-   Part::partw when passed to SARAH`Vertex[].
+ * Work around fields in `Cp[]` carrying an invalid index that cause
+   Part::partw when passed to ``SARAH`Vertex[]``.
 
  * Support Cygwin on MS Windows
 
  * New model file for the TMSSM (triplet Higgs model)
 
 FlexibleSUSY-1.0.1 [June, 11 2014]
+==================================
 
  * Bugfix (commit 4dc897e): consts.hpp is not distributed but appears
    in the list of installed headers
 
 FlexibleSUSY-1.0.0 [June, 10 2014]
+==================================
 
  * Bugfix (commit 399a1c8): renaming SoftsusyMSSM and SoftsusyNMSSM
-   model classes and files to make `make all-test' work on HFS (fixes
+   model classes and files to make `make all-test` work on HFS (fixes
    #2).
 
  * Bugfix (commit cfc2562): correcting MS-bar to DR-bar conversion of
@@ -1568,10 +1609,10 @@ FlexibleSUSY-1.0.0 [June, 10 2014]
  * Bugfix (commit 3fd2699): Correcting the determination of the number
    of EWSB eqs. in case of CP violating models.
 
- * Bugfix (commit c9cc34f): Reset fermion phases when clear() is called.
+ * Bugfix (commit c9cc34f): Reset fermion phases when `clear()` is called.
 
- * Bugfix (commit faa0fb6): adding boost include directory to CPPFLAGS
-   in the src module.
+ * Bugfix (commit faa0fb6): adding boost include directory to
+   `CPPFLAGS` in the src module.
 
  * Bugfix (commit ac8e38e): impose EWSB before calculating the
    spectrum.
@@ -1595,8 +1636,8 @@ FlexibleSUSY-1.0.0 [June, 10 2014]
    self-energy contributions from Slavich.
 
  * Allow to constrain the boundary condition scale via the model file
-   variables {Low,SUSY,High}ScaleMinimum and
-   {Low,SUSY,High}ScaleMaximum.
+   variables `{Low,SUSY,High}ScaleMinimum` and
+   `{Low,SUSY,High}ScaleMaximum`.
 
  * Allow explicite setting (and disabling) of the Yukawa couplings in
    the constraints.
@@ -1606,7 +1647,7 @@ FlexibleSUSY-1.0.0 [June, 10 2014]
  * lower required g++ version to 4.4.7
 
  * Enable source code export without the meta code via `make
-   install-src'.
+   install-src`.
 
  * Add FFLite module as a thread-safe alternative to LoopTools
 
@@ -1620,6 +1661,7 @@ FlexibleSUSY-1.0.0 [June, 10 2014]
    model file.
 
 FlexibleSUSY-0.5.3 [January, 21 2014]
+=====================================
 
  * Bugfix (commit 44903c): correcting malformed print out in
    config/list_sarah_model_files.sh in case model files do not exist
@@ -1633,6 +1675,7 @@ FlexibleSUSY-0.5.3 [January, 21 2014]
  * Vertices are saved in a file to avoid repeating same calculation.
 
 FlexibleSUSY-0.5.2 [January 14, 2014]
+=====================================
 
  * Bugfix (commit 58f8f9): Convert beta functions which are identical
    zero to the data type of the corresponding parameter.
@@ -1655,26 +1698,28 @@ FlexibleSUSY-0.5.2 [January 14, 2014]
    (instead of templates/)
 
  * The command line arguments of the createmodel script changed.
-   Please see ./createmodel --help for more details.
+   Please see `./createmodel --help` for more details.
 
- * Add support for the LHInput[p] command in constraints, which reads
-   the parameter `p' from the SLHA input file.
+ * Add support for the `LHInput[p]` command in constraints, which reads
+   the parameter `p` from the SLHA input file.
 
  * Constrain time used to simplify the beta functions (default: 120
    seconds per beta function).  To change the time constraint, set
-   FlexibleSUSY`FSSimplifyBetaFunctionsTimeConstraint .
+   ``FlexibleSUSY`FSSimplifyBetaFunctionsTimeConstraint`.
 
  * Avoid swapping by distributing the calculation of the two-scale
    beta functions among multiple .cpp files.
 
  * Introduce separate meta code stamp (triggers running of the meta
-   code) with name models/<model-name>/00_DELETE_ME_TO_RERUN_METACODE
+   code) with name `models/<model-name>/00_DELETE_ME_TO_RERUN_METACODE`
 
 FlexibleSUSY-0.5.1 [November 23, 2013]
+======================================
 
  * Handle parameters of type vector in the beta functions.
 
 FlexibleSUSY-0.5 [November 18, 2013]
+====================================
 
  * Store particle masses as Eigen::Array and mixing matrices as
    Eigen::Matrix.
