@@ -6,13 +6,13 @@ generators for non-minimal supersymmetric models.  It is designed for
 generating fast and modular C++ code, allowing for easy modification,
 extension and reuse.
 
-Homepage:                https://flexiblesusy.hepforge.org
-Mailing list:            flexiblesusy@projects.hepforge.org
-Source code repository:  https://github.com/FlexibleSUSY
-Bug reports:             https://github.com/FlexibleSUSY/FlexibleSUSY/issues
-References:              CPC 190 (2015) 139-172 (arxiv:1406.2319 [hep-ph]),
-                         JHEP 1701 (2017) 079 (arXiv:1609.00371 [hep-ph])
-                         arXiv:1710.03760 [hep-ph]
+ * Homepage:                https://flexiblesusy.hepforge.org
+ * Mailing list:            flexiblesusy@projects.hepforge.org
+ * Source code repository:  https://github.com/FlexibleSUSY
+ * Bug reports:             https://github.com/FlexibleSUSY/FlexibleSUSY/issues
+ * References:              [CPC 190 (2015) 139-172 (arxiv:1406.2319),
+                             JHEP 1701 (2017) 079 (arXiv:1609.00371)
+                             arXiv:1710.03760]
 
 
 Requirements
@@ -21,17 +21,17 @@ Requirements
  * C++ compiler (g++ >= 4.8.4 or clang++ >= 3.8.1 or icpc >= 15.0.0)
  * Fortran compiler (gfortran, ifort)
  * Mathematica (version 7.0 or higher)
- * SARAH (version 4.11.0 or higher)   http://sarah.hepforge.org
- * Boost (version 1.37.0 or higher)   http://www.boost.org
- * Eigen 3 (version 3.1 or higher)    http://eigen.tuxfamily.org
- * GNU scientific library             http://www.gnu.org/software/gsl/
+ * SARAH (version 4.11.0 or higher)   [http://sarah.hepforge.org]
+ * Boost (version 1.37.0 or higher)   [http://www.boost.org]
+ * Eigen 3 (version 3.1 or higher)    [http://eigen.tuxfamily.org]
+ * GNU scientific library             [http://www.gnu.org/software/gsl/]
 
 Optional:
 
- * BLAS                               http://www.netlib.org/blas/
- * LAPACK                             http://www.netlib.org/lapack/
- * LoopTools (version 2.8 or higher)  http://www.feynarts.de/looptools/
- * Himalaya                           https://github.com/Himalaya-Library/Himalaya
+ * BLAS                               [http://www.netlib.org/blas/]
+ * LAPACK                             [http://www.netlib.org/lapack/]
+ * LoopTools (version 2.8 or higher)  [http://www.feynarts.de/looptools/]
+ * Himalaya                           [https://github.com/Himalaya-Library/Himalaya]
 
 
 Installation of SARAH
@@ -41,21 +41,21 @@ FlexibleSUSY requires SARAH to be installed and to be loadable with
 the Needs["SARAH`"] command from inside Mathematica.  We recommend the
 following setup:
 
-   $ cd ~/.Mathematica/Applications/
-   $ wget https://www.hepforge.org/archive/sarah/SARAH-4.12.3.tar.gz
-   $ tar -xf SARAH-4.12.3.tar.gz
-   $ ln -s $PWD/SARAH-4.12.3/ SARAH
+     cd ~/.Mathematica/Applications/
+     wget https://www.hepforge.org/archive/sarah/SARAH-4.12.3.tar.gz
+     tar -xf SARAH-4.12.3.tar.gz
+     ln -s $PWD/SARAH-4.12.3/ SARAH
 
-   $ cd ~/.Mathematica/Kernel/
-   $ echo "AppendTo[\$Path, \"$HOME/.Mathematica/Applications/SARAH/\"];" \
+     cd ~/.Mathematica/Kernel/
+     echo "AppendTo[\$Path, \"$HOME/.Mathematica/Applications/SARAH/\"];" \
         >> init.m
 
 All the above steps can be executed at once with the `install-sarah`
 script.  Example:
 
-   $ ./install-sarah
+     ./install-sarah
 
-See `./install-sarah --help' for more options.
+See `./install-sarah --help` for more options.
 
 
 How to create a model
@@ -65,11 +65,11 @@ How to create a model
    model file.  To make it available in FlexibleSUSY, you can put it
    either into FlexibleSUSY's SARAH model directory
 
-     FlexibleSUSY/sarah/<model>/
+       FlexibleSUSY/sarah/<model>/
 
    or directly into SARAH's own model directly
 
-     SARAH/Models/<model>/
+       SARAH/Models/<model>/
 
    Here <model> is the name of your model (e.g. MSSM, NMSSM, etc.).
    Note, that there are already plenty of pre-installed model files in
@@ -77,9 +77,9 @@ How to create a model
 
 1. Create a new / initialize an existing FlexibleSUSY model:
 
-   $ ./createmodel --name=<model>
+       ./createmodel --name=<model>
 
-   See `./createmodel --help' for more details.  Afterwards there will
+   See `./createmodel --help` for more details.  Afterwards there will
    be
 
    * a model directory models/<model>/
@@ -93,19 +93,19 @@ How to create a model
 
 2. Create the Makefile and register your model(s):
 
-   $ ./configure --with-models=<model>
+       ./configure --with-models=<model>
 
    Multiple models can be specified, separated by a comma.  See
-   `./configure --help' for more options.
+   `./configure --help` for more options.
 
 3. Compile FlexibleSUSY with your model:
 
-   $ make
+       make
 
-   Use `make -j<N>' to use <N> CPU cores.  When `make' is executed,
+   Use `make -j<N>` to use <N> CPU cores.  When `make` is executed,
    Mathematica is called, which generates the C++ code for the
    specified models.  All C++ source files are written to the
-   directory models/<model>/ .  When `make' has finished, the C++ code
+   directory models/<model>/ .  When `make` has finished, the C++ code
    is compiled and the following spectrum generators are created for
    each specified model:
 
@@ -116,11 +116,11 @@ How to create a model
 Example
 =======
 
-   $ ./createmodel --name=HSSUSY
-   $ ./configure --with-models=HSSUSY
-   $ make
-   $ ./models/HSSUSY/run_HSSUSY.x \
-     --slha-input-file=model_files/HSSUSY/LesHouches.in.HSSUSY
+    ./createmodel --name=HSSUSY
+    ./configure --with-models=HSSUSY
+    make
+    ./models/HSSUSY/run_HSSUSY.x \
+       --slha-input-file=model_files/HSSUSY/LesHouches.in.HSSUSY
 
 
 Creating the soucre code documentation
@@ -130,36 +130,36 @@ FlexibleSUSY's source code documentation (including the generated
 source code files) can be generated with Doxygen in HTML or man
 format.  To generate the HTML documentation please run:
 
-   $ make doc-html
+    make doc-html
 
 The generated HTML index file can then be found in doc/html/index.html
 and can be viewed with any HTML browser, e.g.
 
-   $ firefox doc/html/index.html
+    firefox doc/html/index.html
 
 To generate the man documentation please run:
 
-   $ make doc-man
+    make doc-man
 
 The generated man pages can then be found in doc/man/man3/ and can be
 viewed as
 
-   $ man doc/man/man3/model_file_options.3
+    man doc/man/man3/model_file_options.3
 
 
 Creating only the source code files (no compilation)
 ====================================================
 
 If you want to only create the C++ source files for your model, but do
-not want to compile the code, you can use the --disable-compile
+not want to compile the code, you can use the `--disable-compile`
 configure option:
 
-   $ ./configure --with-models=MSSM --disable-compile
-   $ make
+    ./configure --with-models=MSSM --disable-compile
+    make
 
 Here, configure will not check for installed compilers or libraries.
 It will only search for Mathematica and SARAH.  The execution of
-`make' will stop as soon as all C++ source code files are generated.
+`make` will stop as soon as all C++ source code files are generated.
 See below for how to export the generated source code.
 
 
@@ -167,10 +167,10 @@ Compile only (don't generate source code)
 =========================================
 
 If you want to only compile already created the C++ source files for
-your model, you can use the --disable-meta configure option:
+your model, you can use the `--disable-meta` configure option:
 
-   $ ./configure --with-models=MSSM --disable-meta
-   $ make
+    ./configure --with-models=MSSM --disable-meta
+    make
 
 Here, configure will only check for installed compilers or libraries.
 It will not check for Mathematica and SARAH.
@@ -193,23 +193,23 @@ code for the specified model(s) (but without the Mathematica meta
 code), can be exported to a new directory.  The exported source code
 is a complete standalone package, with it's own build system.  To
 export the code, one has to set the target directory during
-configuration via the --with-install-dir= option.  For example:
+configuration via the `--with-install-dir=` option.  For example:
 
-   $ ./configure --with-models=<models> \
-     --with-install-dir=/path/to/export/directory
+    ./configure --with-models=<models> \
+       --with-install-dir=/path/to/export/directory
 
 Afterwards
 
-   $ make install-src
+    make install-src
 
 must be executed, which will copy the generated C++ source code for
 all <models> to /path/to/export/directory , together with the
 non-model specific source code from config/ , doc/ , slhaea/ and src/
 .  Afterwards, the standalone package can be build like this:
 
-   $ cd /path/to/export/directory
-   $ ./configure
-   $ make
+    cd /path/to/export/directory
+    ./configure
+    make
 
 It is also possible to create a "model package", which includes only
 the generated source code for a given model, but does not contain the
@@ -229,20 +229,20 @@ Dynamic libraries
 
 If you want to create dynamic model libraries (instead of static
 libraries, which is the default) you need to pass the
---enable-shared-libs option to the configure script.  The file name
+`--enable-shared-libs` option to the configure script.  The file name
 extension for the shared libraries as well as the command to build
 them can be overwritten using the
 
-   --with-shared-lib-ext=
-   --with-shared-lib-cmd=
+    --with-shared-lib-ext=
+    --with-shared-lib-cmd=
 
 parameters.  For example, when Intel compilers should be used, replace
-`gcc' by `icc' or `icpc':
+`gcc` by `icc` or `icpc`:
 
-   $ ./configure --with-models=CMSSM,NMSSM \
-     --enable-shared-libs \
-     --with-shared-lib-ext=".so" \
-     --with-shared-lib-cmd="gcc -shared -o"
+    ./configure --with-models=CMSSM,NMSSM \
+       --enable-shared-libs \
+       --with-shared-lib-ext=".so" \
+       --with-shared-lib-cmd="gcc -shared -o"
 
 Important remark:
 
@@ -252,27 +252,26 @@ another location, the executables will no longer find the libraries.
 To make the executables find the libraries again, you have to relink
 them via
 
-   $ make clean-executables
-   $ make allexec
-
+    make clean-executables
+    make allexec
 
 Statically linked executables
 =============================
 
 External libraries can be linked statically to the spectrum generator
-executables by passing --enable-static to configure.  This is useful
+executables by passing `--enable-static` to configure.  This is useful
 when the executable should be transferred to another computer, where
 some libraries are not available.
 
 Example (using g++ on Debian Jessie):
 
-   $ ./configure --with-models=CMSSM --enable-static
+    ./configure --with-models=CMSSM --enable-static
 
 If --enable-static is used, the following linker flags and additional
 libraries will be used:
 
-   LDFLAGS = -static
-   LDLIBS  = -ldl
+    LDFLAGS = -static
+    LDLIBS  = -ldl
 
 These linker-specific flags and additional libraries can be
 overwritten using
@@ -282,16 +281,16 @@ overwritten using
 
 Example:
 
-   $ ./configure --with-models=CMSSM \
-     --enable-static \
-     --with-static-ldflags="-static" \
-     --with-static-ldlibs="-lquadmath -ldl"
+    ./configure --with-models=CMSSM \
+       --enable-static \
+       --with-static-ldflags="-static" \
+       --with-static-ldlibs="-lquadmath -ldl"
 
 In case of dynamic linking (--disable-static, which is the default),
 the options
 
-   --with-shared-ldflags=
-   --with-shared-ldlibs=
+    --with-shared-ldflags=
+    --with-shared-ldlibs=
 
 must be used to set LDFLAGS and LDLIBS.
 
@@ -303,14 +302,14 @@ It is possible to use LoopTools (http://www.feynarts.de/looptools/)
 for calculating the loop functions, instead of using SOFTSUSY's loop
 functions.  To enable LoopTools configure FlexibleSUSY via
 
-   $ ./configure --enable-looptools
+    ./configure --enable-looptools
 
 To use the LoopTools library and header files from a specific
 directory configure via
 
-   $ ./configure --enable-looptools \
-     --with-looptools-incdir="/path/to/looptools/build/" \
-     --with-looptools-libdir="/path/to/looptools/build/"
+    ./configure --enable-looptools \
+       --with-looptools-incdir="/path/to/looptools/build/" \
+       --with-looptools-libdir="/path/to/looptools/build/"
 
 Note: LoopTools 2.8 or higher is required.
 
@@ -322,18 +321,18 @@ The pole mass spectrum and the RG flow can be written to data files
 for easy plotting.  In the MSSM for example these data files can be
 generated via
 
-   $ ./models/MSSM/run_MSSM.x \
-     --slha-input-file=model_files/MSSM/LesHouches.in.MSSM \
-     --rgflow-output-file=MSSM_rgflow.dat \
-     --spectrum-output-file=MSSM_spectrum.dat
+    ./models/MSSM/run_MSSM.x \
+       --slha-input-file=model_files/MSSM/LesHouches.in.MSSM \
+       --rgflow-output-file=MSSM_rgflow.dat \
+       --spectrum-output-file=MSSM_spectrum.dat
 
 The generated files "MSSM_rgflow.dat" and "MSSM_spectrum.dat" can be
 plotted with the gnuplot scripts in the model directory:
 
-   $ gnuplot -persist -e "filename='MSSM_spectrum.dat'" \
+    gnuplot -persist -e "filename='MSSM_spectrum.dat'" \
        models/MSSM/MSSM_plot_spectrum.gnuplot
 
-   $ gnuplot -persist -e "filename='MSSM_rgflow.dat'" \
+    gnuplot -persist -e "filename='MSSM_rgflow.dat'" \
        models/MSSM/MSSM_plot_rgflow.gnuplot
 
 The gnuplot scripts are just for illustration and currently plot all
@@ -351,7 +350,7 @@ FlexibleSUSY.  An example is GM2Calc [arXiv:1510.08071], which is
 included in FlexibleSUSY in form of an addon.  An addon can be created
 via
 
-   $ ./createaddon --name=<addon>
+    ./createaddon --name=<addon>
 
 where <addon> is the name of the addon.  The createaddon script
 creates the directory addons/<addon>/ and the corresponding makefile
@@ -360,20 +359,20 @@ the above script, the user may edit the makefile module
 (addons/<addon>/module.mk) to add source files in to the three
 variables
 
-   LIB@ADDON@_SRC   (list of source files to be included in library)
-   EXE@ADDON@_SRC   (list of source files with a main())
-   LIB@ADDON@_HDR   (list of header files)
+    LIB@ADDON@_SRC   (list of source files to be included in library)
+    EXE@ADDON@_SRC   (list of source files with a main())
+    LIB@ADDON@_HDR   (list of header files)
 
 Example:
 
-   LIB@ADDON@_SRC := $(DIR)/file1.cpp
-   EXE@ADDON@_SRC := $(DIR)/run.cpp
-   LIB@ADDON@_HDR := $(DIR)/file1.hpp
+    LIB@ADDON@_SRC := $(DIR)/file1.cpp
+    EXE@ADDON@_SRC := $(DIR)/run.cpp
+    LIB@ADDON@_HDR := $(DIR)/file1.hpp
 
 To configure and compile the addon run
 
-   ./configure --with-addons=<addon>
-   make
+    ./configure --with-addons=<addon>
+    make
 
 make compiles all source files and creates the addon library
 addons/<addon>/lib<addon>.a (including the object file file1.o in the
@@ -392,35 +391,35 @@ name.
 
 Example for the CMSSM:
 
-   Get["models/CMSSM/CMSSM_librarylink.m"];
-
-   (* Create a handle to a model given the input parameters.
-      See Options[FSCMSSMOpenHandle] for all default options. *)
-   handle = FSCMSSMOpenHandle[
-     fsSettings -> { precisionGoal -> 1.*^-4 },
-     fsSMParameters -> { Mt -> 173.3 },
-     fsModelParameters -> {
-         m0 -> 125, m12 -> 500, TanBeta -> 10, SignMu -> 1, Azero -> 0 }
-   ];
-
-   (* calculate pole mass spectrum *)
-   FSCMSSMCalculateSpectrum[handle]
-
-   (* calculate observables *)
-   FSCMSSMCalculateObservables[handle]
-
-   (* close the model handle *)
-   FSCMSSMCloseHandle[handle];
+    Get["models/CMSSM/CMSSM_librarylink.m"];
+ 
+    (* Create a handle to a model given the input parameters.
+       See Options[FSCMSSMOpenHandle] for all default options. *)
+    handle = FSCMSSMOpenHandle[
+      fsSettings -> { precisionGoal -> 1.*^-4 },
+      fsSMParameters -> { Mt -> 173.3 },
+      fsModelParameters -> {
+          m0 -> 125, m12 -> 500, TanBeta -> 10, SignMu -> 1, Azero -> 0 }
+    ];
+ 
+    (* calculate pole mass spectrum *)
+    FSCMSSMCalculateSpectrum[handle]
+ 
+    (* calculate observables *)
+    FSCMSSMCalculateObservables[handle]
+ 
+    (* close the model handle *)
+    FSCMSSMCloseHandle[handle];
 
 For each model, FlexibleSUSY creates an example Mathematica script
 which illustrates the use of the Mathematica interface.  The generated
 example can be found in
 
-   models/<model>/run_<model>.m
+    models/<model>/run_<model>.m
 
 which can be run for example as
 
-   $ math -run "<< \"models/<model>/run_<model>.m\""
+    math -run "<< \"models/<model>/run_<model>.m\""
 
 Before running it, the model parameters in the script should be set to
 reasonable values.  More advanced examples can be found in the
@@ -428,7 +427,7 @@ FlexibleSUSY documentation.
 
 Note: In order to compile the library, Mathematica must be installed.
 To disable the LibraryLink interface, configure with
---disable-librarylink .
+`--disable-librarylink`.
 
 
 Cleaning
@@ -437,37 +436,37 @@ Cleaning
 There are several make targets to remove generated files, compiled
 object files, libraries or executables:
 
-   $ make clean      # deletes all .d .o .a .x files
+    make clean      # deletes all .d .o .a .x files
 
-   $ make distclean  # does `clean' and `clean-generated'
-                     # and deletes in addition:
-                     # Makefile flexiblesusy-config config.*
-                     # config/list_sarah_model_files.sh
+    make distclean  # does `clean` and `clean-generated`
+                    # and deletes in addition:
+                    # Makefile flexiblesusy-config config.*
+                    # config/list_sarah_model_files.sh
 
-   $ make clean-dep  # deletes all .d files
+    make clean-dep  # deletes all .d files
 
-   $ make clean-executables # deletes all .x files
+    make clean-executables # deletes all .x files
 
-   $ make clean-generated   # deletes generated files
+    make clean-generated   # deletes generated files
 
-   $ make clean-lib  # deletes all libraries
+    make clean-lib  # deletes all libraries
 
-   $ make clean-obj  # deletes all .o files
+    make clean-obj  # deletes all .o files
 
 For each model <model> or addon there are specific clean targets to
 remove model-specific files:
 
-   $ make clean-<model>     # deletes .d .o .a .x files
+    make clean-<model>     # deletes .d .o .a .x files
 
-   $ make distclean-<model> # same as `make clean-<model> clean-<model>-src'
+    make distclean-<model> # same as `make clean-<model> clean-<model>-src`
 
-   $ make clean-<model>-dep # deletes .d files
+    make clean-<model>-dep # deletes .d files
 
-   $ make clean-<model>-lib # deletes model library
+    make clean-<model>-lib # deletes model library
 
-   $ make clean-<model>-obj # deletes .o files
+    make clean-<model>-obj # deletes .o files
 
-   $ make clean-<model>-src # deletes generated files
+    make clean-<model>-src # deletes generated files
 
 
 Package content
@@ -506,7 +505,7 @@ are listed:
  * sarah/ contains SARAH model files shipped with FlexibleSUSY
 
  * slhaea/ contains the SLHA reader library from
-   https://github.com/fthomas/slhaea
+   [https://github.com/fthomas/slhaea]
 
  * src/ contains non-model specific FlexibleSUSY C++ source code
 
