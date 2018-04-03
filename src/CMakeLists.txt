@@ -55,6 +55,7 @@ target_include_directories(flexisusy
 
 target_link_libraries(flexisusy
   PUBLIC
+  Boost::boost
   Eigen3::Eigen
   FlexibleSUSY::config
   FlexibleSUSY::fflite
