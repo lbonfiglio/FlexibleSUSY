@@ -28,6 +28,7 @@ if(ENABLE_COMPILE)
   # optional packages
   find_lapack()
   find_threads()
+  find_odeint()
 endif()
 
 if("${CMAKE_EXECUTABLE_SUFFIX}" STREQUAL "")

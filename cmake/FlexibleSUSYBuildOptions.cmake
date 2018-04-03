@@ -11,7 +11,7 @@ option(ENABLE_GM2Calc "Enable use of the GM2Calc addon (default: yes)" ON)
 # option(ENABLE_LIBRARYLINK "Enable use of the LibaryLink (default: yes)" ON)
 option(ENABLE_MASS_ERROR_CHECK "Check mass eigenvalue precision (default: no)" OFF)
 option(ENABLE_META "Create model class (default: yes)" ON)
-# option(ENABLE_ODEINT "Enable use of Boost's odeint function (default: yes)" ON)
+option(ENABLE_ODEINT "Enable use of Boost's odeint function (default: yes)" ON)
 option(ENABLE_SILENT "Suppress all command line output (default: no)" OFF)
 cmake_dependent_option(ENABLE_VERBOSE "Verbose messages (default: no)" OFF
   "NOT ENABLE_SILENT" OFF)
