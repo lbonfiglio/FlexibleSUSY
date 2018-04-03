@@ -1,0 +1,12 @@
+language: cpp
+compiler:
+  - clang
+  - gcc
+before_install:
+  - sudo apt-get install libboost-dev libeigen3-dev libgsl0-dev liblapack-dev libblas-dev
+script:
+  - mkdir build
+  - cd build
+  - cmake -DENABLE_TEST=ON ..
+  - make
+  - make test
