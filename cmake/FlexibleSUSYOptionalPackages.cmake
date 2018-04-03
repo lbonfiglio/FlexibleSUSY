@@ -16,6 +16,12 @@ macro(find_optional_package name enable_name)
   endif()
 endmacro()
 
+function(find_debug)
+  if(ENABLE_DEBUG)
+    fs_package_status_message("Enabling debug output")
+  endif()
+endfunction()
+
 function(find_threads)
   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
   set(THREADS_PREFER_PTHREAD_FLAG TRUE)
