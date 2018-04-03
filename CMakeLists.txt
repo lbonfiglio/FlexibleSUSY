@@ -26,9 +26,8 @@ if(ENABLE_COMPILE)
   find_package(Eigen3 3.1 REQUIRED NO_MODULE)
   find_package(GSL REQUIRED)
   # optional packages
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_optional_package(LAPACK ENABLE_LAPACK)
-  find_optional_package(Threads ENABLE_THREADS)
+  find_lapack()
+  find_threads()
 endif()
 
 if("${CMAKE_EXECUTABLE_SUFFIX}" STREQUAL "")
