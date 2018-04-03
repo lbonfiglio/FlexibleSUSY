@@ -30,6 +30,7 @@ if(ENABLE_COMPILE)
   find_threads()
   find_odeint()
   find_debug()
+  find_sqlite()
 endif()
 
 if("${CMAKE_EXECUTABLE_SUFFIX}" STREQUAL "")

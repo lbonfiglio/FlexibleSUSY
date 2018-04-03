@@ -62,6 +62,7 @@ target_link_libraries(flexisusy
   FlexibleSUSY::slhaea
   GSL::gsl
   ${LAPACK_LIBRARIES}
+  SQLite3::SQLite3
   Threads::Threads
 )
 
