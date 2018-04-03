@@ -62,6 +62,7 @@ target_link_libraries(flexisusy
   FlexibleSUSY::slhaea
   GSL::gsl
   LAPACK::LAPACK
+  LoopTools::LoopTools
   SQLite3::SQLite3
   Threads::Threads
 )

@@ -27,6 +27,7 @@ if(ENABLE_COMPILE)
   find_package(GSL REQUIRED)
   # optional packages
   find_lapack()
+  find_looptools()
   find_threads()
   find_odeint()
   find_debug()

@@ -16,12 +16,14 @@ macro(find_optional_package name enable_name)
   endif()
 endmacro()
 
+# ==================== Debug mode ====================
 function(find_debug)
   if(ENABLE_DEBUG)
     fs_package_status_message("Enabling debug output")
   endif()
 endfunction()
 
+# ==================== Threads ====================
 function(find_threads)
   set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
   set(THREADS_PREFER_PTHREAD_FLAG TRUE)
@@ -32,6 +34,7 @@ function(find_threads)
   endif()
 endfunction()
 
+# ==================== LAPACK ====================
 function(find_lapack)
   find_optional_package(LAPACK ENABLE_LAPACK)
   if(LAPACK_FOUND)
@@ -44,6 +47,27 @@ function(find_lapack)
   endif()
 endfunction()
 
+# ==================== LoopTools ====================
+function(find_looptools)
+  if(ENABLE_FFLITE AND ENABLE_LOOPTOOLS)
+    message(FATAL_ERROR "Cannot use FFLite and LoopTools at the same time!")
+  endif()
+  if(ENABLE_LOOPTOOLS)
+    message(WARNING
+      "${Red}Warning: LoopTools is thread-unsafe since it accepts the renormalization scale\
+       via a global variable.  This might lead to a race condition if different\
+       RGE solvers run in multiple threads.  For such an application, consider the\
+       alternative -DENABLE_FFLITE=ON instead.${ColourReset}")
+    find_package(LoopTools REQUIRED)
+    fs_package_status_message("Enabling use of LoopTools.")
+  endif()
+  if(NOT TARGET LoopTools::LoopTools)
+    add_library(fs_looptools INTERFACE)
+    add_library(LoopTools::LoopTools ALIAS fs_looptools)
+  endif()
+endfunction()
+
+# ==================== Boost's odeint ====================
 function(find_odeint)
   if(ENABLE_ODEINT)
     find_file(BOOST_FS_ODEINT_1 boost/numeric/odeint.hpp ${Boost_INCLUDE_DIRS})
@@ -72,6 +96,7 @@ function(find_odeint)
   endif()
 endfunction()
 
+# ==================== SQLite3 ====================
 function(find_sqlite)
   if(ENABLE_SQLITE)
     find_package(SQLite3)
