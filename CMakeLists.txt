@@ -26,6 +26,7 @@ if(ENABLE_COMPILE)
   find_package(Eigen3 3.1 REQUIRED NO_MODULE)
   find_package(GSL REQUIRED)
   # optional packages
+  find_himalaya()
   find_lapack()
   find_looptools()
   find_threads()
