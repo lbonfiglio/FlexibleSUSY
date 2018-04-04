@@ -77,7 +77,7 @@ How to create a model
 
 1. Create a new / initialize an existing FlexibleSUSY model:
 
-       ./createmodel --name=<model>
+       ./createmodel --name=<model> # TODO
 
    See `./createmodel --help` for more details.  Afterwards there will
    be
@@ -99,7 +99,7 @@ How to create a model
        cmake -DWITH_MODELS=<model> ..
 
    Multiple models can be specified, separated by a comma.  See
-   `./configure --help` for more options.
+   `./configure --help # TODO` for more options.
 
 3. Compile FlexibleSUSY with your model:
 
@@ -119,7 +119,7 @@ How to create a model
 Example
 =======
 
-    ./createmodel --name=HSSUSY
+    ./createmodel --name=HSSUSY # TODO
 
     mkdir build
     cd build
@@ -157,25 +157,25 @@ Creating only the source code files (no compilation)
 ====================================================
 
 If you want to only create the C++ source files for your model, but do
-not want to compile the code, you can use the `--disable-compile`
-configure option:
+not want to compile the code, you can set the ENABLE_COMPILE variable
+to a false value:
 
-    ./configure --with-models=MSSM --disable-compile
+    cmake -DENABLE_COMPILE=OFF ..
     make
 
-Here, configure will not check for installed compilers or libraries.
-It will only search for Mathematica and SARAH.  The execution of
-`make` will stop as soon as all C++ source code files are generated.
-See below for how to export the generated source code.
+Here, cmake will not check for installed compilers or libraries.  It
+will only search for Mathematica and SARAH.  The execution of `make`
+will stop as soon as all C++ source code files are generated.  See
+below for how to export the generated source code.
 
 
 Compile only (don't generate source code)
 =========================================
 
 If you want to only compile already created the C++ source files for
-your model, you can use the `--disable-meta` configure option:
+your model, you can use the ENABLE_META configure option:
 
-    ./configure --with-models=MSSM --disable-meta
+    cmake -DENABLE_META=OFF ..
     make
 
 Here, configure will only check for installed compilers or libraries.
@@ -202,7 +202,7 @@ export the code, one has to set the target directory during
 configuration via the `--with-install-dir=` option.  For example:
 
     ./configure --with-models=<models> \
-       --with-install-dir=/path/to/export/directory
+       --with-install-dir=/path/to/export/directory # TODO
 
 Afterwards
 
@@ -257,14 +257,12 @@ It is possible to use LoopTools (http://www.feynarts.de/looptools/)
 for calculating the loop functions, instead of using SOFTSUSY's loop
 functions.  To enable LoopTools configure FlexibleSUSY via
 
-    ./configure --enable-looptools
+    cmake -DENABLE_LOOPTOOLS=ON ..
 
 To use the LoopTools library and header files from a specific
 directory configure via
 
-    ./configure --enable-looptools \
-       --with-looptools-incdir="/path/to/looptools/build/" \
-       --with-looptools-libdir="/path/to/looptools/build/"
+    cmake -DENABLE_LOOPTOOLS=ON -DLoopTools_BUILD_DIR=$HOME/packages/LoopTools-2.13/build ..
 
 Note: LoopTools 2.8 or higher is required.
 
@@ -305,7 +303,7 @@ FlexibleSUSY.  An example is GM2Calc [arXiv:1510.08071], which is
 included in FlexibleSUSY in form of an addon.  An addon can be created
 via
 
-    ./createaddon --name=<addon>
+    ./createaddon --name=<addon> # TODO
 
 where <addon> is the name of the addon.  The createaddon script
 creates the directory addons/<addon>/ and the corresponding makefile
@@ -326,7 +324,7 @@ Example:
 
 To configure and compile the addon run
 
-    ./configure --with-addons=<addon>
+    cmake -DWITH_ADDONS=<addon> ..
     make
 
 make compiles all source files and creates the addon library
@@ -381,8 +379,8 @@ reasonable values.  More advanced examples can be found in the
 FlexibleSUSY documentation.
 
 Note: In order to compile the library, Mathematica must be installed.
-To disable the LibraryLink interface, configure with
-`--disable-librarylink`.
+To disable the LibraryLink interface, run cmake with
+`-DENABLE_LIBRARYLINK=OFF`.
 
 
 Cleaning
