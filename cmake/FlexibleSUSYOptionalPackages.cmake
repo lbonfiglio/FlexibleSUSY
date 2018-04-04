@@ -105,6 +105,10 @@ function(find_odeint)
         BOOST_FS_ODEINT_7 AND
         BOOST_FS_ODEINT_8)
       fs_package_status_message("Enabling use of Boost's odeint")
+      mark_as_advanced(BOOST_FS_ODEINT_1 BOOST_FS_ODEINT_2
+        BOOST_FS_ODEINT_3 BOOST_FS_ODEINT_4
+        BOOST_FS_ODEINT_5 BOOST_FS_ODEINT_6
+        BOOST_FS_ODEINT_7 BOOST_FS_ODEINT_8)
     else()
       unset(ENABLE_ODEINT)
       fs_package_status_message("Disabling use of Boost's odeint")
