@@ -18,6 +18,7 @@ include(FlexibleSUSYOptionalPackages)
 
 if(ENABLE_META)
   find_package(Mathematica 7.0 REQUIRED)
+  find_package(SARAH 4.11.0 REQUIRED)
 endif()
 
 if(ENABLE_COMPILE)
