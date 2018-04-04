@@ -1,0 +1,58 @@
+add_subdirectory(MSSM)
+add_subdirectory(SM)
+add_subdirectory(THDM)
+
+set(META_GENERAL_SRC
+  "${CMAKE_CURRENT_SOURCE_DIR}/AMuon.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AnomalousDimension.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/BetaFunction.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CConversion.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Constraint.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ConvergenceTester.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/CXXDiagrams.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/EDM.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/EffectiveCouplings.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/EWSB.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/FlexibleEFTHiggsMatching.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/FlexibleSUSY.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/FlexibleTower.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Format.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/FSMathLink.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LatticeUtils.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LoopFunctions.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LoopMasses.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Observables.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Parameters.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Phases.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ReadSLHA.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/References.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/RGIntegrator.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/SelfEnergies.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/SemiAnalytic.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TestSuite.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TextFormatting.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThreeLoopMSSM.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThreeLoopQCD.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThreeLoopSM.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThresholdCorrections.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ThresholdCorrectionLoopFunctions.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Traces.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TreeMasses.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TwoLoopMSSM.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TwoLoopQCD.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TwoLoopSM.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Utils.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Vertices.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/WeinbergAngle.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/WriteOut.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/writeRGE.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/writeNRGE.m"
+)
+
+set(META_SRC
+  ${META_GENERAL_SRC}
+  ${META_MSSM_SRC}
+  ${META_SM_SRC}
+  ${META_THDM_SRC}
+ CACHE INTERNAL META_SRC
+)

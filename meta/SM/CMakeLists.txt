@@ -1,0 +1,15 @@
+set(META_SM_SRC
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_g1.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_g2.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_g3.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_gb.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_gtau.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_gt.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_lambda.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/beta_m2.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HSSUSY_corrections.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HSSUSY_scale_variation.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HSSUSY_scale_variation_1L.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HSSUSY_scale_variation_2L.m"
+  "${CMAKE_CURRENT_SOURCE_DIR}/HSSUSY_scale_variation_3L.m"
+)
