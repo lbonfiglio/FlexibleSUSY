@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(FlexibleSUSY VERSION 2.0.1 LANGUAGES CXX Fortran)
+project(FlexibleSUSY VERSION 2.0.1 LANGUAGES NONE)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -21,6 +21,8 @@ if(ENABLE_META)
 endif()
 
 if(ENABLE_COMPILE)
+  enable_language(CXX)
+  enable_language(Fortran)
   # required packages
   find_package(Boost 1.37.0 COMPONENTS unit_test_framework REQUIRED)
   find_package(Eigen3 3.1 REQUIRED NO_MODULE)
