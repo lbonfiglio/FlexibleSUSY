@@ -52,7 +52,9 @@ BeginPackage["FlexibleSUSY`",
               "FlexibleEFTHiggsMatching`",
               "FSMathLink`",
               "FlexibleTower`",
-              "WeinbergAngle`"}];
+              "WeinbergAngle`",
+              "Himalaya`"
+}];
 
 $flexiblesusyMetaDir     = DirectoryName[FindFile[$Input]];
 $flexiblesusyConfigDir   = FileNameJoin[{ParentDirectory[$flexiblesusyMetaDir], "config"}];
@@ -302,6 +304,34 @@ NoScale::usage="placeholder indicating an SLHA block should not
 have a scale associated with it.";
 CurrentScale::usage="placeholder indicating the current renormalization
 scale of the model.";
+
+(* input parameters for Himalaya *)
+FSHimalayaInput = {
+    RenormalizationScheme -> DRbar,
+    Lambda3L -> 1,
+    Lambda3LUncertainty -> 0,
+    \[Mu] -> \[Mu],
+    SARAH`g1 -> SARAH`hyperchargeCoupling,
+    Susyno`LieGroups`g2 -> SARAH`leftCoupling,
+    g3 -> SARAH`strongCoupling,
+    vu -> SARAH`VEVSM2,
+    vd -> SARAH`VEVSM1,
+    MSQ2 -> SARAH`UpMatrixL,
+    MSD2 -> SARAH`DownMatrixR,
+    MSU2 -> SARAH`UpMatrixR,
+    MSL2 -> SARAH`ElectronMatrixL,
+    MSE2 -> SARAH`ElectronMatrixR,
+    Au -> SARAH`TrilinearUp,
+    Ad -> SARAH`TrilinearDown,
+    Ae -> SARAH`TrilinearLepton,
+    Yu -> SARAH`UpYukawa,
+    Yd -> SARAH`DownYukawa,
+    Ye -> SARAH`ElectronYukawa,
+    M1 -> 0,
+    M2 -> 0,
+    M3 -> FlexibleSUSY`M[SARAH`Gluino],
+    mA -> FlexibleSUSY`M[SARAH`PseudoScalar]
+};
 
 FSDebugOutput = False;
 
@@ -736,6 +766,7 @@ WriteConstraintClass[condition_, settings_List, scaleFirstGuess_,
            calculateDeltaAlphaEm, calculateDeltaAlphaS,
            calculateGaugeCouplings,
            calculateThetaW,
+           fillHimalayaInput,
            checkPerturbativityForDimensionlessParameters = "",
            twoLoopThresholdHeaders = "" },
           Constraint`SetBetaFunctions[GetBetaFunctions[]];
@@ -786,6 +817,7 @@ WriteConstraintClass[condition_, settings_List, scaleFirstGuess_,
                ];
             ];
           calculateThetaW   = ThresholdCorrections`CalculateThetaW[FlexibleSUSY`FSWeakMixingAngleInput];
+          fillHimalayaInput = Himalaya`FillHimalayaInput[FSHimalayaInput];
           twoLoopThresholdHeaders = ThresholdCorrections`GetTwoLoopThresholdHeaders[];
           WriteOut`ReplaceInFiles[files,
                  { "@applyConstraint@"      -> IndentText[WrapLines[applyConstraint]],
@@ -812,6 +844,7 @@ WriteConstraintClass[condition_, settings_List, scaleFirstGuess_,
                    "@setDRbarUpQuarkYukawaCouplings@"   -> IndentText[WrapLines[setDRbarYukawaCouplings[[1]]]],
                    "@setDRbarDownQuarkYukawaCouplings@" -> IndentText[WrapLines[setDRbarYukawaCouplings[[2]]]],
                    "@setDRbarElectronYukawaCouplings@"  -> IndentText[WrapLines[setDRbarYukawaCouplings[[3]]]],
+                   "@fillHimalayaInput@"                -> IndentText[IndentText[fillHimalayaInput]],
                    "@checkPerturbativityForDimensionlessParameters@" -> IndentText[checkPerturbativityForDimensionlessParameters],
                    "@twoLoopThresholdHeaders@" -> twoLoopThresholdHeaders,
                    Sequence @@ GeneralReplacementRules[]
@@ -1034,6 +1067,7 @@ WriteWeinbergAngleClass[deltaVBcontributions_List, vertexRules_List, files_List]
                    "@GetTopMass@"         -> WeinbergAngle`GetTopMass[],
                    "@DefVZSelfEnergy@"    -> WeinbergAngle`DefVZSelfEnergy[],
                    "@DefVWSelfEnergy@"    -> WeinbergAngle`DefVWSelfEnergy[],
+                   "@GetNeutrinoIndex@"   -> IndentText[WeinbergAngle`GetNeutrinoIndex[]],
                    "@DeltaVBprototypes@"  -> IndentText[deltaVBprototypes],
                    "@DeltaVBfunctions@"   -> deltaVBfunctions,
                    "@DeltaVBcalculation@" -> IndentText[deltaVBcalculation],
@@ -1528,6 +1562,7 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
               extraParameterDefs           = StringJoin[Parameters`CreateParameterDefinitionAndDefaultInitialize
                                                         /@ Parameters`GetExtraParameters[]];
               extraParameterGetters        = StringJoin[CConversion`CreateInlineGetters[CConversion`ToValidCSymbolString[#],
+                                                                                        CConversion`ToValidCSymbolString[#],
                                                                                         Parameters`GetType[#]]& /@
                                                         Parameters`GetExtraParameters[]];
               extraParameterSetters        = StringJoin[CConversion`CreateInlineSetters[CConversion`ToValidCSymbolString[#],
@@ -1593,6 +1628,18 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
            parametersToSave = Join[parametersToSave,
                                    #[[1]]& /@ (Select[ewsbSubstitutions,
                                                       Function[sub, Or @@ (!FreeQ[sub[[2]], #]& /@ parametersToSave)]])];
+           parametersToSave = DeleteDuplicates[parametersToSave /.
+                                               {
+                                                   Susyno`LieGroups`conj -> Identity,
+                                                   SARAH`Conj            -> Identity,
+                                                   SARAH`Tp              -> Identity,
+                                                   SARAH`Adj             -> Identity,
+                                                   SARAH`bar             -> Identity,
+                                                   Conjugate             -> Identity,
+                                                   Transpose             -> Identity,
+                                                   Re                    -> Identity,
+                                                   Im                    -> Identity
+                                               }];
            saveEWSBOutputParameters = Parameters`SaveParameterLocally[parametersToSave];
            (ewsbSolverHeaders = ewsbSolverHeaders
                                 <> EnableForBVPSolver[#, ("#include \"" <> FlexibleSUSY`FSModelName
@@ -1865,7 +1912,7 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
                                        "@getObservablesNames@" -> IndentText[getObservablesNames],
                                        "@clearObservables@" -> IndentText[clearObservables],
                                        "@setObservables@" -> IndentText[setObservables],
-                                       "@calculateObservables@" -> IndentText[calculateObservables],
+                                       "@calculateObservables@" -> IndentText @ IndentText[calculateObservables],
                                        Sequence @@ GeneralReplacementRules[]
                                    } ];
            ];
@@ -2078,7 +2125,6 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
             setInputParameterArguments,
             numberOfSpectrumEntries, putSpectrum, setInputParameters,
             numberOfObservables, putObservables,
-            listOfInputParameters, listOfModelParameters, listOfOutputParameters,
             inputPars, outPars, requestedObservables, defaultSolverType,
             solverIncludes = "", runEnabledSolvers = ""},
            inputPars = {#[[1]], #[[3]]}& /@ inputParameters;
@@ -2091,9 +2137,6 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
            outPars = Parameters`GetOutputParameters[] /. FlexibleSUSY`M[p_List] :> Sequence @@ (FlexibleSUSY`M /@ p);
            outPars = Join[outPars, FlexibleSUSY`Pole /@ outPars, Parameters`GetModelParameters[],
                           Parameters`GetExtraParameters[], {FlexibleSUSY`SCALE}];
-           listOfInputParameters = ToString[First /@ inputParameters];
-           listOfOutputParameters = ToString[outPars];
-           listOfModelParameters = ToString[Parameters`GetModelParameters[]];
            numberOfSpectrumEntries = FSMathLink`GetNumberOfSpectrumEntries[outPars];
            putSpectrum = FSMathLink`PutSpectrum[outPars, "link"];
            (* get observables *)
@@ -2118,9 +2161,6 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
                             "@putSpectrum@" -> IndentText[putSpectrum],
                             "@numberOfObservables@" -> ToString[numberOfObservables],
                             "@putObservables@" -> IndentText[putObservables],
-                            "@listOfInputParameters@" -> listOfInputParameters,
-                            "@listOfModelParameters@" -> listOfModelParameters,
-                            "@listOfOutputParameters@" -> listOfOutputParameters,
                             "@solverIncludes@" -> solverIncludes,
                             "@runEnabledSolvers@" -> runEnabledSolvers,
                             "@defaultSolverType@" -> defaultSolverType,
@@ -3162,7 +3202,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
            (* adapt SARAH`Conj to our needs *)
            (* Clear[Conj]; *)
-           SARAH`Conj[(B_)[b__]] = .;
+           SARAH`Conj[(B_)[b__]] =.;
            SARAH`Conj /: SARAH`Conj[SARAH`Conj[x_]] := x;
            RXi[_] = 1;
            SARAH`Xi = 1;
@@ -4000,7 +4040,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
 
            Print["Setting up CXXDiagrams..."];
-           CXXDiagrams`Initialize[];
+           CXXDiagrams`CXXDiagramsInitialize[];
 
            Print["Creating EDM class..."];
            edmFields = DeleteDuplicates @ Cases[Observables`GetRequestedObservables[extraSLHAOutputBlocks],
