@@ -1736,7 +1736,7 @@ WriteSolverMatchingClass[susyScaleMatching_List, files_List] :=
            fixedPars = Parameters`StripIndices /@ FlexibleEFTHiggsMatching`GetFixedBSMParameters[susyScaleMatching];
            parNames = CConversion`ToValidCSymbolString /@ fixedPars;
            savedParameterDefs = StringJoin[Parameters`CreateParameterDefinitionAndDefaultInitialize[{#, Parameters`GetType[#]}]& /@ fixedPars];
-           savedParameterGetters = StringJoin[CConversion`CreateInlineGetter[CConversion`ToValidCSymbolString[#],
+           savedParameterGetters = StringJoin[CConversion`CreateInlineGetter[CConversion`ToValidCSymbolString[#], #,
                                                                              Parameters`GetType[#]]& /@ fixedPars];
            saveMatchedParameters = StringJoin[(# <> " = model->get_" <> # <> "();\n")& /@ parNames];
            WriteOut`ReplaceInFiles[files,
