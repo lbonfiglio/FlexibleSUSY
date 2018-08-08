@@ -26,6 +26,7 @@
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_observables.hpp"
 #include "@ModelName@_physical.hpp"
+#include "decays_problems.hpp"
 #include "problems.hpp"
 #include "spectrum_generator_problems.hpp"
 #include "standard_model_two_scale_model.hpp"
@@ -85,6 +86,9 @@ public:
    void read_from_stream(std::istream&);
    void set_block(const std::string& str, SLHA_io::Position position = SLHA_io::back) { slha_io.set_block(str, position); }
    void set_blocks(const std::vector<std::string>& vec, SLHA_io::Position position = SLHA_io::back) { slha_io.set_blocks(vec, position); }
+   void set_dcinfo(const Decays_problems&);
+   void set_dcinfo(const std::vector<std::string>&, const std::vector<std::string>&);
+   void set_decays(const @ModelName@_decays&);
    template <class Model> void set_extra(const @ModelName@_slha<Model>&, const @ModelName@_scales&, const @ModelName@_observables&);
    void set_input(const @ModelName@_input_parameters&);
    void set_modsel(const SLHA_io::Modsel&);
@@ -150,7 +154,7 @@ template <class Model>
 void @ModelName@_slha_io::fill_slhaea(
    SLHAea::Coll& slhaea, const @ModelName@_slha<Model>& model,
    const softsusy::QedQcd& qedqcd, const @ModelName@_scales& scales,
-   const @ModelName@_observables& observables)
+   const @ModelName@_observables& observables, const @ModelName@_decays& decays)
 {
    @ModelName@_slha_io slha_io;
    const @ModelName@_input_parameters& input = model.get_input();
@@ -163,6 +167,13 @@ void @ModelName@_slha_io::fill_slhaea(
    if (!error) {
       slha_io.set_spectrum(model);
       slha_io.set_extra(model, scales, observables);
+   }
+
+   const auto& decays_problems = decays.get_problems();
+   const bool decays_error = decays_problems.have_problem();
+   if (!decays_error) {
+      slha_io.set_dcinfo(decays_problems);
+      slha_io.set_decays(decays);
    }
 
    slhaea = slha_io.get_slha_io().get_data();
