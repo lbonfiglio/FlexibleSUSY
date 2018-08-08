@@ -64,15 +64,15 @@ inline boost::format format_element(
    return boost::format(" %5d   %16.8E   # %s\n") % idx % value % name;
 }
 
-inline boost::format format_pdg_list(const std::string& name)
+inline boost::format format_decay_list(const std::string& name)
 {
    return boost::format("  # %s\n") % name;
 }
 
 template <typename... Args>
-inline boost::format format_pdg_list(int pdg1, Args... args)
+inline boost::format format_decay_list(int pdg1, Args... args)
 {
-   return boost::format("%9d %s") % pdg1 % format_pdg_list(args...);
+   return boost::format("%9d %s") % pdg1 % format_decay_list(args...);
 }
 
 template <typename... Args>
@@ -80,7 +80,7 @@ inline boost::format format_decay(double br, Args... args)
 {
    constexpr std::size_t nda = sizeof...(args) - 1;
    return boost::format("   %16.8E   %2d   %s") % br % nda
-      % format_pdg_list(args...);
+      % format_decay_list(args...);
 }
 
 inline boost::format format_number(double value, const std::string& name)
