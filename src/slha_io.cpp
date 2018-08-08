@@ -362,9 +362,9 @@ void SLHA_io::set_block(const std::string& name, double value,
    std::ostringstream ss;
    ss << "Block " << name;
    if (scale != 0.)
-      ss << " Q= " << FORMAT_SCALE(scale);
+      ss << " Q= " << format_scale(scale);
    ss << '\n'
-      << boost::format(mixing_matrix_formatter) % 1 % 1 % value % symbol;
+      << format_matrix(1, 1, value, symbol);
 
    set_block(ss);
 }
@@ -377,8 +377,8 @@ void SLHA_io::set_modsel(const Modsel& modsel_)
 
    std::ostringstream ss;
    ss << "Block MODSEL\n";
-   ss << FORMAT_ELEMENT(6 , qfv | lfv, "quark/lepton flavour violation");
-   ss << FORMAT_ELEMENT(12, modsel.parameter_output_scale, "running parameter output scale (GeV)");
+   ss << format_element(6 , qfv | lfv, "quark/lepton flavour violation");
+   ss << format_element(12, modsel.parameter_output_scale, "running parameter output scale (GeV)");
 
    set_block(ss);
 }
@@ -391,7 +391,7 @@ void SLHA_io::set_physical_input(const Physical_input& input)
    ss << "Block FlexibleSUSYInput\n";
 
    for (std::size_t i = 0; i < names.size(); i++) {
-      ss << FORMAT_ELEMENT(i, input.get(static_cast<Physical_input::Input>(i)),
+      ss << format_element(i, input.get(static_cast<Physical_input::Input>(i)),
                            names[i]);
    }
 
@@ -404,7 +404,7 @@ void SLHA_io::set_settings(const Spectrum_generator_settings& settings)
    ss << "Block FlexibleSUSY\n";
 
    for (int i = 0; i < Spectrum_generator_settings::NUMBER_OF_OPTIONS; i++) {
-      ss << FORMAT_ELEMENT(i, settings.get(static_cast<Spectrum_generator_settings::Settings>(i)),
+      ss << format_element(i, settings.get(static_cast<Spectrum_generator_settings::Settings>(i)),
                            settings.get_description(static_cast<Spectrum_generator_settings::Settings>(i)));
    }
 
@@ -416,23 +416,23 @@ void SLHA_io::set_sminputs(const softsusy::QedQcd& qedqcd)
    std::ostringstream ss;
 
    ss << "Block SMINPUTS\n";
-   ss << FORMAT_ELEMENT( 1, 1./qedqcd.displayAlphaEmInput()  , "alpha_em^(-1)(MZ) SM(5) MSbar");
-   ss << FORMAT_ELEMENT( 2, qedqcd.displayFermiConstant()    , "G_Fermi");
-   ss << FORMAT_ELEMENT( 3, qedqcd.displayAlphaSInput()      , "alpha_s(MZ) SM(5) MSbar");
-   ss << FORMAT_ELEMENT( 4, qedqcd.displayPoleMZ()           , "MZ(pole)");
-   ss << FORMAT_ELEMENT( 5, qedqcd.displayMbMb()             , "mb(mb) SM(5) MSbar");
-   ss << FORMAT_ELEMENT( 6, qedqcd.displayPoleMt()           , "Mtop(pole)");
-   ss << FORMAT_ELEMENT( 7, qedqcd.displayPoleMtau()         , "Mtau(pole)");
-   ss << FORMAT_ELEMENT( 8, qedqcd.displayNeutrinoPoleMass(3), "Mv3(pole)");
-   ss << FORMAT_ELEMENT( 9, qedqcd.displayPoleMW()           , "MW(pole)");
-   ss << FORMAT_ELEMENT(11, qedqcd.displayPoleMel()          , "Melectron(pole)");
-   ss << FORMAT_ELEMENT(12, qedqcd.displayNeutrinoPoleMass(1), "Mv1(pole)");
-   ss << FORMAT_ELEMENT(13, qedqcd.displayPoleMmuon()        , "Mmuon(pole)");
-   ss << FORMAT_ELEMENT(14, qedqcd.displayNeutrinoPoleMass(2), "Mv2(pole)");
-   ss << FORMAT_ELEMENT(21, qedqcd.displayMd2GeV()           , "md(2GeV)");
-   ss << FORMAT_ELEMENT(22, qedqcd.displayMu2GeV()           , "mu(2GeV)");
-   ss << FORMAT_ELEMENT(23, qedqcd.displayMs2GeV()           , "ms(2GeV)");
-   ss << FORMAT_ELEMENT(24, qedqcd.displayMcMc()             , "mc(mc) SM(4) MSbar");
+   ss << format_element( 1, 1./qedqcd.displayAlphaEmInput()  , "alpha_em^(-1)(MZ) SM(5) MSbar");
+   ss << format_element( 2, qedqcd.displayFermiConstant()    , "G_Fermi");
+   ss << format_element( 3, qedqcd.displayAlphaSInput()      , "alpha_s(MZ) SM(5) MSbar");
+   ss << format_element( 4, qedqcd.displayPoleMZ()           , "MZ(pole)");
+   ss << format_element( 5, qedqcd.displayMbMb()             , "mb(mb) SM(5) MSbar");
+   ss << format_element( 6, qedqcd.displayPoleMt()           , "Mtop(pole)");
+   ss << format_element( 7, qedqcd.displayPoleMtau()         , "Mtau(pole)");
+   ss << format_element( 8, qedqcd.displayNeutrinoPoleMass(3), "Mv3(pole)");
+   ss << format_element( 9, qedqcd.displayPoleMW()           , "MW(pole)");
+   ss << format_element(11, qedqcd.displayPoleMel()          , "Melectron(pole)");
+   ss << format_element(12, qedqcd.displayNeutrinoPoleMass(1), "Mv1(pole)");
+   ss << format_element(13, qedqcd.displayPoleMmuon()        , "Mmuon(pole)");
+   ss << format_element(14, qedqcd.displayNeutrinoPoleMass(2), "Mv2(pole)");
+   ss << format_element(21, qedqcd.displayMd2GeV()           , "md(2GeV)");
+   ss << format_element(22, qedqcd.displayMu2GeV()           , "mu(2GeV)");
+   ss << format_element(23, qedqcd.displayMs2GeV()           , "ms(2GeV)");
+   ss << format_element(24, qedqcd.displayMcMc()             , "mc(mc) SM(4) MSbar");
 
    set_block(ss);
 }
