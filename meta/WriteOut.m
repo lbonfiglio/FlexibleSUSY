@@ -191,7 +191,7 @@ WriteSLHAMass[massMatrix_TreeMasses`FSMassMatrix] :=
             pdgList, pdg, dim, i},
            eigenstateName = TreeMasses`GetMassEigenstate[massMatrix];
            dim = TreeMasses`GetDimension[eigenstateName];
-           pdgList = SARAH`getPDGList[eigenstateName];
+           pdgList = Parameters`GetPDGCodesForParticle[eigenstateName];
            If[Length[pdgList] != dim,
               Print["Error: length of PDG number list != dimension of particle ", eigenstateName];
               Print["       PDG number list = ", pdgList];
@@ -743,7 +743,7 @@ ReadSLHAPhysicalMass[particle_,struct_String:"PHYSICAL"] :=
            mass = FlexibleSUSY`M[particle];
            massStr = CConversion`ToValidCSymbolString[mass];
            dim = TreeMasses`GetDimension[particle];
-           pdgList = SARAH`getPDGList[particle];
+           pdgList = Parameters`GetPDGCodesForParticle[particle];
            If[Head[pdgList] =!= List || Length[pdgList] < dim,
               Return[""];
              ];
