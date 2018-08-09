@@ -1926,6 +1926,7 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
                              "@CXXDiagrams_Vertices@"        -> cxxVertices,
                              "@CXXDiagrams_MassFunctions@"   -> massFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
+                             "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              Sequence @@ GeneralReplacementRules[]
                             }];
  ]
@@ -4023,7 +4024,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
            WriteCXXDiagramClass[
              DeleteDuplicates @ Join[
-                edmVertices, aMuonVertices, fFFMasslessVFormFactorVertices, (*fFFMassiveVFormFactorVertices,*) conversionVertices
+                edmVertices, aMuonVertices 
              ], cxxQFTFiles
            ];
 
