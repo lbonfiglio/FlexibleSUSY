@@ -53,6 +53,8 @@ CreateInputParameterArrayGetter::usage="";
 CreateInputParameterArraySetter::usage="";
 
 CreateEnumName::usage="Creates enum symbol for given parameter";
+CreateParameterEnumEntries::usage="Creates a list of enum symbols for
+a given parameter";
 DecomposeParameter::usage="decomposes parameter into its real components";
 
 SetParameter::usage="set model parameter";
@@ -1223,14 +1225,17 @@ CreateEnumName[par_[idx__]] :=
 CreateEnumName[par_] :=
     CConversion`ToValidCSymbolString[par];
 
+CreateParameterEnumEntries[name_, type_] :=
+    CreateEnumName /@ DecomposeParameter[name, type];
+
 CreateParameterEnums[name_, type_] :=
     Utils`StringJoinWithSeparator[CreateEnumName /@ DecomposeParameter[name, type], ", "];
 
 CreateExtraParameterEnum[extraParameters_List] :=
-    Module[{result},
-           result = Utils`StringJoinWithSeparator[CreateParameterEnums[#, GetType[#]]& /@ extraParameters, ", "];
-           If[Length[extraParameters] > 0, result = result <> ", ";];
-           "enum Extra_parameters : int { " <> result <> "NUMBER_OF_EXTRA_PARAMETERS };\n"
+    Module[{entries},
+           entries = Flatten[Join[CreateParameterEnumEntries[#, GetType[#]]& /@ extraParameters,
+                                  {"NUMBER_OF_EXTRA_PARAMETERS"}]];
+           CConversion`CreateEnum["Extra_parameters", entries, 0]
           ];
 
 CreateExtraParameterNames[extraParameters_List] :=
@@ -1241,10 +1246,10 @@ CreateExtraParameterNames[extraParameters_List] :=
           ];
 
 CreateInputParameterEnum[inputParameters_List] :=
-    Module[{result},
-           result = Utils`StringJoinWithSeparator[CreateParameterEnums[#[[1]],#[[3]]]& /@ inputParameters, ", "];
-           If[Length[inputParameters] > 0, result = result <> ", ";];
-           "enum Input_parameters : int { " <> result <> "NUMBER_OF_INPUT_PARAMETERS };\n"
+    Module[{entries},
+           entries = Flatten[Join[CreateParameterEnumEntries[#[[1]], #[[3]]]& /@ inputParameters,
+                                  {"NUMBER_OF_INPUT_PARAMETERS"}]];
+           CConversion`CreateEnum["Input_parameters", entries, 0]
           ];
 
 CreateInputParameterNames[inputParameters_List] :=
