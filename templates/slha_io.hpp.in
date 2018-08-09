@@ -173,7 +173,7 @@ void @ModelName@_slha_io::fill_slhaea(
    const bool decays_error = decays_problems.have_problem();
    if (!decays_error) {
       slha_io.set_dcinfo(decays_problems);
-      slha_io.set_decays(decays);
+      slha_io.set_decays(decays.get_decay_table());
    }
 
    slhaea = slha_io.get_slha_io().get_data();

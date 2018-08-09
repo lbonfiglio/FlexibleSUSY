@@ -23,6 +23,8 @@
 
 #include "@ModelName@_info.hpp"
 
+#include "decay.hpp"
+
 #include <array>
 #include <iosfwd>
 
@@ -31,8 +33,7 @@ namespace flexiblesusy {
 class @ModelName@_decay_table {
 private:
    using number_of_decay_particles = @numberOfDecayParticles@;
-   using Decays_list = CMSSM_particle_decays;
-   using Table_type = std::array<Decay_list, number_of_decay_particles>;
+   using Table_type = std::array<Decays_list, number_of_decay_particles>;
 public:
    using iterator = Table_type::iterator;
    using const_iterator = Table_type::const_iterator;
@@ -47,11 +48,13 @@ public:
    void clear();
    void print(std::ostream&) const;
 
+@getParticleDecays@
+
 private:
    Table_type decay_table{};
 };
 
-std::ostream& operator<<(std::ostrean&, const @ModelName@_decay_table&);
+std::ostream& operator<<(std::ostream&, const @ModelName@_decay_table&);
 
 } // namespace flexiblesusy
 
