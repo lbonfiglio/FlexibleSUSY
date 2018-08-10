@@ -7,9 +7,13 @@ BASE_TEMPLATES := \
 		$(DIR)/cxx_qft/fields.hpp.in \
 		$(DIR)/a_muon.hpp.in \
 		$(DIR)/a_muon.cpp.in \
+		$(DIR)/convergence_tester.hpp.in \
+		$(DIR)/decay_table.hpp.in \
+		$(DIR)/decay_table.cpp.in \
+		$(DIR)/decays.hpp.in \
+		$(DIR)/decays.cpp.in \
 		$(DIR)/edm.hpp.in \
 		$(DIR)/edm.cpp.in \
-		$(DIR)/convergence_tester.hpp.in \
 		$(DIR)/ewsb_solver.hpp.in \
 		$(DIR)/ewsb_solver_interface.hpp.in \
 		$(DIR)/effective_couplings.hpp.in \

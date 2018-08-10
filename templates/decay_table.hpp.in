@@ -48,8 +48,7 @@ public:
    void clear();
    void print(std::ostream&) const;
 
-@getParticleDecays@
-
+@decaysListGetters@
 private:
    Table_type decay_table{};
 };

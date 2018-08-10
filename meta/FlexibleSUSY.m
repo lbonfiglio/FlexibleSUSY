@@ -197,6 +197,7 @@ ExtraSLHAOutputBlocks = {
 FSAuxiliaryParameterInfo = {};
 IMMINPAR = {};
 IMEXTPAR = {};
+FSCalculateDecays = True;
 
 (* Standard Model input parameters (SLHA input parameters) *)
 (* {parameter, {"block", entry}, type}                     *)
@@ -1734,6 +1735,19 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                           } ];
           ];
 
+WriteDecaysClass[files_List] :=
+    Module[{numberOfDecayParticles = 0, decaysListGetters = "", decaysGetters = "",
+            decaysCalculationPrototypes = "", decaysCalculationFunctions = ""},
+           WriteOut`ReplaceInFiles[files,
+                          { "@decaysGetters@" -> IndentText[decaysGetters],
+                            "@decaysCalculationPrototypes@" -> IndentText[decaysCalculationPrototypes],
+                            "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
+                            "@decaysListGetters@" -> IndentText[decaysListGetters],
+                            "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
+                            Sequence @@ GeneralReplacementRules[]
+                          } ];
+          ];
+
 WriteBVPSolverTemplates[files_List] :=
     WriteOut`ReplaceInFiles[files, { Sequence @@ GeneralReplacementRules[] }];
 
@@ -1907,7 +1921,7 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
                                        Sequence @@ GeneralReplacementRules[]
                                    } ];
            ];
-           
+
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,files_List] :=
   Module[{fields, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
@@ -1919,7 +1933,7 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
     massFunctions = CXXDiagrams`CreateMassFunctions[];
     unitCharge = CXXDiagrams`CreateUnitCharge[];
     strongCoupling = CXXDiagrams`CreateStrongCoupling[];
-    
+
     WriteOut`ReplaceInFiles[files,
                             {"@CXXDiagrams_Fields@"          -> fields,
                              "@CXXDiagrams_VertexData@"      -> vertexData,
@@ -1937,22 +1951,22 @@ WriteEDMClass[edmFields_List,files_List] :=
           interfacePrototypes,interfaceDefinitions},
     graphs = EDM`EDMContributingGraphs[];
     diagrams = Outer[EDM`EDMContributingDiagramsForFieldAndGraph,edmFields,graphs,1];
-    
+
     vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,2],1];
-    
-    {interfacePrototypes,interfaceDefinitions} = 
+
+    {interfacePrototypes,interfaceDefinitions} =
       If[diagrams === {},
          {"",""},
-         StringJoin @@@ 
-          (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@ 
+         StringJoin @@@
+          (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@
             Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams}]])];
-    
+
     WriteOut`ReplaceInFiles[files,
                             {"@EDM_InterfacePrototypes@"       -> interfacePrototypes,
                              "@EDM_InterfaceDefinitions@"      -> interfaceDefinitions,
                              Sequence @@ GeneralReplacementRules[]
                             }];
-    
+
     vertices
   ]
 
@@ -1965,14 +1979,14 @@ WriteAMuonClass[files_List] :=
             getMSUSY},
       graphs = AMuon`AMuonContributingGraphs[];
       diagrams = AMuon`AMuonContributingDiagramsForGraph /@ graphs;
-      
+
       vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,1],1];
-      
+
       muonPhysicalMass = AMuon`AMuonCreateMuonPhysicalMass[];
       calculation = AMuon`AMuonCreateCalculation @ Transpose[{graphs,diagrams}];
-            
+
       getMSUSY = AMuon`AMuonGetMSUSY[];
-      
+
       WriteOut`ReplaceInFiles[files,
         {"@AMuon_MuonField@"      -> CXXDiagrams`CXXNameOfField[AMuon`AMuonGetMuon[]],
          "@AMuon_MuonPhysicalMass@"       -> TextFormatting`IndentText[muonPhysicalMass],
@@ -1980,7 +1994,7 @@ WriteAMuonClass[files_List] :=
          "@AMuon_GetMSUSY@"       -> IndentText[WrapLines[getMSUSY]],
          Sequence @@ GeneralReplacementRules[]
         }];
-                              
+
       vertices
       ];
 
@@ -3973,6 +3987,20 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
               Parameters`RemoveExtraParameters[SemiAnalytic`CreateCoefficientParameters[semiAnalyticSolns]];
              ]; (* If[HaveBVPSolver[FlexibleSUSY`SemiAnalyticSolver] *)
 
+           If[FSCalculateDecays,
+              PrintHeadline["Creating particle decays"];
+              Print["Creating class for decays ..."];
+              WriteDecaysClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
+                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
+                                {FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.cpp.in"}],
+                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.cpp"}]},
+                                {FileNameJoin[{$flexiblesusyTemplateDir, "decays.hpp.in"}],
+                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.hpp"}]},
+                                {FileNameJoin[{$flexiblesusyTemplateDir, "decays.cpp.in"}],
+                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
+                               }];
+             ]; (* If[FSCalculateDecays] *)
+
            PrintHeadline["Creating observables"];
            Print["Creating class for effective couplings ..."];
            (* @note separating this out for now for simplicity *)
@@ -3990,7 +4018,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_observables.hpp"}]},
                              {FileNameJoin[{$flexiblesusyTemplateDir, "observables.cpp.in"}],
                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_observables.cpp"}]}}];
-                      
+
            Print["Creating EDM class ..."];
            edmFields = DeleteDuplicates @ Cases[Observables`GetRequestedObservables[extraSLHAOutputBlocks],
                                                 FlexibleSUSYObservable`EDM[p_[__]|p_] :> p];
@@ -4002,7 +4030,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_edm.cpp"}]}}];
 
            Print["Creating AMuon class ..."];
-           aMuonVertices = 
+           aMuonVertices =
              WriteAMuonClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.hpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.hpp"}]},
                               {FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.cpp.in"}],
@@ -4024,7 +4052,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
            WriteCXXDiagramClass[
              DeleteDuplicates @ Join[
-                edmVertices, aMuonVertices 
+                edmVertices, aMuonVertices
              ], cxxQFTFiles
            ];
 
