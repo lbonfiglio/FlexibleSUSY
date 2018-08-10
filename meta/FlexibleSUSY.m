@@ -1984,6 +1984,15 @@ WriteAMuonClass[files_List] :=
       vertices
       ];
 
+WriteHiggsDecaysClass[files_List] :=
+   Module[{},
+
+      WriteOut`ReplaceInFiles[files,
+         {  "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[SARAH`HiggsBoson],
+            Sequence @@ GeneralReplacementRules[]}
+      ];
+   ];
+
 GetBVPSolverHeaderName[solver_] :=
     Switch[solver,
            FlexibleSUSY`TwoScaleSolver, "two_scale",
@@ -4007,6 +4016,12 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.hpp"}]},
                               {FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.cpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.cpp"}]}}];
+
+           Print["Creating HiggsDecays class ..."];
+           WriteHiggsDecaysClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "higgs_decays.hpp.in"}],
+              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_higgs_decays.hpp"}]},
+              {FileNameJoin[{$flexiblesusyTemplateDir, "higgs_decays.cpp.in"}],
+                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_higgs_decays.cpp"}]}}];
 
            cxxQFTTemplateDir = FileNameJoin[{$flexiblesusyTemplateDir, "cxx_qft"}];
            cxxQFTOutputDir = FileNameJoin[{FSOutputDir, "cxx_qft"}];

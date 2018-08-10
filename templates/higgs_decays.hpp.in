@@ -1,0 +1,54 @@
+// ====================================================================
+// This file is part of FlexibleSUSY.
+//
+// FlexibleSUSY is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License,
+// or (at your option) any later version.
+//
+// FlexibleSUSY is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with FlexibleSUSY.  If not, see
+// <http://www.gnu.org/licenses/>.
+// ====================================================================
+
+// File generated at @DateAndTime@
+
+/**
+ * @file @ModelName@_higgs_decays.hpp
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ and SARAH @SARAHVersion@ .
+ */
+
+#ifndef @ModelName@_HIGGS_DECAYS_H
+#define @ModelName@_HIGGS_DECAYS_H
+
+#include "@ModelName@_mass_eigenstates.hpp"
+
+namespace flexiblesusy {
+
+class @ModelName@_HiggsDecays {
+
+public:
+
+template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+double get_partial_width(unsigned int, unsigned int) const;
+
+// for SM particles 
+double get_hhVPVP_partial_width(unsigned int) const;
+double get_hhVGVG_partial_width(unsigned int) const;
+double get_hhVZVP_partial_width(unsigned int) const;
+double get_hhhhhh_partial_width(unsigned int, unsigned int, unsigned int) const;
+
+private:
+   
+@ModelName@_mass_eigenstates model;
+};
+
+}
+#endif
