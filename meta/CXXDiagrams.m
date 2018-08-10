@@ -90,7 +90,18 @@ RemoveLorentzConjugation[p_] := p
 RemoveLorentzConjugation[SARAH`bar[p_]] := p
 RemoveLorentzConjugation[Susyno`LieGroups`conj[p_]] := p
 
-AtomHead[x_] := If[AtomQ[x], x, AtomHead[Head[x]]]
+AtomHead[x_] := If[AtomQ[x], x, AtomHead[Head[x]]];
+
+ParticleTypeAsString::argx = "Unknown type of particle `1`. Supported types are scalar, fermion, vector and ghost.";
+ParticleTypeAsString[part_] := Module[
+   {},
+   If[TreeMasses`IsScalar[part],    Return["scalar"]];
+   If[TreeMasses`IsVector[part],    Return["vector"]];
+   If[TreeMasses`IsFermion[part],   Return["fermion"]];
+   If[TreeMasses`IsGhost[part],   Return["ghost"]];
+
+   Message[ParticleTypeAsString::argx, part]; Abort[];
+];
 
 CreateFields[] :=
   Module[{fields, scalars, fermions, vectors, ghosts},
@@ -103,6 +114,7 @@ CreateFields[] :=
        StringJoin @ Riffle[
          ("struct " <> CXXNameOfField[#] <> " {\n" <>
             TextFormatting`IndentText[
+              "static constexpr auto particle_type = ParticleType::" <> ParticleTypeAsString[#] <> ";\n" <>
               "using index_bounds = boost::mpl::pair<\n" <>
               "  boost::mpl::vector_c<int" <>
                    StringJoin[", " <> ToString[#] & /@ 

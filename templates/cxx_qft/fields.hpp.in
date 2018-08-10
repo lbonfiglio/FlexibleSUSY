@@ -45,6 +45,12 @@ template<class Field> struct field_indices {
 
 namespace fields
 {
+enum class ParticleType {
+   scalar,
+   fermion,
+   vector,
+   ghost
+};
 template<class Field> struct bar
 {
   using index_bounds = typename Field::index_bounds;
