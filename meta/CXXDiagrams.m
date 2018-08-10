@@ -103,6 +103,16 @@ ParticleTypeAsString[part_] := Module[
    Message[ParticleTypeAsString::argx, part]; Abort[];
 ];
 
+ParticleColorRepAsString[part_] :=
+   Module[{rep = SARAH`getColorRep[part]},
+      Print[rep];
+      Switch[rep,
+         S, "singlet",
+         T, "triplet",
+         O, "octet"
+      ]
+   ];
+
 CreateFields[] :=
   Module[{fields, scalars, fermions, vectors, ghosts},
        fields = TreeMasses`GetParticles[];
@@ -115,6 +125,7 @@ CreateFields[] :=
          ("struct " <> CXXNameOfField[#] <> " {\n" <>
             TextFormatting`IndentText[
               "static constexpr auto particle_type = ParticleType::" <> ParticleTypeAsString[#] <> ";\n" <>
+              "static constexpr auto color_rep = ParticleColorRep::" <> ParticleColorRepAsString[#] <> ";\n" <>
               "using index_bounds = boost::mpl::pair<\n" <>
               "  boost::mpl::vector_c<int" <>
                    StringJoin[", " <> ToString[#] & /@ 

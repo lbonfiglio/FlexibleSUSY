@@ -51,6 +51,12 @@ enum class ParticleType {
    vector,
    ghost
 };
+enum class ParticleColorRep {
+   singlet,
+   triplet,
+   antitriplet,
+   octet
+};
 template<class Field> struct bar
 {
   using index_bounds = typename Field::index_bounds;
