@@ -27,6 +27,8 @@
 
 namespace flexiblesusy {
 
+class @ModelName@_mass_eigenstates;
+
 class @ModelName@_decays {
 public:
    const @ModelName@_decay_table& get_decay_table() const;

@@ -68,6 +68,7 @@ META_SRC     := \
 		$(DIR)/Constraint.m \
 		$(DIR)/ConvergenceTester.m \
 		$(DIR)/CXXDiagrams.m \
+		$(DIR)/Decays.m \
 		$(DIR)/EDM.m \
 		$(DIR)/EffectiveCouplings.m \
 		$(DIR)/EWSB.m \

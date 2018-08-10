@@ -47,6 +47,7 @@ BeginPackage["FlexibleSUSY`",
               "Observables`",
               "CXXDiagrams`",
               "AMuon`",
+              "Decays`",
               "EDM`",
               "EffectiveCouplings`",
               "FlexibleEFTHiggsMatching`",
@@ -198,6 +199,8 @@ FSAuxiliaryParameterInfo = {};
 IMMINPAR = {};
 IMEXTPAR = {};
 FSCalculateDecays = True;
+DecayParticles = Automatic;
+
 
 (* Standard Model input parameters (SLHA input parameters) *)
 (* {parameter, {"block", entry}, type}                     *)
@@ -1735,17 +1738,30 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                           } ];
           ];
 
-WriteDecaysClass[files_List] :=
-    Module[{numberOfDecayParticles = 0, decaysListGetters = "", decaysGetters = "",
+WriteDecaysClass[decayParticles_List, files_List] :=
+    Module[{decaysVertices = {}, numberOfDecayParticles = 0,
+            enableDecaysCalculationThreads,
+            callAllDecaysFunctions = "", callAllDecaysFunctionsInThreads = "",
+            decaysListGetters = "", decaysGetters = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = ""},
+           numberOfDecayParticles = Length[decayParticles];
+           enableDecaysCalculationThreads = False;
+           callAllDecaysFunctions = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
+           enableDecaysCalculationThreads = True;
+           callAllDecaysFunctionsInThreads = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
+           decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decayParticles];
+           decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decayParticles];
            WriteOut`ReplaceInFiles[files,
-                          { "@decaysGetters@" -> IndentText[decaysGetters],
+                          { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
+                            "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
+                            "@decaysGetters@" -> IndentText[decaysGetters],
                             "@decaysCalculationPrototypes@" -> IndentText[decaysCalculationPrototypes],
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@decaysListGetters@" -> IndentText[decaysListGetters],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
+           decaysVertices
           ];
 
 WriteBVPSolverTemplates[files_List] :=
@@ -3989,8 +4005,17 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
            If[FSCalculateDecays,
               PrintHeadline["Creating particle decays"];
+
+              If[FlexibleSUSY`DecayParticles === Automatic,
+                 FlexibleSUSY`DecayParticles = TreeMasses`GetParticles[];
+                ];
+              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
+                                                                                 !TreeMasses`IsMassless[#] &&
+                                                                                 TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
+
               Print["Creating class for decays ..."];
-              WriteDecaysClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
+              WriteDecaysClass[FlexibleSUSY`DecayParticles,
+                               {{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
                                  FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
                                 {FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.cpp.in"}],
                                  FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.cpp"}]},

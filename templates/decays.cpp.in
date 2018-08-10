@@ -19,28 +19,44 @@
 // File generated at @DateAndTime@
 
 #include "@ModelName@_decays.hpp"
+#include "@ModelName@_info.hpp"
+#include "@ModelName@_mass_eigenstates.hpp"
+
+#include "config.h"
+#include "thread_pool.hpp"
 
 namespace flexiblesusy {
 
-const @ModelName@_decay_table& @ModelName@_decays::get_decay_table() const
+#define CLASSNAME @ModelName@_decays
+
+const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
 {
    return decay_table;
 }
 
-const Decays_problems& @ModelName@_decays::get_problems() const
+const Decays_problems& CLASSNAME::get_problems() const
 {
    return problems;
 }
 
-void @ModelName@_decays::clear_problems()
+void CLASSNAME::clear_problems()
 {
    problems.clear();
 }
 
-void @ModelName@_decays::clear()
+void CLASSNAME::clear()
 {
    clear_problems();
    decay_table.clear();
+}
+
+void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
+{
+#ifdef ENABLE_THREADS
+@callAllDecaysFunctionsInThreads@
+#else
+@callAllDecaysFunctions@
+#endif
 }
 
 @decaysCalculationFunctions@
