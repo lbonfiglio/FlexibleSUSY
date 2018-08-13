@@ -425,6 +425,17 @@ CheckBVPSolvers[solvers_List] :=
              ];
           ];
 
+CheckDecaysOptions[] :=
+    Module[{},
+           If[FlexibleSUSY`DecayParticles =!= Automatic,
+              If[Head[FlexibleSUSY`DecayParticles] =!= List,
+                 Print["Warning: FlexibleSUSY`DecayParticles should be set to a ",
+                       "list or Automatic"];
+                 FlexibleSUSY`DecayParticles = {};
+                ];
+             ];
+          ];
+
 CheckModelFileSettings[] :=
     Module[{},
            (* FlexibleSUSY model name *)
@@ -553,6 +564,7 @@ CheckModelFileSettings[] :=
              ];
            CheckEWSBSolvers[FlexibleSUSY`FSEWSBSolvers];
            CheckBVPSolvers[FlexibleSUSY`FSBVPSolvers];
+           CheckDecaysOptions[];
           ];
 
 CheckExtraParametersUsage[parameters_List, boundaryConditions_List] :=
@@ -4013,17 +4025,21 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                                                                  !TreeMasses`IsMassless[#] &&
                                                                                  TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
 
-              Print["Creating class for decays ..."];
-              WriteDecaysClass[FlexibleSUSY`DecayParticles,
-                               {{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
-                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
-                                {FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.cpp.in"}],
-                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.cpp"}]},
-                                {FileNameJoin[{$flexiblesusyTemplateDir, "decays.hpp.in"}],
-                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.hpp"}]},
-                                {FileNameJoin[{$flexiblesusyTemplateDir, "decays.cpp.in"}],
-                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
-                               }];
+              If[FlexibleSUSY`DecayParticles =!= {},
+                 Print["Creating class for decays ..."];
+                 WriteDecaysClass[FlexibleSUSY`DecayParticles,
+                                  {{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
+                                    FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
+                                   {FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.cpp.in"}],
+                                    FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.cpp"}]},
+                                   {FileNameJoin[{$flexiblesusyTemplateDir, "decays.hpp.in"}],
+                                    FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.hpp"}]},
+                                   {FileNameJoin[{$flexiblesusyTemplateDir, "decays.cpp.in"}],
+                                    FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
+                                  }];
+                 ,
+                 Print["Skipping creating decays as no particles to calculate decays for were found."];
+                ];
              ]; (* If[FSCalculateDecays] *)
 
            PrintHeadline["Creating observables"];
