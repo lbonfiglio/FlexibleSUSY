@@ -4007,7 +4007,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
               PrintHeadline["Creating particle decays"];
 
               If[FlexibleSUSY`DecayParticles === Automatic,
-                 FlexibleSUSY`DecayParticles = TreeMasses`GetParticles[];
+                 FlexibleSUSY`DecayParticles = { TreeMasses`GetHiggsBoson[] }; (* or, e.g., TreeMasses`GetParticles[] *);
                 ];
               FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
                                                                                  !TreeMasses`IsMassless[#] &&
