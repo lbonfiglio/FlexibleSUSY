@@ -100,7 +100,7 @@ CreateDecaysCalculationFunctions[particles_List] :=
 CallDecaysFunction[particle_, arg_:"model", obj_:""] :=
     obj <> CreateDecaysCalculationFunctionName[particle] <> "(" <> arg <> ");\n"
 
-CallThreadedDecaysFunction[particle_, ptr_:"this", pool_:"tp", arg_:"&model"] :=
+CallThreadedDecaysFunction[particle_, ptr_:"this", pool_:"tp", arg_:"model"] :=
     pool <> ".run_task([" <> ptr <> ", " <> arg <> "] () { " <>
     If[ptr === "this", "", ptr <> "->"] <>
     CreateDecaysCalculationFunctionName[particle] <> "(" <> arg <> "); });\n";
