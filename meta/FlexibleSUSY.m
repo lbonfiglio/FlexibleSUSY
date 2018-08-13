@@ -1750,6 +1750,17 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                           } ];
           ];
 
+WriteDecaysMakefileModule[sources_List, headers_List, files_List] :=
+    Module[{source = "", header = ""},
+           source = Utils`StringJoinWithSeparator[("\t\t$(DIR)/" <> #)& /@ sources, " \\\n"];
+           header = Utils`StringJoinWithSeparator[("\t\t$(DIR)/" <> #)& /@ headers, " \\\n"];
+           WriteOut`ReplaceInFiles[files,
+                  { "@FlexibleDecaysSource@" -> source,
+                    "@FlexibleDecaysHeader@" -> header,
+                    Sequence @@ GeneralReplacementRules[]
+                  } ];
+          ];
+
 WriteDecaysClass[decayParticles_List, files_List] :=
     Module[{decaysVertices = {}, numberOfDecayParticles = 0,
             enableDecaysCalculationThreads,
@@ -3187,7 +3198,8 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
             Lat$massMatrices, spectrumGeneratorFiles = {}, spectrumGeneratorInputFile,
             semiAnalyticBCs, semiAnalyticSolns,
             semiAnalyticHighScaleFiles, semiAnalyticSUSYScaleFiles, semiAnalyticLowScaleFiles,
-            semiAnalyticSolnsOutputFile, semiAnalyticEWSBSubstitutions = {}, semiAnalyticInputScale = ""},
+            semiAnalyticSolnsOutputFile, semiAnalyticEWSBSubstitutions = {}, semiAnalyticInputScale = "",
+            decaysSources = {}, decaysHeaders = {}},
 
            PrintHeadline["Starting FlexibleSUSY"];
            FSDebugOutput["meta code directory: ", $flexiblesusyMetaDir];
@@ -4027,6 +4039,10 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
               If[FlexibleSUSY`DecayParticles =!= {},
                  Print["Creating class for decays ..."];
+                 decaysSources = Join[decaysSources, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_table.cpp"}],
+                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.cpp"}]}];
+                 decaysHeaders = Join[decaysHeaders, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_table.hpp"}],
+                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.hpp"}]}];
                  WriteDecaysClass[FlexibleSUSY`DecayParticles,
                                   {{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
@@ -4040,6 +4056,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                  ,
                  Print["Skipping creating decays as no particles to calculate decays for were found."];
                 ];
+
+              WriteDecaysMakefileModule[decaysSources, decaysHeaders,
+                                        {{FileNameJoin[{$flexiblesusyTemplateDir, "FlexibleDecays.mk.in"}],
+                                          FileNameJoin[{FSOutputDir, "FlexibleDecays.mk"}]}}
+                                       ];
              ]; (* If[FSCalculateDecays] *)
 
            PrintHeadline["Creating observables"];

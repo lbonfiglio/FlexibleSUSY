@@ -21,6 +21,9 @@ MOD@CLASSNAME@_LIB := $(foreach M,$(MOD@CLASSNAME@_MOD),model_specific/$M/libmod
 @CLASSNAME@_FlexibleEFTHiggs_MK := \
 		$(DIR)/FlexibleEFTHiggs.mk
 
+@CLASSNAME@_FlexibleDecays_MK := \
+		$(DIR)/FlexibleDecays.mk
+
 @CLASSNAME@_INCLUDE_MK := \
 		$(@CLASSNAME@_SUSY_BETAS_MK) \
 		$(@CLASSNAME@_SOFT_BETAS_MK)
@@ -128,6 +131,8 @@ $(@CLASSNAME@_SUSY_BETAS_MK): run-metacode-$(MODNAME)
 $(@CLASSNAME@_SOFT_BETAS_MK): run-metacode-$(MODNAME)
 		@$(CONVERT_DOS_PATHS) $@
 $(@CLASSNAME@_FlexibleEFTHiggs_MK): run-metacode-$(MODNAME)
+		@$(CONVERT_DOS_PATHS) $@
+$(@CLASSNAME@_FlexibleDecays_MK): run-metacode-$(MODNAME)
 		@$(CONVERT_DOS_PATHS) $@
 endif
 endif

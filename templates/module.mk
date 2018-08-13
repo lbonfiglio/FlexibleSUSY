@@ -58,6 +58,12 @@ BASE_TEMPLATES := \
 		$(DIR)/utilities.hpp.in \
 		$(DIR)/utilities.cpp.in
 
+MODULE_MK_TEMPLATES := \
+		$(DIR)/FlexibleEFTHiggs.mk.in \
+		$(DIR)/FlexibleDecays.mk.in \
+		$(DIR)/semi_analytic.mk.in \
+		$(DIR)/two_scale.mk.in
+
 TWO_SCALE_TEMPLATES := \
 		$(DIR)/standard_model_two_scale_high_scale_initial_guesser.cpp.in \
 		$(DIR)/standard_model_two_scale_high_scale_initial_guesser.hpp.in \
