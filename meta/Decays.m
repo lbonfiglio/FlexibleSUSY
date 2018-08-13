@@ -64,7 +64,7 @@ LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarTy
            stopStr = CConversion`ToValidCSymbolString[stop];
            "for (" <> CConversion`CreateCType[type] <> " " <> idxStr <>
            " = " <> startStr <> "; " <> idxStr <> " < " <> stopStr <> "; ++" <>
-           idxStr <> ") {\n" <> TextFormatting`IndentText[loopBody] <> "\n}"
+           idxStr <> ") {\n" <> TextFormatting`IndentText[loopBody] <> "\n}\n"
           ];
 
 (* generates a loop over the given indices, in the form
@@ -74,19 +74,13 @@ LoopOverIndexCollection[loopBody_String, indices_List] :=
     Fold[LoopOverIndex[#1, Sequence @@ #2]&, loopBody, indices];
 
 CreateDecaysCalculationFunction[particle_] :=
-    Module[{generationIndex, dim, dimStart, loopIndices, result = "", body = ""},
-           dimStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
+    Module[{dim, dimStart, loopIndices, result = "", body = ""},
+           dimStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle] - 1;
            dim = TreeMasses`GetDimension[particle];
-           generationIndex = Select[TreeMasses`GetParticleIndices[particle], CXXDiagrams`IsGenerationIndex];
-           If[Length[generationIndex] > 1,
-              generationIndex = First[generationIndex];
-             ];
-           loopIndices = If[generationIndex === {} || dim == 0, {}, {generationIndex, dimStart, dim}];
-           Print["dimStart = ", dimStart];
-           Print["dim = ", dim];
-           Print["indices = ", TreeMasses`GetParticleIndices[particle]];
-           Print["generationIndex = ", generationIndex];
-           Print["loopIndices = ", loopIndices];
+           loopIndices = If[dim > 1 || TreeMasses`GetDimensionWithoutGoldstones[particle] > 1,
+                            {{"gI1", dimStart, dim}},
+                            {}
+                           ];
            body = "auto model = model_;\n";
            body = LoopOverIndexCollection[body, loopIndices];
            "void " <> CreateDecaysCalculationFunctionName[particle, "CLASSNAME"] <>
