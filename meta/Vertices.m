@@ -35,6 +35,7 @@ SortCp::usage="SortCp[cp] sorts fields in cp into SARAH internal order.";
 SortCps::usage="SortCps[nPointFunctions] sorts all SARAH`Cp[] and SARAH`Cp[][] in nPointFunctions.";
 EnforceCpColorStructures::usage;
 EnforceCpColorStructures::cpext="Fixing positions of external field `1` within `2`.  This might happen with SARAH version 4.1.0 or earlier.  Please report to us if you see this message with a newer version of SARAH.";
+FSVertex::usage = "";
 
 GetLorentzStructure::usage;
 GetParticleList::usage;
@@ -675,6 +676,26 @@ ReplaceUnrotatedFields[SARAH`Cp[p__]] :=
 
 ReplaceUnrotatedFields[SARAH`Cp[p__][lorentz_]] :=
     ReplaceUnrotatedFields[SARAH`Cp[p]][lorentz];
+
+FSVertexWithoutIndices[particleList_List] := FSVertexWithoutIndices[particleList] =
+   Module[{},
+   	(* read in cached vertices *)
+   	(* .... *)
+
+      SARAH`Vertex[particleList]
+	];
+
+FSVertex[particleList_List] :=
+   Module[{},
+
+		(* if any particle has an index, remember it and strip it *)
+
+		(* call with indices ordered as 1, 2, 3... *)
+		FSVertexWithoutIndices[particleList]
+
+		(* restore indices *)
+	];
+
 
 End[] (* `Private` *)
 
