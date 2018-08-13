@@ -34,7 +34,7 @@ void @ModelName@_decay_table::clear()
 void @ModelName@_decay_table::print(std::ostream& ostr) const
 {
    for (const auto& particle: decay_table) {
-      particle.print(ostr);
+      /* particle.print(ostr); */
    }
 }
 
