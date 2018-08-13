@@ -103,13 +103,15 @@ ParticleTypeAsString[part_] := Module[
    Message[ParticleTypeAsString::argx, part]; Abort[];
 ];
 
+(* todo: shouldn't there be an anti-triplet? *)
+ParticleColorRepAsString::argx = "Unknown color representation `1` for particle `2`. Supported representations are singlet, (anti-)triplet and octet.";
 ParticleColorRepAsString[part_] :=
    Module[{rep = SARAH`getColorRep[part]},
-      Print[rep];
       Switch[rep,
          S, "singlet",
          T, "triplet",
-         O, "octet"
+         O, "octet",
+         _, Message[ParticleColorRepAsString::argx, rep, part]; Abort[];
       ]
    ];
 

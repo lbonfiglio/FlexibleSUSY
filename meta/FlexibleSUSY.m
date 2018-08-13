@@ -1988,7 +1988,11 @@ WriteHiggsDecaysClass[files_List] :=
    Module[{},
 
       WriteOut`ReplaceInFiles[files,
-         {  "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[SARAH`HiggsBoson],
+         {  "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]],
+            "@WBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetWBoson[]],
+            "@ZBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetZBoson[]],
+            "@GluonName@"      -> CXXDiagrams`CXXNameOfField[TreeMasses`GetGluon[]],
+            "@PhotonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetPhoton[]],
             Sequence @@ GeneralReplacementRules[]}
       ];
    ];
