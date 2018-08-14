@@ -2305,7 +2305,8 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
           ];
 
 WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List,
-                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, files_List] :=
+                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, extraHeaderFiles_List,
+                 files_List] :=
     Module[{minpar, extpar, imminpar, imextpar, extraSLHAInputParameters,
             fillInputParametersFromMINPAR = "", fillInputParametersFromEXTPAR = "",
             fillInputParametersFromIMMINPAR = "", fillInputParametersFromIMEXTPAR = "",
@@ -2316,7 +2317,8 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
             writeSLHAInputParameterBlocks = "",
             readLesHouchesInputParameters, writeExtraSLHAOutputBlock = "",
             readLesHouchesOutputParameters, readLesHouchesPhysicalParameters,
-            numberOfDRbarBlocks, drBarBlockNames
+            numberOfDRbarBlocks, drBarBlockNames,
+            extraHeaderIncludes = ""
            },
            minpar = Cases[inputParameters, {p_, {"MINPAR", idx_}, ___} :> {idx, p}];
            extpar = Cases[inputParameters, {p_, {"EXTPAR", idx_}, ___} :> {idx, p}];
@@ -2349,8 +2351,10 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
            writeExtraSLHAOutputBlock = WriteOut`WriteExtraSLHAOutputBlock[extraSLHAOutputBlocks];
            numberOfDRbarBlocks  = WriteOut`GetNumberOfDRbarBlocks[lesHouchesParameters];
            drBarBlockNames      = WriteOut`GetDRbarBlockNames[lesHouchesParameters];
+           extraHeaderIncludes = Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ extraHeaderFiles, "\n"];
            WriteOut`ReplaceInFiles[files,
-                          { "@fillInputParametersFromMINPAR@" -> IndentText[fillInputParametersFromMINPAR],
+                          { "@extraHeaderIncludes@"           -> extraHeaderIncludes,
+                            "@fillInputParametersFromMINPAR@" -> IndentText[fillInputParametersFromMINPAR],
                             "@fillInputParametersFromEXTPAR@" -> IndentText[fillInputParametersFromEXTPAR],
                             "@fillInputParametersFromIMMINPAR@" -> IndentText[fillInputParametersFromIMMINPAR],
                             "@fillInputParametersFromIMEXTPAR@" -> IndentText[fillInputParametersFromIMEXTPAR],
@@ -3208,7 +3212,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
             semiAnalyticBCs, semiAnalyticSolns,
             semiAnalyticHighScaleFiles, semiAnalyticSUSYScaleFiles, semiAnalyticLowScaleFiles,
             semiAnalyticSolnsOutputFile, semiAnalyticEWSBSubstitutions = {}, semiAnalyticInputScale = "",
-            decaysSources = {}, decaysHeaders = {}},
+            decaysSources = {}, decaysHeaders = {}, decaysSLHAIncludeFiles = {}},
 
            PrintHeadline["Starting FlexibleSUSY"];
            FSDebugOutput["meta code directory: ", $flexiblesusyMetaDir];
@@ -3648,6 +3652,8 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                                                                  TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
               If[FlexibleSUSY`DecayParticles = {},
                  FlexibleSUSY`FSCalculateDecays = False;
+                ,
+                decaysSLHAIncludeFiles = {FlexibleSUSY`FSModelName <> "_decay_table.hpp", "decays_problems.hpp"};
                 ];
              ]; (* If[FlexibleSUSY`FSCalculateDecays] *)
 
@@ -3710,6 +3716,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
            WriteSLHAIOClass[massMatrices, Join[susyBetaFunctions, susyBreakingBetaFunctions],
                             inputParameters, Parameters`GetExtraParameters[],
                             FlexibleSUSY`FSLesHouchesList, extraSLHAOutputBlocks,
+                            decaysSLHAIncludeFiles,
                             {{FileNameJoin[{$flexiblesusyTemplateDir, "slha_io.hpp.in"}],
                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_slha_io.hpp"}]},
                              {FileNameJoin[{$flexiblesusyTemplateDir, "slha_io.cpp.in"}],

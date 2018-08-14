@@ -21,13 +21,12 @@
 #ifndef @ModelName@_SLHA_IO_H
 #define @ModelName@_SLHA_IO_H
 
-#include "@ModelName@_decays.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
 #include "@ModelName@_model_slha.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_observables.hpp"
 #include "@ModelName@_physical.hpp"
-#include "decays_problems.hpp"
+@extraHeaderIncludes@
 #include "problems.hpp"
 #include "spectrum_generator_problems.hpp"
 #include "standard_model_two_scale_model.hpp"
