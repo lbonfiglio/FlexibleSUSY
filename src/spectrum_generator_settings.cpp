@@ -54,7 +54,8 @@ const std::array<std::string, Spectrum_generator_settings::NUMBER_OF_OPTIONS> de
    "Higgs 3-loop corrections O(alpha_b alpha_s^2)",
    "Higgs 3-loop corrections O(alpha_t^2 alpha_s)",
    "Higgs 3-loop corrections O(alpha_t^3)",
-   "Higgs 4-loop corrections O(alpha_t alpha_s^3)"
+   "Higgs 4-loop corrections O(alpha_t alpha_s^3)",
+   "calculate particle decays"
 };
 } // anonymous namespace
 
@@ -131,6 +132,7 @@ void Spectrum_generator_settings::set(const Spectrum_generator_settings::Setting
  * | higgs_3loop_correction_at2_as    | 0, 1                                            | 1 (= enabled)   |
  * | higgs_3loop_correction_at3       | 0, 1                                            | 1 (= enabled)   |
  * | higgs_4loop_correction_at_as3    | 0, 1                                            | 1 (= enabled)   |
+ * | calculate_decays                 | 0, 1                                            | 1 (= enabled)   |
  */
 void Spectrum_generator_settings::reset()
 {
@@ -166,6 +168,7 @@ void Spectrum_generator_settings::reset()
    values[higgs_3loop_correction_at2_as]    = 1.;
    values[higgs_3loop_correction_at3]       = 1.;
    values[higgs_4loop_correction_at_as3]    = 1.;
+   values[calculate_decays]                 = 1.;
 }
 
 Loop_corrections Spectrum_generator_settings::get_loop_corrections() const
