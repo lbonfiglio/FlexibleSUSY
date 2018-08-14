@@ -44,8 +44,6 @@ MOD@CLASSNAME@_LIB := $(foreach M,$(MOD@CLASSNAME@_MOD),model_specific/$M/libmod
 
 LIB@CLASSNAME@_SRC := \
 		$(DIR)/@CLASSNAME@_a_muon.cpp \
-		$(DIR)/@CLASSNAME@_decay_table.cpp \
-		$(DIR)/@CLASSNAME@_decays.cpp \
 		$(DIR)/@CLASSNAME@_edm.cpp \
 		$(DIR)/@CLASSNAME@_effective_couplings.cpp \
 		$(DIR)/@CLASSNAME@_info.cpp \
@@ -78,8 +76,6 @@ LIB@CLASSNAME@_HDR := \
 		$(DIR)/cxx_qft/@CLASSNAME@_fields.hpp \
 		$(DIR)/@CLASSNAME@_a_muon.hpp \
 		$(DIR)/@CLASSNAME@_convergence_tester.hpp \
-		$(DIR)/@CLASSNAME@_decay_table.hpp \
-		$(DIR)/@CLASSNAME@_decays.hpp \
 		$(DIR)/@CLASSNAME@_edm.hpp \
 		$(DIR)/@CLASSNAME@_effective_couplings.hpp \
 		$(DIR)/@CLASSNAME@_ewsb_solver.hpp \
