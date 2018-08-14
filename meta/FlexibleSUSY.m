@@ -2132,11 +2132,23 @@ if (show_decays) {
    slha_io.set_decays(decays);
 }";
 
+ExampleCalculateCmdLineDecays[] :=
+    FlexibleSUSY`FSModelName <> "_decays decays;\ndecays.calculate_decays(model);";
+
+WriteExampleCmdLineOutput[enableDecays_] :=
+    If[enableDecays,
+       "SLHAea::Coll slhaea(" <> FlexibleSUSY`FSModelName <> "_slha_io::fill_slhaea(\n" <>
+       "                       model, qedqcd, scales, observables, decays));",
+       "SLHAea::Coll slhaea(" <> FlexibleSUSY`FSModelName <> "_slha_io::fill_slhaea(\n" <>
+       "                       model, qedqcd, scales, observables));"
+      ];
+
 WriteUserExample[inputParameters_List, files_List] :=
     Module[{parseCmdLineOptions, printCommandLineOptions, inputPars,
             solverIncludes = "", runEnabledSolvers = "", scanEnabledSolvers = "",
             runEnabledCmdLineSolvers = "", defaultSolverType,
-            decaysIncludes = "", calculateDecaysForModel = "", setDecaysSLHAOutput = ""},
+            decaysIncludes = "", calculateDecaysForModel = "", setDecaysSLHAOutput = "",
+            calculateCmdLineDecays = "", writeCmdLineOutput = ""},
            inputPars = {First[#], #[[3]]}& /@ inputParameters;
            parseCmdLineOptions = WriteOut`ParseCmdLineOptions[inputPars];
            printCommandLineOptions = WriteOut`PrintCmdLineOptions[inputPars];
@@ -2152,7 +2164,9 @@ WriteUserExample[inputParameters_List, files_List] :=
               decaysIncludes = ExampleDecaysIncludes[];
               calculateDecaysForModel = ExampleCalculateDecaysForModel[];
               setDecaysSLHAOutput = ExampleSetDecaysSLHAOutput[];
+              calculateCmdLineDecays = ExampleCalculateCmdLineDecays[];
              ];
+           writeCmdLineOutput = WriteExampleCmdLineOutput[FlexibleSUSY`FSCalculateDecays];
            WriteOut`ReplaceInFiles[files,
                           { "@parseCmdLineOptions@" -> IndentText[IndentText[parseCmdLineOptions]],
                             "@printCommandLineOptions@" -> IndentText[IndentText[printCommandLineOptions]],
@@ -2164,6 +2178,8 @@ WriteUserExample[inputParameters_List, files_List] :=
                             "@decaysIncludes@" -> decaysIncludes,
                             "@calculateDecaysForModel@" -> IndentText[calculateDecaysForModel],
                             "@setDecaysSLHAOutput@" -> IndentText[IndentText[setDecaysSLHAOutput]],
+                            "@calculateCmdLineDecays@" -> IndentText[calculateCmdLineDecays],
+                            "@writeCmdLineOutput@" -> IndentText[writeCmdLineOutput],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
