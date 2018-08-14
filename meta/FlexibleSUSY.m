@@ -2318,6 +2318,10 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
             readLesHouchesInputParameters, writeExtraSLHAOutputBlock = "",
             readLesHouchesOutputParameters, readLesHouchesPhysicalParameters,
             numberOfDRbarBlocks, drBarBlockNames,
+            setDecaysInfoPrototypes = "", setDecaysInfoFunctions = "",
+            setDecaysPrototypes = "", setDecaysFunctions = "",
+            fillDecaysDataPrototypes = "", fillDecaysDataFunctions = "",
+            fillSLHAeaIncludingDecaysPrototypes = "", fillSLHAeaIncludingDecaysFunctions = "",
             extraHeaderIncludes = ""
            },
            minpar = Cases[inputParameters, {p_, {"MINPAR", idx_}, ___} :> {idx, p}];
@@ -2351,6 +2355,16 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
            writeExtraSLHAOutputBlock = WriteOut`WriteExtraSLHAOutputBlock[extraSLHAOutputBlocks];
            numberOfDRbarBlocks  = WriteOut`GetNumberOfDRbarBlocks[lesHouchesParameters];
            drBarBlockNames      = WriteOut`GetDRbarBlockNames[lesHouchesParameters];
+           If[FlexibleSUSY`FSCalculateDecays,
+              setDecaysInfoPrototypes = WriteOut`CreateSetDecaysInfoBlockPrototypes[];
+              setDecaysInfoFunctions = WriteOut`CreateSetDecaysInfoBlockFunctions[FlexibleSUSY`FSModelName];
+              setDecaysPrototypes = WriteOut`CreateSetDecaysPrototypes[FlexibleSUSY`FSModelName];
+              setDecaysFunctions = WriteOut`CreateSetDecaysFunctions[FlexibleSUSY`FSModelName];
+              fillDecaysDataPrototypes = WriteOut`CreateFillDecaysDataPrototypes[FlexibleSUSY`FSModelName];
+              fillDecaysDataFunctions = WriteOut`CreateFillDecaysDataFunctions[FlexibleSUSY`FSModelName];
+              fillSLHAeaIncludingDecaysPrototypes = WriteOut`CreateFillSLHAeaIncludingDecaysPrototypes[FlexibleSUSY`FSModelName];
+              fillSLHAeaIncludingDecaysFunctions = WriteOut`CreateFillSLHAeaIncludingDecaysFunctions[FlexibleSUSY`FSModelName];
+             ];
            extraHeaderIncludes = Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ extraHeaderFiles, "\n"];
            WriteOut`ReplaceInFiles[files,
                           { "@extraHeaderIncludes@"           -> extraHeaderIncludes,
@@ -2372,6 +2386,14 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
                             "@writeSLHAInputParameterBlocks@"  -> IndentText[writeSLHAInputParameterBlocks],
                             "@writeExtraSLHAOutputBlock@"      -> IndentText[writeExtraSLHAOutputBlock],
                             "@numberOfDRbarBlocks@"            -> ToString[numberOfDRbarBlocks],
+                            "@setDecaysInfoPrototypes@"        -> IndentText[setDecaysInfoPrototypes],
+                            "@setDecaysInfoFunctions@"         -> setDecaysInfoFunctions,
+                            "@setDecaysPrototypes@"            -> IndentText[setDecaysPrototypes],
+                            "@setDecaysFunctions@"             -> setDecaysFunctions,
+                            "@fillDecaysDataPrototypes@"       -> IndentText[fillDecaysDataPrototypes],
+                            "@fillDecaysDataFunctions@"        -> fillDecaysDataFunctions,
+                            "@fillSLHAeaIncludingDecaysPrototypes@" -> IndentText[fillSLHAeaIncludingDecaysPrototypes],
+                            "@fillSLHAeaIncludingDecaysFunctions@" -> fillSLHAeaIncludingDecaysFunctions,
                             "@drBarBlockNames@"                -> WrapLines[drBarBlockNames],
                             Sequence @@ GeneralReplacementRules[]
                           } ];

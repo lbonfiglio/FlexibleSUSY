@@ -51,6 +51,15 @@ PrintCmdLineOptions::usage="";
 GetGaugeCouplingNormalizationsDecls::usage="";
 GetGaugeCouplingNormalizationsDefs::usage="";
 
+CreateSetDecaysInfoBlockPrototypes::usage="";
+CreateSetDecaysInfoBlockFunctions::usage="";
+CreateSetDecaysPrototypes::usage="";
+CreateSetDecaysFunctions::usage="";
+CreateFillDecaysDataPrototypes::usage="";
+CreateFillDecaysDataFunctions::usage="";
+CreateFillSLHAeaIncludingDecaysPrototypes::usage="";
+CreateFillSLHAeaIncludingDecaysFunctions::usage="";
+
 CreateSLHAYukawaDefinition::usage="";
 CreateSLHAYukawaGetters::usage="";
 ConvertYukawaCouplingsToSLHA::usage="";
@@ -1225,6 +1234,121 @@ CreateFormattedSLHABlocks[inputPars_List] :=
            sortForBlocks = {#, FindParametersInBlock[inputPars, #]}& /@ blocks;
            StringJoin[CreateFormattedSLHABlock /@ sortForBlocks]
           ];
+
+CreateSetDecaysInfoBlockPrototypes[] := "\
+void set_dcinfo(const Decays_problems&);
+void set_dcinfo(const std::vector<std::string>&, const std::vector<std::string>&);";
+
+CreateSetDecaysInfoBlockFunctions[modelName_String] := "\
+/**
+ * Stores the decays calculation information in the DCINFO block
+ * in the SLHA object.
+ *
+ * @param problems struct with decays calculation problems
+ */
+void " <> modelName <> "_slha_io::set_dcinfo(const Decays_problems& problems)
+{
+   set_dcinfo(problems.get_problem_strings(), problems.get_warning_strings());
+}
+
+/**
+ * Stores given problems and warnings in the DCINFO block in the SLHA
+ * object.
+ *
+ * @param problems vector of problem strings
+ * @param warnings vector of warning strings
+ */
+void " <> modelName <> "_slha_io::set_dcinfo(
+   const std::vector<std::string>& problems,
+   const std::vector<std::string>& warnings)
+{
+   std::ostringstream dcinfo;
+   dcinfo << \"Block DCINFO\n\"
+          << format_spinfo(1, PKGNAME)
+          << format_spinfo(2, FLEXIBLESUSY_VERSION);
+
+   for (const auto& s: warnings)
+      spinfo << format_spinfo(3, s);
+
+   for (const auto& s: problems)
+      spinfo << format_spinfo(4, s);
+
+   dcinfo << format_spinfo(5, " <> modelName <> "_info::model_name)
+          << format_spinfo(9, SARAH_VERSION);
+
+   slha_io.set_block(dcinfo);
+}";
+
+CreateSetDecaysPrototypes[modelName_String] := "\
+void set_decays(const " <> modelName <> "_decays&);";
+
+CreateSetDecaysFunctions[modelName_String] := "\
+/**
+ * Stores the particle decay branching ratios in the SLHA object.
+ *
+ * @param decays struct containing decays data
+ */
+void " <> modelName <> "_slha_io::set_decays(const " <> modelName <> "_decays& decays)
+{
+
+}";
+
+CreateFillDecaysDataPrototypes[modelName_String] := "\
+void fill_decays_data(const " <> modelName <> "_decays&);";
+
+CreateFillDecaysDataFunctions[modelName_String] := "\
+void " <> modelName <> "_slha_io::fill_decays_data(const " <> modelName <> "_decays& decays)
+{
+   const auto& decays_problems = decays.get_problems();
+   const bool decays_error = decays_problems.have_problem();
+
+   set_dcinfo(decays_problems);
+
+   if (!decays_error) {
+      set_decays(decays.get_decay_table());
+   }
+}";
+
+CreateFillSLHAeaIncludingDecaysPrototypes[modelName_String] := "\
+template <class Model>
+static void fill_slhaea(
+   SLHAea::Coll&, const " <> modelName <> "_slha<Model>&, const softsusy::QedQcd&,
+   const " <> modelName <> "_scales&, const " <> modelName <> "_observables&,
+   const " <> modelName <> "_decays&);
+
+template <class Model>
+static SLHAea::Coll fill_slhaea(
+   const " <> modelName <> "_slha<Model>&, const softsusy::QedQcd&,
+   const " <> modelName <> "_scales&, const " <> modelName <> "_observables&,
+   const " <> modelName <> "_decays&);";
+
+CreateFillSLHAeaIncludingDecaysFunctions[modelName_String] := "\
+template <class Model>
+void " <> modelName <> "_slha_io::fill_slhaea(
+   SLHAea::Coll& slhaea, const " <> modelName <> "_slha<Model>& model,
+   const softsusy::QedQcd& qedqcd, const " <> modelName <> "_scales& scales,
+   const " <> modelName <> "_observables& observables, const " <> modelName <> "_decays& decays)
+{
+   " <> modelName <> "_slha_io slha_io;
+
+   slha_io.fill_spectrum_data(model, qedqcd, scales, observables);
+   slha_io.fill_decays_data(decays);
+
+   slhaea = slha_io.get_slha_io().get_data();
+}
+
+template <class Model>
+SLHAea::Coll " <> modelName <> "_slha_io::fill_slhaea(
+   const " <> modelName <> "_slha<Model>& model, const softsusy::QedQcd& qedqcd,
+   const " <> modelName <> "_scales& scales, const " <> modelName <> "_observables& observables,
+   const " <> modelName <> "_decays& decays)
+{
+   SLHAea::Coll slhaea;
+   " <> modelName <> "_slha_io::fill_slhaea(slhaea, model, qedqcd, scales,
+                                    observables, decays);
+
+   return slhaea;
+}";
 
 End[];
 
