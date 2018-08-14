@@ -436,11 +436,10 @@ CreateParameterNames[betaFunctions_List] :=
           ];
 
 CreateParameterEnum[betaFunctions_List] :=
-    Module[{result},
-           result = Utils`StringJoinWithSeparator[
-               Parameters`CreateParameterEnums[GetName[#],GetType[#]]& /@ betaFunctions, ", "];
-           If[Length[betaFunctions] > 0, result = result <> ", ";];
-           "enum Parameters : int { " <> result <> "NUMBER_OF_PARAMETERS };\n"
+    Module[{entries},
+           entries = Flatten[Join[Parameters`CreateParameterEnumEntries[GetName[#], GetType[#]]& /@ betaFunctions,
+                                  {"NUMBER_OF_PARAMETERS"}]];
+           CConversion`CreateEnum["Parameters", entries, 0]
           ];
 
 (* create setters *)

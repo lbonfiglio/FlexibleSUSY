@@ -16,40 +16,27 @@
 // <http://www.gnu.org/licenses/>.
 // ====================================================================
 
-// File generated at @DateAndTime@
-
-/**
- * @file @ModelName@_higgs_decays.hpp
- *
- * This file was generated at @DateAndTime@ with FlexibleSUSY
- * @FlexibleSUSYVersion@ and SARAH @SARAHVersion@ .
- */
-
-#ifndef @ModelName@_HIGGS_DECAYS_H
-#define @ModelName@_HIGGS_DECAYS_H
-
-#include "@ModelName@_mass_eigenstates.hpp"
-#include "cxx_qft/@ModelName@_qft.hpp"
+#ifndef DECAYS_PROBLEMS_H
+#define DECAYS_PROBLEMS_H
 
 namespace flexiblesusy {
 
-using namespace cxx_qft;
-class MRSSM2_HiggsDecays {
-
+class Decays_problems {
 public:
-
-template<typename FieldIn, typename FieldOut1, typename FieldOut2>
-double get_partial_width(
-   @ModelName@_mass_eigenstates const&,
-   typename field_indices<FieldIn>::type const&,
-   typename field_indices<FieldOut1>::type const&,
-   typename field_indices<FieldOut2>::type const&
-) const;
+   void clear() {}
+   bool have_problem() const { return false; }
+   bool have_warning() const { return false; }
+   std::vector<std::string> get_problem_strings() const {
+      return std::vector<std::string>{};
+   }
+   std::vector<std::string> get_warning_strings() const {
+      return std::vector<std::string>{};
+   }
 
 private:
-   
-@ModelName@_mass_eigenstates model;
+   std::string model_name{};
 };
 
-}
+} // namespace flexiblesusy
+
 #endif

@@ -7,9 +7,13 @@ BASE_TEMPLATES := \
 		$(DIR)/cxx_qft/fields.hpp.in \
 		$(DIR)/a_muon.hpp.in \
 		$(DIR)/a_muon.cpp.in \
+		$(DIR)/convergence_tester.hpp.in \
+		$(DIR)/decay_table.hpp.in \
+		$(DIR)/decay_table.cpp.in \
+		$(DIR)/decays.hpp.in \
+		$(DIR)/decays.cpp.in \
 		$(DIR)/edm.hpp.in \
 		$(DIR)/edm.cpp.in \
-		$(DIR)/convergence_tester.hpp.in \
 		$(DIR)/ewsb_solver.hpp.in \
 		$(DIR)/ewsb_solver_interface.hpp.in \
 		$(DIR)/effective_couplings.hpp.in \
@@ -55,6 +59,12 @@ BASE_TEMPLATES := \
 		$(DIR)/susy_scale_constraint.hpp.in \
 		$(DIR)/utilities.hpp.in \
 		$(DIR)/utilities.cpp.in
+
+MODULE_MK_TEMPLATES := \
+		$(DIR)/FlexibleEFTHiggs.mk.in \
+		$(DIR)/FlexibleDecays.mk.in \
+		$(DIR)/semi_analytic.mk.in \
+		$(DIR)/two_scale.mk.in
 
 TWO_SCALE_TEMPLATES := \
 		$(DIR)/standard_model_two_scale_high_scale_initial_guesser.cpp.in \
@@ -123,7 +133,8 @@ SEMI_ANALYTIC_TEMPLATES := \
 TEMPLATES    := \
 		$(BASE_TEMPLATES) \
 		$(TWO_SCALE_TEMPLATES) \
-		$(SEMI_ANALYTIC_TEMPLATES)
+		$(SEMI_ANALYTIC_TEMPLATES) \
+		$(MODULE_MK_TEMPLATES)
 
 .PHONY:         all-$(MODNAME) clean-$(MODNAME) distclean-$(MODNAME)
 

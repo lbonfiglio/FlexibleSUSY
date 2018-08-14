@@ -77,9 +77,6 @@ CXXNameOfField[Susyno`LieGroups`conj[p_],
   "typename conj<" <> CXXNameOfField[p, prefixNamespace -> OptionValue[prefixNamespace]] <>
   ">::type";
 
-CXXBoolValue[True] = "true"
-CXXBoolValue[False] = "false"
-
 (* TODO: Better name than LorentzConjugate *)
 LorentzConjugateOperation[field_] := If[FermionQ[field] || GhostQ[field],
                                         "bar",
@@ -140,8 +137,8 @@ CreateFields[] :=
                    ToString @ TreeMasses`GetDimension[#] <> ";\n" <>
                      "using sm_flags = boost::mpl::vector_c<bool, " <>
                         If[TreeMasses`GetDimension[#] === 1,
-                           CXXBoolValue @ TreeMasses`IsSMParticle[#],
-                           StringJoin @ Riffle[CXXBoolValue /@
+                           CConversion`CreateCBoolValue @ TreeMasses`IsSMParticle[#],
+                           StringJoin @ Riffle[CConversion`CreateCBoolValue /@
                              (TreeMasses`IsSMParticle[#] & /@ Table[#[{k}],{k,TreeMasses`GetDimension[#]}]),
                                                ", "]] <>
                         ">;\n" <>
