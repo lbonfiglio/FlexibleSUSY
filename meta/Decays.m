@@ -31,6 +31,65 @@ functions calculating all decays for each particle.";
 
 Begin["`Private`"];
 
+GetDecaysForParticle[particle_, Infinity, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {Infinity}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {n_, Infinity}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {Infinity, n_}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {Infinity, Infinity}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, maxNumberOfProducts_Integer /; maxNumberOfProducts >= 2,
+                     allowedFinalStateParticles_List] :=
+    GetDecaysForParticle[particle, {2, maxNumberOfProducts}, allowedFinalStateParticles];
+
+GetDecaysForParticle[particle_, {minNumberOfProducts_Integer /; minNumberOfProducts >= 2,
+                                 maxNumberOfProducts_Integer /; maxNumberOfProducts >= 2},
+                                allowedFinalStateParticles_List] :=
+    Module[{i, finalStateSizes},
+           finalStateSizes = Table[{i}, {i, minNumberOfProducts, maxNumberOfProducts}];
+           GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes
+          ];
+
+GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
+    Module[{possibleFinalStates = {}, allowedFinalStates = {}, decays = {exactNumberOfProducts, {}}},
+           If[exactNumberOfProducts > 2,
+              Print["Warning: decays with ", exactNumberOfProducts,
+                    " final particles are not currently supported."];
+              Quit[1];
+             ];
+           possibleFinalStates = GenerateNParticleFinalStates[exactNumberOfProducts, allowedFinalStateParticles];
+           allowedFinalStates = Select[possibleFinalStates, !IsForbiddenDecay[particle, #]&];
+          ];
+
+GetDecaysForParticle[particle_, n_, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: invalid number of final state particles: ", n];
+     Quit[1];
+    )
+
 (*
 CreatePartialWidthCalculationName[decayParticle_, productParticles_List] :=
     Module[{inParticleNoIndices, outParticlesNoIndices},
