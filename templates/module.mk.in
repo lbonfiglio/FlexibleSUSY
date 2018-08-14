@@ -46,6 +46,7 @@ LIB@CLASSNAME@_SRC := \
 		$(DIR)/@CLASSNAME@_a_muon.cpp \
 		$(DIR)/@CLASSNAME@_edm.cpp \
 		$(DIR)/@CLASSNAME@_effective_couplings.cpp \
+		$(DIR)/@CLASSNAME@_higgs_decays.cpp \
 		$(DIR)/@CLASSNAME@_info.cpp \
 		$(DIR)/@CLASSNAME@_input_parameters.cpp \
 		$(DIR)/@CLASSNAME@_mass_eigenstates.cpp \
@@ -80,6 +81,7 @@ LIB@CLASSNAME@_HDR := \
 		$(DIR)/@CLASSNAME@_effective_couplings.hpp \
 		$(DIR)/@CLASSNAME@_ewsb_solver.hpp \
 		$(DIR)/@CLASSNAME@_ewsb_solver_interface.hpp \
+		$(DIR)/@CLASSNAME@_higgs_decays.hpp \
 		$(DIR)/@CLASSNAME@_high_scale_constraint.hpp \
 		$(DIR)/@CLASSNAME@_info.hpp \
 		$(DIR)/@CLASSNAME@_initial_guesser.hpp \
