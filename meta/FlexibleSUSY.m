@@ -2115,10 +2115,28 @@ RunCmdLineEnabledSpectrumGenerator[solver_] :=
            EnableForBVPSolver[solver, IndentText[result]] <> "\n"
           ];
 
+ExampleDecaysIncludes[] :=
+    Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ { FlexibleSUSY`FSModelName <> "_decays.hpp",
+                                                                     "decays_problems.hpp"}, "\n"];
+
+ExampleCalculateDecaysForModel[] := FlexibleSUSY`FSModelName <>
+"_decays decays;
+if (spectrum_generator_settings.get(Spectrum_generator_settings::calculate_decays)) {
+   decays.calculate_decays(std::get<0>(models));
+}";
+
+ExampleSetDecaysSLHAOutput[] := "\
+const bool show_decays = !decays.have_problem() ||
+   spectrum_generator_settings.get(Spectrum_generator_settings::force_output);
+if (show_decays) {
+   slha_io.set_decays(decays);
+}";
+
 WriteUserExample[inputParameters_List, files_List] :=
     Module[{parseCmdLineOptions, printCommandLineOptions, inputPars,
             solverIncludes = "", runEnabledSolvers = "", scanEnabledSolvers = "",
-            runEnabledCmdLineSolvers = "", defaultSolverType},
+            runEnabledCmdLineSolvers = "", defaultSolverType,
+            decaysIncludes = "", calculateDecaysForModel = "", setDecaysSLHAOutput = ""},
            inputPars = {First[#], #[[3]]}& /@ inputParameters;
            parseCmdLineOptions = WriteOut`ParseCmdLineOptions[inputPars];
            printCommandLineOptions = WriteOut`PrintCmdLineOptions[inputPars];
@@ -2130,6 +2148,11 @@ WriteUserExample[inputParameters_List, files_List] :=
               defaultSolverType = "-1",
               defaultSolverType = GetBVPSolverSLHAOptionKey[FlexibleSUSY`FSBVPSolvers[[1]]]
              ];
+           If[FlexibleSUSY`FSCalculateDecays,
+              decaysIncludes = ExampleDecaysIncludes[];
+              calculateDecaysForModel = ExampleCalculateDecaysForModel[];
+              setDecaysSLHAOutput = ExampleSetDecaysSLHAOutput[];
+             ];
            WriteOut`ReplaceInFiles[files,
                           { "@parseCmdLineOptions@" -> IndentText[IndentText[parseCmdLineOptions]],
                             "@printCommandLineOptions@" -> IndentText[IndentText[printCommandLineOptions]],
@@ -2138,6 +2161,9 @@ WriteUserExample[inputParameters_List, files_List] :=
                             "@scanEnabledSolvers@" -> scanEnabledSolvers,
                             "@runEnabledCmdLineSolvers@" -> runEnabledCmdLineSolvers,
                             "@defaultSolverType@" -> defaultSolverType,
+                            "@decaysIncludes@" -> decaysIncludes,
+                            "@calculateDecaysForModel@" -> IndentText[calculateDecaysForModel],
+                            "@setDecaysSLHAOutput@" -> IndentText[IndentText[setDecaysSLHAOutput]],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
