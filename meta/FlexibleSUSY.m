@@ -2276,9 +2276,9 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
            numberOfParameters = BetaFunction`CountNumberOfParameters[betaFun];
            parameterEnum      = BetaFunction`CreateParameterEnum[betaFun];
            parameterNames     = BetaFunction`CreateParameterNames[betaFun];
-           isLowEnergyModel = If[FlexibleSUSY`OnlyLowEnergyFlexibleSUSY === True, "true", "false"];
-           isSupersymmetricModel = If[SARAH`SupersymmetricModel === True, "true", "false"];
-           isFlexibleEFTHiggs = If[FlexibleSUSY`FlexibleEFTHiggs === True, "true", "false"];
+           isLowEnergyModel = CConversion`CreateCBoolValue[FlexibleSUSY`OnlyLowEnergyFlexibleSUSY];
+           isSupersymmetricModel = CConversion`CreateCBoolValue[SARAH`SupersymmetricModel];
+           isFlexibleEFTHiggs = CConversion`CreateCBoolValue[FlexibleSUSY`FlexibleEFTHiggs];
            gaugeCouplingNormalizationDecls = WriteOut`GetGaugeCouplingNormalizationsDecls[SARAH`Gauge];
            gaugeCouplingNormalizationDefs  = WriteOut`GetGaugeCouplingNormalizationsDefs[SARAH`Gauge];
            WriteOut`ReplaceInFiles[files,
