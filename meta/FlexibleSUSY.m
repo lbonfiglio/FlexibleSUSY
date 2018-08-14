@@ -2305,8 +2305,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
           ];
 
 WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List,
-                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, files_List,
-                 extraReplacementRules_:{}] :=
+                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, files_List] :=
     Module[{minpar, extpar, imminpar, imextpar, extraSLHAInputParameters,
             fillInputParametersFromMINPAR = "", fillInputParametersFromEXTPAR = "",
             fillInputParametersFromIMMINPAR = "", fillInputParametersFromIMEXTPAR = "",
@@ -2370,7 +2369,6 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
                             "@writeExtraSLHAOutputBlock@"      -> IndentText[writeExtraSLHAOutputBlock],
                             "@numberOfDRbarBlocks@"            -> ToString[numberOfDRbarBlocks],
                             "@drBarBlockNames@"                -> WrapLines[drBarBlockNames],
-                            Sequence @@ extraReplacementRules,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
