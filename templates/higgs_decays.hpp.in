@@ -39,15 +39,12 @@ class MRSSM2_HiggsDecays {
 public:
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
-double get_partial_width(@ModelName@_mass_eigenstates const& model,
-   std::initializer_list<int> generationIndices
+double get_partial_width(
+   @ModelName@_mass_eigenstates const&,
+   typename field_indices<FieldIn>::type const&,
+   typename field_indices<FieldOut1>::type const&,
+   typename field_indices<FieldOut2>::type const&
 ) const;
-
-// for SM particles 
-// double get_hhVPVP_partial_width(unsigned int) const;
-// double get_hhVGVG_partial_width(unsigned int) const;
-// double get_hhVZVP_partial_width(unsigned int) const;
-// double get_hhhhhh_partial_width(unsigned int, unsigned int, unsigned int) const;
 
 private:
    
