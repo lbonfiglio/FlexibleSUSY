@@ -26,7 +26,7 @@
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_observables.hpp"
 #include "@ModelName@_physical.hpp"
-@extraHeaderIncludes@
+@decaysHeaderIncludes@
 #include "problems.hpp"
 #include "spectrum_generator_problems.hpp"
 #include "standard_model_two_scale_model.hpp"

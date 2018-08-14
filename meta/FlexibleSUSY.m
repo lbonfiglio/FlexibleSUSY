@@ -2305,7 +2305,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
           ];
 
 WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List,
-                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, extraHeaderFiles_List,
+                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, decaysHeaderFiles_List,
                  files_List] :=
     Module[{minpar, extpar, imminpar, imextpar, extraSLHAInputParameters,
             fillInputParametersFromMINPAR = "", fillInputParametersFromEXTPAR = "",
@@ -2322,7 +2322,7 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
             setDecaysPrototypes = "", setDecaysFunctions = "",
             fillDecaysDataPrototypes = "", fillDecaysDataFunctions = "",
             fillSLHAeaIncludingDecaysPrototypes = "", fillSLHAeaIncludingDecaysFunctions = "",
-            extraHeaderIncludes = ""
+            decaysHeaderIncludes = ""
            },
            minpar = Cases[inputParameters, {p_, {"MINPAR", idx_}, ___} :> {idx, p}];
            extpar = Cases[inputParameters, {p_, {"EXTPAR", idx_}, ___} :> {idx, p}];
@@ -2364,11 +2364,10 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
               fillDecaysDataFunctions = WriteOut`CreateFillDecaysDataFunctions[FlexibleSUSY`FSModelName];
               fillSLHAeaIncludingDecaysPrototypes = WriteOut`CreateFillSLHAeaIncludingDecaysPrototypes[FlexibleSUSY`FSModelName];
               fillSLHAeaIncludingDecaysFunctions = WriteOut`CreateFillSLHAeaIncludingDecaysFunctions[FlexibleSUSY`FSModelName];
+              decaysHeaderIncludes = Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ decaysHeaderFiles, "\n"];
              ];
-           extraHeaderIncludes = Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ extraHeaderFiles, "\n"];
            WriteOut`ReplaceInFiles[files,
-                          { "@extraHeaderIncludes@"           -> extraHeaderIncludes,
-                            "@fillInputParametersFromMINPAR@" -> IndentText[fillInputParametersFromMINPAR],
+                          { "@fillInputParametersFromMINPAR@" -> IndentText[fillInputParametersFromMINPAR],
                             "@fillInputParametersFromEXTPAR@" -> IndentText[fillInputParametersFromEXTPAR],
                             "@fillInputParametersFromIMMINPAR@" -> IndentText[fillInputParametersFromIMMINPAR],
                             "@fillInputParametersFromIMEXTPAR@" -> IndentText[fillInputParametersFromIMEXTPAR],
@@ -2386,6 +2385,7 @@ WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraPar
                             "@writeSLHAInputParameterBlocks@"  -> IndentText[writeSLHAInputParameterBlocks],
                             "@writeExtraSLHAOutputBlock@"      -> IndentText[writeExtraSLHAOutputBlock],
                             "@numberOfDRbarBlocks@"            -> ToString[numberOfDRbarBlocks],
+                            "@decaysHeaderIncludes@"           -> decaysHeaderIncludes,
                             "@setDecaysInfoPrototypes@"        -> IndentText[setDecaysInfoPrototypes],
                             "@setDecaysInfoFunctions@"         -> setDecaysInfoFunctions,
                             "@setDecaysPrototypes@"            -> IndentText[setDecaysPrototypes],
