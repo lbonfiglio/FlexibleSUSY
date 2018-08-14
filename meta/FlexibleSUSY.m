@@ -2250,13 +2250,8 @@ WriteBVPSolverMakefile[files_List] :=
                    } ];
           ];
 
-WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List,
-                    lesHouchesParameters_List, extraSLHAOutputBlocks_List, files_List] :=
-    Module[{k, particles, susyParticles, smParticles,
-            minpar, extpar, imminpar, imextpar, extraSLHAInputParameters,
-            fillSpectrumVectorWithSusyParticles = "",
-            fillSpectrumVectorWithSMParticles = "",
-            particleLaTeXNames = "",
+WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List, files_List] :=
+    Module[{particles, particleLaTeXNames = "",
             particleNames = "", particleEnum = "", particleMassEnum, particleMultiplicity = "",
             particleMixingEnum = "", particleMixingNames = "",
             parameterNames = "", parameterEnum = "", numberOfParameters = 0,
@@ -2265,9 +2260,55 @@ WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extra
             isLowEnergyModel = "false",
             isSupersymmetricModel = "false",
             isFlexibleEFTHiggs = "false",
+            gaugeCouplingNormalizationDecls = "", gaugeCouplingNormalizationDefs = ""},
+           inputParameterEnum  = Parameters`CreateInputParameterEnum[inputParameters];
+           inputParameterNames = Parameters`CreateInputParameterNames[inputParameters];
+           extraParameterEnum  = Parameters`CreateExtraParameterEnum[extraParameters];
+           extraParameterNames = Parameters`CreateExtraParameterNames[extraParameters];
+           particles = DeleteDuplicates @ Flatten[TreeMasses`GetMassEigenstate /@ massMatrices];
+           particleEnum       = TreeMasses`CreateParticleEnum[particles];
+           particleMassEnum   = TreeMasses`CreateParticleMassEnum[particles];
+           particleMixingEnum = TreeMasses`CreateParticleMixingEnum[massMatrices];
+           particleMultiplicity = TreeMasses`CreateParticleMultiplicity[particles];
+           particleNames      = TreeMasses`CreateParticleNames[particles];
+           particleLaTeXNames = TreeMasses`CreateParticleLaTeXNames[particles];
+           particleMixingNames= TreeMasses`CreateParticleMixingNames[massMatrices];
+           numberOfParameters = BetaFunction`CountNumberOfParameters[betaFun];
+           parameterEnum      = BetaFunction`CreateParameterEnum[betaFun];
+           parameterNames     = BetaFunction`CreateParameterNames[betaFun];
+           isLowEnergyModel = If[FlexibleSUSY`OnlyLowEnergyFlexibleSUSY === True, "true", "false"];
+           isSupersymmetricModel = If[SARAH`SupersymmetricModel === True, "true", "false"];
+           isFlexibleEFTHiggs = If[FlexibleSUSY`FlexibleEFTHiggs === True, "true", "false"];
+           gaugeCouplingNormalizationDecls = WriteOut`GetGaugeCouplingNormalizationsDecls[SARAH`Gauge];
+           gaugeCouplingNormalizationDefs  = WriteOut`GetGaugeCouplingNormalizationsDefs[SARAH`Gauge];
+           WriteOut`ReplaceInFiles[files,
+                          { "@gaugeCouplingNormalizationDecls@"-> IndentText[gaugeCouplingNormalizationDecls],
+                            "@gaugeCouplingNormalizationDefs@" -> IndentText[gaugeCouplingNormalizationDefs],
+                            "@isLowEnergyModel@"   -> isLowEnergyModel,
+                            "@isSupersymmetricModel@" -> isSupersymmetricModel,
+                            "@isFlexibleEFTHiggs@" -> isFlexibleEFTHiggs,
+                            "@particleEnum@"       -> IndentText[WrapLines[particleEnum]],
+                            "@particleMassEnum@"   -> IndentText[WrapLines[particleMassEnum]],
+                            "@particleMixingEnum@" -> IndentText[WrapLines[particleMixingEnum]],
+                            "@particleMultiplicity@" -> IndentText[WrapLines[particleMultiplicity]],
+                            "@particleNames@"      -> IndentText[WrapLines[particleNames]],
+                            "@particleLaTeXNames@" -> IndentText[WrapLines[particleLaTeXNames]],
+                            "@parameterEnum@"     -> IndentText[WrapLines[parameterEnum]],
+                            "@parameterNames@"     -> IndentText[WrapLines[parameterNames]],
+                            "@particleMixingNames@"-> IndentText[WrapLines[particleMixingNames]],
+                            "@inputParameterEnum@" -> IndentText[WrapLines[inputParameterEnum]],
+                            "@inputParameterNames@"-> IndentText[WrapLines[inputParameterNames]],
+                            "@extraParameterEnum@" -> IndentText[WrapLines[extraParameterEnum]],
+                            "@extraParameterNames@"-> IndentText[WrapLines[extraParameterNames]],
+                            Sequence @@ GeneralReplacementRules[]
+                          } ];
+          ];
+
+WriteSLHAIOClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List,
+                 lesHouchesParameters_List, extraSLHAOutputBlocks_List, files_List] :=
+    Module[{minpar, extpar, imminpar, imextpar, extraSLHAInputParameters,
             fillInputParametersFromMINPAR = "", fillInputParametersFromEXTPAR = "",
-            fillInputParametersFromIMMINPAR = "",
-            fillInputParametersFromIMEXTPAR = "",
+            fillInputParametersFromIMMINPAR = "", fillInputParametersFromIMEXTPAR = "",
             writeSLHAMassBlock = "", writeSLHAMixingMatricesBlocks = "",
             writeSLHAModelParametersBlocks = "", writeSLHAPhasesBlocks = "",
             writeSLHAMinparBlock = "", writeSLHAExtparBlock = "",
@@ -2275,13 +2316,8 @@ WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extra
             writeSLHAInputParameterBlocks = "",
             readLesHouchesInputParameters, writeExtraSLHAOutputBlock = "",
             readLesHouchesOutputParameters, readLesHouchesPhysicalParameters,
-            gaugeCouplingNormalizationDecls = "",
-            gaugeCouplingNormalizationDefs = "",
             numberOfDRbarBlocks, drBarBlockNames
            },
-           particles = DeleteDuplicates @ Flatten[TreeMasses`GetMassEigenstate /@ massMatrices];
-           susyParticles = Select[particles, (!TreeMasses`IsSMParticle[#])&];
-           smParticles   = Complement[particles, susyParticles];
            minpar = Cases[inputParameters, {p_, {"MINPAR", idx_}, ___} :> {idx, p}];
            extpar = Cases[inputParameters, {p_, {"EXTPAR", idx_}, ___} :> {idx, p}];
            imminpar = Cases[inputParameters, {p_, {"IMMINPAR", idx_}, ___} :> {idx, p}];
@@ -2293,25 +2329,6 @@ WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                Cases[inputParameters, {_, {"IMMINPAR", _}, ___}],
                Cases[inputParameters, {_, {"IMEXTPAR", _}, ___}]
            ];
-           particleEnum       = TreeMasses`CreateParticleEnum[particles];
-           particleMassEnum   = TreeMasses`CreateParticleMassEnum[particles];
-           particleMixingEnum = TreeMasses`CreateParticleMixingEnum[massMatrices];
-           particleMultiplicity = TreeMasses`CreateParticleMultiplicity[particles];
-           particleNames      = TreeMasses`CreateParticleNames[particles];
-           particleLaTeXNames = TreeMasses`CreateParticleLaTeXNames[particles];
-           particleMixingNames= TreeMasses`CreateParticleMixingNames[massMatrices];
-           inputParameterEnum  = Parameters`CreateInputParameterEnum[inputParameters];
-           inputParameterNames = Parameters`CreateInputParameterNames[inputParameters];
-           extraParameterEnum  = Parameters`CreateExtraParameterEnum[extraParameters];
-           extraParameterNames = Parameters`CreateExtraParameterNames[extraParameters];
-           fillSpectrumVectorWithSusyParticles = TreeMasses`FillSpectrumVector[susyParticles];
-           fillSpectrumVectorWithSMParticles   = TreeMasses`FillSpectrumVector[smParticles];
-           numberOfParameters = BetaFunction`CountNumberOfParameters[betaFun];
-           parameterEnum      = BetaFunction`CreateParameterEnum[betaFun];
-           parameterNames     = BetaFunction`CreateParameterNames[betaFun];
-           isLowEnergyModel = If[FlexibleSUSY`OnlyLowEnergyFlexibleSUSY === True, "true", "false"];
-           isSupersymmetricModel = If[SARAH`SupersymmetricModel === True, "true", "false"];
-           isFlexibleEFTHiggs = If[FlexibleSUSY`FlexibleEFTHiggs === True, "true", "false"];
            fillInputParametersFromMINPAR = Parameters`FillInputParametersFromTuples[minpar, "MINPAR"];
            fillInputParametersFromEXTPAR = Parameters`FillInputParametersFromTuples[extpar, "EXTPAR"];
            fillInputParametersFromIMMINPAR = Parameters`FillInputParametersFromTuples[imminpar, "IMMINPAR"];
@@ -2332,28 +2349,8 @@ WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extra
            writeExtraSLHAOutputBlock = WriteOut`WriteExtraSLHAOutputBlock[extraSLHAOutputBlocks];
            numberOfDRbarBlocks  = WriteOut`GetNumberOfDRbarBlocks[lesHouchesParameters];
            drBarBlockNames      = WriteOut`GetDRbarBlockNames[lesHouchesParameters];
-           gaugeCouplingNormalizationDecls = WriteOut`GetGaugeCouplingNormalizationsDecls[SARAH`Gauge];
-           gaugeCouplingNormalizationDefs  = WriteOut`GetGaugeCouplingNormalizationsDefs[SARAH`Gauge];
            WriteOut`ReplaceInFiles[files,
-                          { "@fillSpectrumVectorWithSusyParticles@" -> IndentText[fillSpectrumVectorWithSusyParticles],
-                            "@fillSpectrumVectorWithSMParticles@"   -> IndentText[IndentText[fillSpectrumVectorWithSMParticles]],
-                            "@particleEnum@"       -> IndentText[WrapLines[particleEnum]],
-                            "@particleMassEnum@"   -> IndentText[WrapLines[particleMassEnum]],
-                            "@particleMixingEnum@" -> IndentText[WrapLines[particleMixingEnum]],
-                            "@particleMultiplicity@" -> IndentText[WrapLines[particleMultiplicity]],
-                            "@particleNames@"      -> IndentText[WrapLines[particleNames]],
-                            "@particleLaTeXNames@" -> IndentText[WrapLines[particleLaTeXNames]],
-                            "@parameterEnum@"     -> IndentText[WrapLines[parameterEnum]],
-                            "@parameterNames@"     -> IndentText[WrapLines[parameterNames]],
-                            "@particleMixingNames@"-> IndentText[WrapLines[particleMixingNames]],
-                            "@inputParameterEnum@" -> IndentText[WrapLines[inputParameterEnum]],
-                            "@inputParameterNames@"-> IndentText[WrapLines[inputParameterNames]],
-                            "@extraParameterEnum@" -> IndentText[WrapLines[extraParameterEnum]],
-                            "@extraParameterNames@"-> IndentText[WrapLines[extraParameterNames]],
-                            "@isLowEnergyModel@"   -> isLowEnergyModel,
-                            "@isSupersymmetricModel@" -> isSupersymmetricModel,
-                            "@isFlexibleEFTHiggs@" -> isFlexibleEFTHiggs,
-                            "@fillInputParametersFromMINPAR@" -> IndentText[fillInputParametersFromMINPAR],
+                          { "@fillInputParametersFromMINPAR@" -> IndentText[fillInputParametersFromMINPAR],
                             "@fillInputParametersFromEXTPAR@" -> IndentText[fillInputParametersFromEXTPAR],
                             "@fillInputParametersFromIMMINPAR@" -> IndentText[fillInputParametersFromIMMINPAR],
                             "@fillInputParametersFromIMEXTPAR@" -> IndentText[fillInputParametersFromIMEXTPAR],
@@ -2370,10 +2367,22 @@ WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                             "@writeSLHAImExtparBlock@"         -> IndentText[writeSLHAImExtparBlock],
                             "@writeSLHAInputParameterBlocks@"  -> IndentText[writeSLHAInputParameterBlocks],
                             "@writeExtraSLHAOutputBlock@"      -> IndentText[writeExtraSLHAOutputBlock],
-                            "@gaugeCouplingNormalizationDecls@"-> IndentText[gaugeCouplingNormalizationDecls],
-                            "@gaugeCouplingNormalizationDefs@" -> IndentText[gaugeCouplingNormalizationDefs],
                             "@numberOfDRbarBlocks@"            -> ToString[numberOfDRbarBlocks],
                             "@drBarBlockNames@"                -> WrapLines[drBarBlockNames],
+                            Sequence @@ GeneralReplacementRules[]
+                          } ];
+          ];
+
+WriteUtilitiesClass[massMatrices_List, files_List] :=
+    Module[{particles, susyParticles, smParticles},
+           particles = DeleteDuplicates @ Flatten[TreeMasses`GetMassEigenstate /@ massMatrices];
+           susyParticles = Select[particles, (!TreeMasses`IsSMParticle[#])&];
+           smParticles   = Complement[particles, susyParticles];
+           fillSpectrumVectorWithSusyParticles = TreeMasses`FillSpectrumVector[susyParticles];
+           fillSpectrumVectorWithSMParticles   = TreeMasses`FillSpectrumVector[smParticles];
+           WriteOut`ReplaceInFiles[files,
+                          { "@fillSpectrumVectorWithSusyParticles@" -> IndentText[fillSpectrumVectorWithSusyParticles],
+                            "@fillSpectrumVectorWithSMParticles@"   -> IndentText[IndentText[fillSpectrumVectorWithSMParticles]],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
@@ -3686,23 +3695,34 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                }];
 
            PrintHeadline["Creating utilities"];
-           Print["Creating utilities class ..."];
-           WriteUtilitiesClass[massMatrices, Join[susyBetaFunctions, susyBreakingBetaFunctions],
+           Print["Creating model information class ..."];
+           WriteModelInfoClass[massMatrices, Join[susyBetaFunctions, susyBreakingBetaFunctions],
                                inputParameters, Parameters`GetExtraParameters[],
-                               FlexibleSUSY`FSLesHouchesList, extraSLHAOutputBlocks,
-               {{FileNameJoin[{$flexiblesusyTemplateDir, "info.hpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_info.hpp"}]},
-                {FileNameJoin[{$flexiblesusyTemplateDir, "info.cpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_info.cpp"}]},
-                {FileNameJoin[{$flexiblesusyTemplateDir, "utilities.hpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_utilities.hpp"}]},
-                {FileNameJoin[{$flexiblesusyTemplateDir, "utilities.cpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_utilities.cpp"}]},
-                {FileNameJoin[{$flexiblesusyTemplateDir, "slha_io.hpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_slha_io.hpp"}]},
-                {FileNameJoin[{$flexiblesusyTemplateDir, "slha_io.cpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_slha_io.cpp"}]}
-               }
+                               {{FileNameJoin[{$flexiblesusyTemplateDir, "info.hpp.in"}],
+                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_info.hpp"}]},
+                                {FileNameJoin[{$flexiblesusyTemplateDir, "info.cpp.in"}],
+                                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_info.cpp"}]}
+                               }
+                              ];
+
+
+           Print["Creating SLHA I/O class ..."];
+           WriteSLHAIOClass[massMatrices, Join[susyBetaFunctions, susyBreakingBetaFunctions],
+                            inputParameters, Parameters`GetExtraParameters[],
+                            FlexibleSUSY`FSLesHouchesList, extraSLHAOutputBlocks,
+                            {{FileNameJoin[{$flexiblesusyTemplateDir, "slha_io.hpp.in"}],
+                              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_slha_io.hpp"}]},
+                             {FileNameJoin[{$flexiblesusyTemplateDir, "slha_io.cpp.in"}],
+                              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_slha_io.cpp"}]}
+                            }
+                           ];
+
+           Print["Creating utilities class ..."];
+           WriteUtilitiesClass[massMatrices, {{FileNameJoin[{$flexiblesusyTemplateDir, "utilities.hpp.in"}],
+                                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_utilities.hpp"}]},
+                                              {FileNameJoin[{$flexiblesusyTemplateDir, "utilities.cpp.in"}],
+                                               FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_utilities.cpp"}]}
+                                             }
                               ];
 
            Print["Creating FlexibleEFTHiggs.mk ..."];
