@@ -4070,6 +4070,8 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
            If[FSCalculateDecays,
               PrintHeadline["Creating particle decays"];
 
+              DebugPrint["calculating decays for particles: ", FlexibleSUSY`DecayParticles];
+
               If[FlexibleSUSY`DecayParticles =!= {},
                  Print["Creating class for decays ..."];
                  decaysSources = Join[decaysSources, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_table.cpp"}],
@@ -4087,7 +4089,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
                                   }];
                  ,
-                 Print["Skipping creating decays as no particles to calculate decays for were found."];
+                 Print["Skipping calculating decays as no particles to calculate decays for were found."];
                 ];
 
               WriteDecaysMakefileModule[decaysSources, decaysHeaders,
