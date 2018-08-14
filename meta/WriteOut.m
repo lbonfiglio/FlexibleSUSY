@@ -1263,15 +1263,15 @@ void " <> modelName <> "_slha_io::set_dcinfo(
    const std::vector<std::string>& warnings)
 {
    std::ostringstream dcinfo;
-   dcinfo << \"Block DCINFO\n\"
+   dcinfo << \"Block DCINFO\\n\"
           << format_spinfo(1, PKGNAME)
           << format_spinfo(2, FLEXIBLESUSY_VERSION);
 
    for (const auto& s: warnings)
-      spinfo << format_spinfo(3, s);
+      dcinfo << format_spinfo(3, s);
 
    for (const auto& s: problems)
-      spinfo << format_spinfo(4, s);
+      dcinfo << format_spinfo(4, s);
 
    dcinfo << format_spinfo(5, " <> modelName <> "_info::model_name)
           << format_spinfo(9, SARAH_VERSION);
@@ -1305,7 +1305,7 @@ void " <> modelName <> "_slha_io::fill_decays_data(const " <> modelName <> "_dec
    set_dcinfo(decays_problems);
 
    if (!decays_error) {
-      set_decays(decays.get_decay_table());
+      /* set_decays(decays.get_decay_table()); */
    }
 }";
 
@@ -1331,7 +1331,7 @@ void " <> modelName <> "_slha_io::fill_slhaea(
 {
    " <> modelName <> "_slha_io slha_io;
 
-   slha_io.fill_spectrum_data(model, qedqcd, scales, observables);
+   slha_io.fill_spectrum_generator_data(model, qedqcd, scales, observables);
    slha_io.fill_decays_data(decays);
 
    slhaea = slha_io.get_slha_io().get_data();

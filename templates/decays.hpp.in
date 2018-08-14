@@ -18,10 +18,18 @@
 
 // File generated at @DateAndTime@
 
+/**
+ * @file @ModelName@_decays.hpp
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ (git commit: @FlexibleSUSYGitCommit@) and SARAH @SARAHVersion@ .
+ */
+
 #ifndef @ModelName@_DECAYS_H
 #define @ModelName@_DECAYS_H
 
-#include "@ModelName@_decay_table.hpp"
+//#include "@ModelName@_decay_table.hpp"
+#include "cxx_qft/@ModelName@_qft.hpp"
 
 #include "decays_problems.hpp"
 
@@ -31,7 +39,7 @@ class @ModelName@_mass_eigenstates;
 
 class @ModelName@_decays {
 public:
-   const @ModelName@_decay_table& get_decay_table() const;
+/*   const @ModelName@_decay_table& get_decay_table() const; */
    const Decays_problems& get_problems() const;
 
    void clear();
@@ -40,8 +48,16 @@ public:
 
 @decaysGetters@
 @decaysCalculationPrototypes@
+
+   template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+   double get_partial_width(
+      const @ModelName@_mass_eigenstates&,
+      const typename cxx_qft::field_indices<FieldIn>::type&,
+      const typename cxx_qft::field_indices<FieldOut1>::type&,
+      const typename cxx_qft::field_indices<FieldOut2>::type&) const;
+
 private:
-   @ModelName@_decay_table decay_table{};
+/*   @ModelName@_decay_table decay_table{}; */
    Decays_problems problems{};
 };
 

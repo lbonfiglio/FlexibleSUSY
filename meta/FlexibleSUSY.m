@@ -1782,6 +1782,11 @@ WriteDecaysClass[decayParticles_List, files_List] :=
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@decaysListGetters@" -> IndentText[decaysListGetters],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
+                            "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]],
+                            "@WBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetWBoson[]],
+                            "@ZBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetZBoson[]],
+                            "@GluonName@"      -> CXXDiagrams`CXXNameOfField[TreeMasses`GetGluon[]],
+                            "@PhotonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetPhoton[]],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
            decaysVertices
@@ -2037,19 +2042,6 @@ WriteAMuonClass[files_List] :=
       vertices
       ];
 
-WriteHiggsDecaysClass[files_List] :=
-   Module[{},
-
-      WriteOut`ReplaceInFiles[files,
-         {  "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]],
-            "@WBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetWBoson[]],
-            "@ZBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetZBoson[]],
-            "@GluonName@"      -> CXXDiagrams`CXXNameOfField[TreeMasses`GetGluon[]],
-            "@PhotonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetPhoton[]],
-            Sequence @@ GeneralReplacementRules[]}
-      ];
-   ];
-
 GetBVPSolverHeaderName[solver_] :=
     Switch[solver,
            FlexibleSUSY`TwoScaleSolver, "two_scale",
@@ -2139,7 +2131,7 @@ if (spectrum_generator_settings.get(Spectrum_generator_settings::calculate_decay
 }";
 
 ExampleSetDecaysSLHAOutput[] := "\
-const bool show_decays = !decays.have_problem() ||
+const bool show_decays = !decays.get_problems().have_problem() ||
    spectrum_generator_settings.get(Spectrum_generator_settings::force_output);
 if (show_decays) {
    slha_io.set_decays(decays);
@@ -4210,12 +4202,6 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.hpp"}]},
                               {FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.cpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.cpp"}]}}];
-
-           Print["Creating HiggsDecays class ..."];
-           WriteHiggsDecaysClass[{{FileNameJoin[{$flexiblesusyTemplateDir, "higgs_decays.hpp.in"}],
-              FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_higgs_decays.hpp"}]},
-              {FileNameJoin[{$flexiblesusyTemplateDir, "higgs_decays.cpp.in"}],
-                 FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_higgs_decays.cpp"}]}}];
 
            cxxQFTTemplateDir = FileNameJoin[{$flexiblesusyTemplateDir, "cxx_qft"}];
            cxxQFTOutputDir = FileNameJoin[{FSOutputDir, "cxx_qft"}];

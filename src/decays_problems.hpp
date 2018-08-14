@@ -23,12 +23,18 @@ namespace flexiblesusy {
 
 class Decays_problems {
 public:
-   void clear();
-   bool have_problem() const;
-   bool have_warning() const;
+   void clear() {}
+   bool have_problem() const { return false; }
+   bool have_warning() const { return false; }
+   std::vector<std::string> get_problem_strings() const {
+      return std::vector<std::string>{};
+   }
+   std::vector<std::string> get_warning_strings() const {
+      return std::vector<std::string>{};
+   }
 
 private:
-   std::string model_name;
+   std::string model_name{};
 };
 
 } // namespace flexiblesusy

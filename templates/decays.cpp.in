@@ -27,13 +27,28 @@
 
 namespace flexiblesusy {
 
+using namespace cxx_qft;
+using namespace cxx_qft::fields;
+
 #define CLASSNAME @ModelName@_decays
 
+template<typename Field>
+bool has_generation_index()
+{
+   if (Field::numberOfFieldIndices == 0 ||
+       (Field::numberOfFieldIndices == 1 &&
+        Field::color_rep != ParticleColorRep::singlet)) {
+      return false;
+   } else {
+      return true;
+   }
+}
+/*
 const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
 {
    return decay_table;
 }
-
+*/
 const Decays_problems& CLASSNAME::get_problems() const
 {
    return problems;
@@ -47,7 +62,7 @@ void CLASSNAME::clear_problems()
 void CLASSNAME::clear()
 {
    clear_problems();
-   decay_table.clear();
+/*   decay_table.clear(); */
 }
 
 void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
@@ -60,4 +75,187 @@ void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
 }
 
 @decaysCalculationFunctions@
+
+template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+double CLASSNAME::get_partial_width(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<FieldIn>::type& indexIn,
+   const typename field_indices<FieldOut1>::type& indexOut1,
+   const typename field_indices<FieldOut2>::type& indexOut2
+   ) const
+{
+   EvaluationContext context {model};
+
+   const double mFieldIn = context.mass<FieldIn>(indexIn);
+
+   double symmetry = 1;
+   if(std::is_same<FieldOut1, FieldOut2>::value && indexOut1 == indexOut2) {
+      symmetry = 1.0/2.0;
+   }
+
+   // S -> FF
+   if(FieldIn::particle_type == ParticleType::scalar
+      &&  FieldOut1::particle_type == ParticleType::fermion
+      && FieldOut2::particle_type == ParticleType::fermion) {
+
+   }
+
+   // S -> VV
+   if(FieldIn::particle_type == ParticleType::scalar
+      &&  FieldOut1::particle_type == ParticleType::vector
+      && FieldOut2::particle_type == ParticleType::vector) {
+
+   }
+
+   // S -> SS
+   if(FieldIn::particle_type == ParticleType::scalar
+      &&  FieldOut1::particle_type == ParticleType::scalar
+      && FieldOut2::particle_type == ParticleType::scalar) {
+
+   }
+
+   // S -> SV
+   if(FieldIn::particle_type == ParticleType::scalar
+      &&  FieldOut1::particle_type == ParticleType::scalar
+      && FieldOut2::particle_type == ParticleType::vector) {
+
+   }
+   return 1.0;
+}
+
+// special case for Higgs -> Z Z
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@ZBosonName@,@ZBosonName@>(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<@HiggsBosonName@>::type& indexIn,
+   const typename field_indices<@ZBosonName@>::type& indexOut1,
+   const typename field_indices<@ZBosonName@>::type& indexOut2
+   ) const {
+   /*
+   const double mass = PHYSICAL(Mhh)(gO1);
+   const double MV = PHYSICAL(MVZ);
+   const double x = Sqr(MV/mass);
+   // three-body-decays if below threshold
+   if(4*x > 1.0) {
+     const auto vd = MODELPARAMETER(vd);
+     const auto vu = MODELPARAMETER(vu);
+     const auto vev = Sqrt(Sqr(vd) + Sqr(vu));
+     const double sw2 = Sqr(Sin(model.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
+
+     const double deltaV = 7.0/12.0 - 10.0/9.0 * sw2 + 40.0/27.0 * Sqr(sw2);
+     const double RT = 3*(1 - 8*x + 20*Sqr(x))/Sqrt(4*x - 1) * ArcCos(0.5*(3*x - 1)/Power(x, 3.0/2.0))
+                     - 0.5*(1 - x)/x * (2 - 13*x + 47*Sqr(x))
+                     - 3.0/2.0 * (1 - 6*x + 4*Sqr(x))*Log(x);
+
+     return 3.0/(128*Power(Pi,3)) * mass/Sqr(vev) * deltaV * RT * AbsSqr(eff_CphhVZVZ(gO1));
+   }
+   return 1.0/(128*Pi * mass * Sqr(x)) * Sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x)) * AbsSqr(eff_CphhVZVZ(gO1));
+   */
+   return 0.;
+}
+
+// special case for H -> W W
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@WBosonName@,@WBosonName@>(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<@HiggsBosonName@>::type& indexIn,
+   const typename field_indices<@WBosonName@>::type& indexOut1,
+   const typename field_indices<@WBosonName@>::type& indexOut2
+   ) const
+{
+   /*
+     const double mass = PHYSICAL(Mhh)(gO1);
+   const double MV = PHYSICAL(MVWm);
+   const double x = Sqr(MV/mass);
+   // three-body-decays if below threshold
+   if(4*x > 1.0) {
+     const auto vd = MODELPARAMETER(vd);
+     const auto vu = MODELPARAMETER(vu);
+     const auto vev = Sqrt(Sqr(vd) + Sqr(vu));
+     const double sw2 = Sqr(Sin(model.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
+
+     // deltaV is 1 for W-bosons
+     const double RT = 3*(1 - 8*x + 20*Sqr(x))/Sqrt(4*x - 1) * ArcCos(0.5*(3*x - 1)/Power(x, 3.0/2.0))
+                     - 0.5*(1 - x)/x * (2 - 13*x + 47*Sqr(x))
+                     - 3.0/2.0 * (1 - 6*x + 4*Sqr(x))*Log(x);
+
+     return 3.0/(128*Power(Pi,3)) * mass/Sqr(vev) * RT * AbsSqr(eff_CphhVWVW(gO1));
+   }
+   return 2.0/(128*Pi * mass * Sqr(x)) * Sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x)) * AbsSqr(eff_CphhVWVW(gO1));
+   */
+   return 0.;
+}
+
+// -------- specializations for decays needing higher order corrections --------
+
+// special case for H -> gluon gluon
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@GluonName@,@GluonName@>(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<@HiggsBosonName@>::type& indexIn,
+   const typename field_indices<@GluonName@>::type& indexOut1,
+   const typename field_indices<@GluonName@>::type& indexOut2
+   ) const
+{
+   // const auto mass = PHYSICAL(Mhh)(gO1);
+   //return 0.039788735772973836 * Power(mass, 3.0) * AbsSqr(eff_CphhVGVG(gO1));
+   return 0.;
+}
+
+// special case for H -> photon photon
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@PhotonName@,@PhotonName@>(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<@HiggsBosonName@>::type& indexIn,
+   const typename field_indices<@PhotonName@>::type& indexOut1,
+   const typename field_indices<@PhotonName@>::type& indexOut2
+   ) const
+{
+   // auto x = @ModelName@_HiggsDecays::template get_partial_width<cxx_qft::fields::Fe,cxx_qft::fields::Fe,cxx_qft::fields::Fe>(1,2);
+   // const auto mass = PHYSICAL(Mhh)(gO1);
+   //return 0.0049735919716217296 * Power(mass, 3.0) * AbsSqr(eff_CphhVPVP(gO1));
+}
+
+// special case for H -> photon Z
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@PhotonName@,@ZBosonName@>(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<@HiggsBosonName@>::type& indexIn,
+   const typename field_indices<@PhotonName@>::type& indexOut1,
+   const typename field_indices<@ZBosonName@>::type& indexOut2
+   ) const
+{
+//   const auto mass = PHYSICAL(Mhh)(gO1);
+//   const auto MVZ = PHYSICAL(MVZ);
+//   if(MVZ/mass >= 1.0)
+   //  return 0.0;
+   //return 1.0/(16.0*Pi) * Power(mass * (1.0 - Sqr(MVZ/mass)), 3) * AbsSqr(eff_CphhVZVP(gO1));
+   return 0.;
+}
+
+// special case for H -> H H
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@HiggsBosonName@,@HiggsBosonName@>(
+   const @ModelName@_mass_eigenstates& model,
+   const typename field_indices<@HiggsBosonName@>::type& indexIn,
+   const typename field_indices<@HiggsBosonName@>::type& indexOut1,
+   const typename field_indices<@HiggsBosonName@>::type& indexOut2
+   ) const
+{
+   // const auto mass = PHYSICAL(Mhh)(gO1);
+   // const auto MS1 = PHYSICAL(Mhh)(gI1);
+   // const auto MS2 = PHYSICAL(Mhh)(gI2);
+   // const auto factor = (gI1 == gI2) ? 1 : 2;
+
+   //return factor/(32*Pi * mass) * Sqrt(two_body_phase_space_function(mass, MS1, MS2))
+   //                             * AbsSqr(eff_Cphhhhhh(gO1, 4*gI1 + gI2));
+   return 0.;
+}
+
+void test() {
+   @ModelName@_mass_eigenstates const model;
+   @ModelName@_decays cos;
+   cos.get_partial_width<hh,VG,VG>(model, {}, {}, {});
+}
+
 } // namespace flexiblesusy
