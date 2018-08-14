@@ -40,7 +40,8 @@ public:
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double get_partial_width(@ModelName@_mass_eigenstates const& model,
-   unsigned int, unsigned int) const;
+   std::initializer_list<int> generationIndices
+) const;
 
 // for SM particles 
 // double get_hhVPVP_partial_width(unsigned int) const;

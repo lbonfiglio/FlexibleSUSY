@@ -81,9 +81,10 @@ double @ModelName@_HiggsDecays::get_partial_width(
 
 // special case for Higgs -> Z Z 
 template<>
-double @ModelName@_HiggsDecays::get_partial_width<hh,VZ,VZ>(
+double @ModelName@_HiggsDecays::get_partial_width<@HiggsBosonName@,@ZBosonName@,@ZBosonName@>(
    @ModelName@_mass_eigenstates const& model,
-   unsigned int, unsigned int) const {
+   std::initializer_list<int> generationIndices
+   ) const {
    /*
    const double mass = PHYSICAL(Mhh)(gO1);
    const double MV = PHYSICAL(MVZ);
@@ -109,9 +110,10 @@ double @ModelName@_HiggsDecays::get_partial_width<hh,VZ,VZ>(
 
 // special case for H -> W W
 template<>
-double @ModelName@_HiggsDecays::get_partial_width<hh,VWm,VWm>(
+double @ModelName@_HiggsDecays::get_partial_width<@HiggsBosonName@,@WBosonName@,@WBosonName@>(
    @ModelName@_mass_eigenstates const& model,
-   unsigned int, unsigned int) const {
+   std::initializer_list<int> generationIndices
+   ) const {
    /*
    const double mass = PHYSICAL(Mhh)(gO1);
    const double MV = PHYSICAL(MVWm);
@@ -137,9 +139,10 @@ double @ModelName@_HiggsDecays::get_partial_width<hh,VWm,VWm>(
 
 // special case for H -> gluon gluon
 template<>
-double @ModelName@_HiggsDecays::get_partial_width<hh,VG,VG>(
+double @ModelName@_HiggsDecays::get_partial_width<@HiggsBosonName@,@GluonName@,@GluonName@>(
    @ModelName@_mass_eigenstates const& model,
-   unsigned int, unsigned int) const {
+   std::initializer_list<int> generationIndices
+   ) const {
    return 0.;
 }
 
