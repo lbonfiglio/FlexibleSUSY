@@ -3647,10 +3647,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
               If[FlexibleSUSY`DecayParticles === Automatic,
                  FlexibleSUSY`DecayParticles = { TreeMasses`GetHiggsBoson[] }; (* or, e.g., TreeMasses`GetParticles[] *);
                 ];
+
               FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
                                                                                  !TreeMasses`IsMassless[#] &&
                                                                                  TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
-              If[FlexibleSUSY`DecayParticles = {},
+              If[FlexibleSUSY`DecayParticles === {},
                  FlexibleSUSY`FSCalculateDecays = False;
                 ,
                 decaysSLHAIncludeFiles = {FlexibleSUSY`FSModelName <> "_decay_table.hpp", "decays_problems.hpp"};
