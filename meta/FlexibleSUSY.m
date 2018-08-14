@@ -3629,6 +3629,19 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
            deltaVBvertex = SortCps @ WeinbergAngle`DeltaVBvertex[];
            deltaVBbox = SortCps @ WeinbergAngle`DeltaVBbox[];
 
+           (* prepare decays calculation *)
+           If[FlexibleSUSY`FSCalculateDecays,
+              If[FlexibleSUSY`DecayParticles === Automatic,
+                 FlexibleSUSY`DecayParticles = { TreeMasses`GetHiggsBoson[] }; (* or, e.g., TreeMasses`GetParticles[] *);
+                ];
+              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
+                                                                                 !TreeMasses`IsMassless[#] &&
+                                                                                 TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
+              If[FlexibleSUSY`DecayParticles = {},
+                 FlexibleSUSY`FSCalculateDecays = False;
+                ];
+             ]; (* If[FlexibleSUSY`FSCalculateDecays] *)
+
            vertexRuleFileName =
               GetVertexRuleFileName[$sarahCurrentOutputMainDir, FSEigenstates];
            effectiveCouplingsFileName =
@@ -4029,13 +4042,6 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
 
            If[FSCalculateDecays,
               PrintHeadline["Creating particle decays"];
-
-              If[FlexibleSUSY`DecayParticles === Automatic,
-                 FlexibleSUSY`DecayParticles = { TreeMasses`GetHiggsBoson[] }; (* or, e.g., TreeMasses`GetParticles[] *);
-                ];
-              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
-                                                                                 !TreeMasses`IsMassless[#] &&
-                                                                                 TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
 
               If[FlexibleSUSY`DecayParticles =!= {},
                  Print["Creating class for decays ..."];
