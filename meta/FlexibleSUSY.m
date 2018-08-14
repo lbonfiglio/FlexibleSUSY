@@ -3654,7 +3654,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
               If[FlexibleSUSY`DecayParticles === {},
                  FlexibleSUSY`FSCalculateDecays = False;
                 ,
-                decaysSLHAIncludeFiles = {FlexibleSUSY`FSModelName <> "_decay_table.hpp", "decays_problems.hpp"};
+                decaysSLHAIncludeFiles = {FlexibleSUSY`FSModelName <> "_decays.hpp", "decays_problems.hpp"};
                 ];
              ]; (* If[FlexibleSUSY`FSCalculateDecays] *)
 
