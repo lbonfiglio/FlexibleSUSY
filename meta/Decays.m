@@ -22,6 +22,9 @@
 
 BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`", "TextFormatting`", "Utils`", "Vertices`"}];
 
+CreateCompleteParticleList::usage="";
+GetDecaysForParticle::usage="";
+
 CallDecaysCalculationFunctions::usage="creates calls to functions calculating
 decays of the given particles.";
 CreateDecaysCalculationPrototypes::usage="creates prototypes for convenience
@@ -30,6 +33,18 @@ CreateDecaysCalculationFunctions::usage="creates definitions for convenience
 functions calculating all decays for each particle.";
 
 Begin["`Private`"];
+
+CreateCompleteParticleList[particles_List] := DeleteDuplicates[Join[particles, SARAH`AntiField[#]& /@ particles]];
+
+GenericScalarName[] := "scalar";
+GenericVectorName[] := "vector";
+GenericFermionName[] := "fermion";
+GenericGhostName[] := "ghost";
+
+GetGenericTypeName[p_?TreeMasses`IsScalar] := GenericScalarName[];
+GetGenericTypeName[p_?TreeMasses`IsVector] := GenericVectorName[];
+GetGenericTypeName[p_?TreeMasses`IsFermion] := GenericFermionName[];
+GetGenericTypeName[p_?TreeMasses`IsGhost] := GenericGhostName[];
 
 GetDecaysForParticle[particle_, Infinity, allowedFinalStateParticles_List] :=
     (
@@ -73,15 +88,27 @@ GetDecaysForParticle[particle_, {minNumberOfProducts_Integer /; minNumberOfProdu
            GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes
           ];
 
+IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
+    Module[{chargeSum},
+           chargeSum = Simplify[Plus @@ (Join[{-TreeMasses`GetElectricCharge[initialParticle]}, TreeMasses`GetElectricCharge /@ finalState])];
+           PossibleZeroQ[chargeSum]
+          ];
+
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
-    Module[{possibleFinalStates = {}, allowedFinalStates = {}, decays = {exactNumberOfProducts, {}}},
+    Module[{genericFinalStates, finalStateParticlesClassified,
+            isPossibleDecay, concreteFinalStates,
+            decays = {exactNumberOfProducts, {}}},
            If[exactNumberOfProducts > 2,
-              Print["Warning: decays with ", exactNumberOfProducts,
+              Print["Error: decays with ", exactNumberOfProducts,
                     " final particles are not currently supported."];
               Quit[1];
              ];
-           possibleFinalStates = GenerateNParticleFinalStates[exactNumberOfProducts, allowedFinalStateParticles];
-           allowedFinalStates = Select[possibleFinalStates, !IsForbiddenDecay[particle, #]&];
+           genericFinalStates = GetAllowedGenericFinalStates[particle, exactNumberOfProducts];
+           finalStateParticlesClassified = GetClassifiedParticleLists[allowedFinalStateParticles];
+           (* @todo checks on colour and Lorentz structure *)
+           isPossibleDecay[finalState_] := IsElectricChargeConservingDecay[particle, finalState];
+           concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
+           {exactNumberOfProducts, concreteFinalStates}
           ];
 
 GetDecaysForParticle[particle_, n_, allowedFinalStateParticles_List] :=
@@ -89,6 +116,91 @@ GetDecaysForParticle[particle_, n_, allowedFinalStateParticles_List] :=
      Print["Error: invalid number of final state particles: ", n];
      Quit[1];
     )
+
+GatherParticlesByType[particles_List] :=
+    Module[{areSameType},
+           areSameType[p1_, p2_] := Or @@ ((#[p1] && #[p2])& /@ { TreeMasses`IsScalar,
+                                                                  TreeMasses`IsVector,
+                                                                  TreeMasses`IsFermion,
+                                                                  TreeMasses`IsGhost });
+           Gather[particles, areSameType]
+          ];
+
+(* returns a list of lists of the form {{particle type 1, {particles of type 1}}, {particle type 2, {particles of type 2}}, ...} *)
+GetClassifiedParticleLists[particles_List] :=
+    Module[{classified, foundTypes},
+           classified = {GetGenericTypeName[First[#]], #}& /@ GatherParticlesByType[particles];
+           foundTypes = First /@ classified;
+           If[Length[Union[foundTypes]] != Length[foundTypes],
+              Print["Error: particles incorrectly classified: ", classified];
+              Quit[1];
+             ];
+           classified
+          ];
+
+BaseMulticombination[k_] := Module[{i}, Table[1, {i, 1, k}]];
+
+(* see, e.g., http://www.martinbroadhurst.com/multicombinations.html *)
+NextMulticombination[n_, combination_] :=
+    Module[{k = Length[combination], i, incrementable, pos, val},
+           incrementable = Position[combination, x_ /; x < n];
+           If[Length[incrementable] == 0,
+              {},
+              pos = First[Last[incrementable]];
+              val = combination[[pos]] + 1;
+              Join[Take[combination, pos - 1], {val}, Table[val, {i, 1, k - pos}]]
+             ]
+          ];
+
+NextMulticombinationsList[setSizes_List, combinations_List] :=
+    Module[{numCombinations = Length[combinations], next},
+           next = combinations;
+           For[i = numCombinations, i > 0, i--,
+               nextCombination = NextMulticombination[setSizes[[i]], combinations[[i]]];
+               If[nextCombination =!= {},
+                  next[[i]] = nextCombination;
+                  Return[next];,
+                  next[[i]] = BaseMulticombination[Length[next[[i]]]];
+                 ];
+              ];
+           {}
+          ];
+
+GetParticleCombinationsOfType[genericState_List, particles_List, isValidTest_:Function[True]] :=
+    Module[{genericTypeCounts, classifiedParticles, indexLists, candidate, combinations},
+           genericTypeCounts = {#, Count[genericState, #]}& /@ DeleteDuplicates[genericState];
+           classifiedParticles = Select[GetClassifiedParticleLists[particles], MemberQ[genericState, First[#]]&];
+           genericTypeCounts = genericTypeCounts[[Flatten[Position[First /@ classifiedParticles, First[#]]& /@ genericTypeCounts]]];
+           indexLists = BaseMulticombination[Last[#]]& /@ genericTypeCounts;
+           combinations = Reap[
+               While[indexLists =!= {},
+                     candidate = Flatten[MapIndexed[With[{pos = First[#2], indices = #1},
+                                                    Last[classifiedParticles[[pos]]][[#]]& /@ indices]&, indexLists]];
+                     If[isValidTest[candidate],
+                        Sow[candidate];
+                       ];
+                     indexLists = NextMulticombinationsList[Length[Last[#]]& /@ classifiedParticles, indexLists];
+                    ];
+               ];
+           Flatten[Last[combinations], 1]
+          ];
+
+GetAllowedGenericFinalStates[particle_ /; (TreeMasses`IsScalar[particle] || TreeMasses`IsVector[particle]),
+                             n_Integer] :=
+    Switch[n,
+           2, {{GenericScalarName[], GenericScalarName[]},
+               {GenericScalarName[], GenericVectorName[]},
+               {GenericVectorName[], GenericVectorName[]},
+               {GenericFermionName[], GenericFermionName[]}},
+           _, Print["Error: cannot determine allowed generic final states for n = ", n]; Quit[1];
+          ];
+
+GetAllowedGenericFinalStates[particle_?TreeMasses`IsFermion, n_Integer] :=
+    Switch[n,
+           2, {{GenericScalarName[], GenericFermionName[]},
+               {GenericVectorName[], GenericFermionName[]}},
+           _, Print["Error: cannot determine allowed generic final states for n = ", n]; Quit[1];
+          ];
 
 (*
 CreatePartialWidthCalculationName[decayParticle_, productParticles_List] :=
