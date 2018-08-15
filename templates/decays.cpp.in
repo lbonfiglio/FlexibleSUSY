@@ -24,6 +24,7 @@
 
 #include "config.h"
 #include "thread_pool.hpp"
+#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 namespace flexiblesusy {
 
@@ -148,7 +149,7 @@ double CLASSNAME::get_partial_width<@HiggsBosonName@,@ZBosonName@,@ZBosonName@>(
                      - 0.5*(1 - x)/x * (2 - 13*x + 47*Sqr(x))
                      - 3.0/2.0 * (1 - 6*x + 4*Sqr(x))*Log(x);
 
-      return 3.0/(128*Power(Pi,3)) * mass/Sqr(vev) * deltaV * RT; //* AbsSqr(eff_CphhVZVZ(gO1));
+      return 3.0/(128*Power(Pi,3)) * mass/Sqr(vev) * deltaV * RT * AbsSqr(effective_coupling<@HiggsBosonName@,@ZBosonName@,@ZBosonName@>(model, indexIn, indexOut1, indexOut2));
    }
    return 1.0/(128*Pi * mass * Sqr(x)) * Sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x)); // * AbsSqr(eff_CphhVZVZ(gO1));
 }

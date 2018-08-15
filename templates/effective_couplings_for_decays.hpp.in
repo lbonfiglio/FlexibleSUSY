@@ -1,0 +1,20 @@
+#ifndef @ModelName@_EFFECTIVE_COUPLINGS_FOR_DECAYS_H
+#define @ModelName@_EFFECTIVE_COUPLINGS_FOR_DECAYS_H
+
+#include "cxx_qft/@ModelName@_qft.hpp"
+
+namespace flexiblesusy {
+
+class @ModelName@_mass_eigenstates;
+
+template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+   std::complex<double> effective_coupling(
+      const @ModelName@_mass_eigenstates& model,
+      const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
+      const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
+      const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) {
+      return 1.;
+   }
+
+} // namespace flexiblesusy
+#endif

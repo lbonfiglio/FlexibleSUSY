@@ -1792,6 +1792,15 @@ WriteDecaysClass[decayParticles_List, files_List] :=
            decaysVertices
           ];
 
+WriteEffectiveCouplingsForDecaysClass[files_List] :=
+   Module[{},
+      WriteOut`ReplaceInFiles[files,
+         {
+            Sequence @@ GeneralReplacementRules[]
+         }
+      ]
+   ];
+
 WriteBVPSolverTemplates[files_List] :=
     WriteOut`ReplaceInFiles[files, { Sequence @@ GeneralReplacementRules[] }];
 
@@ -4158,6 +4167,16 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                    {FileNameJoin[{$flexiblesusyTemplateDir, "decays.cpp.in"}],
                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
                                   }];
+                 WriteEffectiveCouplingsForDecaysClass[
+                    {{FileNameJoin[{$flexiblesusyTemplateDir, "effective_couplings_for_decays.hpp.in"}],
+                       FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.hpp"}]},
+                       {FileNameJoin[{$flexiblesusyTemplateDir, "effective_couplings_for_decays.cpp.in"}],
+                          FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.cpp"}]},
+                       {FileNameJoin[{$flexiblesusyTemplateDir, "effective_couplings_for_decays.hpp.in"}],
+                          FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.hpp"}]},
+                       {FileNameJoin[{$flexiblesusyTemplateDir, "effective_couplings_for_decays.cpp.in"}],
+                          FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.cpp"}]}
+                    }];
                  ,
                  Print["Skipping calculating decays as no particles to calculate decays for were found."];
                 ];
