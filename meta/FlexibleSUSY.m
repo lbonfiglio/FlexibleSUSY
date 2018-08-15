@@ -1761,13 +1761,14 @@ WriteDecaysMakefileModule[sources_List, headers_List, files_List] :=
                   } ];
           ];
 
-WriteDecaysClass[decayParticles_List, files_List] :=
-    Module[{decaysVertices = {}, numberOfDecayParticles = 0,
+WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
+    Module[{maxFinalStateParticles = 2, decaysVertices = {}, decaysLists = {}, numberOfDecayParticles = 0,
             enableDecaysCalculationThreads,
             callAllDecaysFunctions = "", callAllDecaysFunctionsInThreads = "",
             decaysListGetters = "", decaysGetters = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = ""},
            numberOfDecayParticles = Length[decayParticles];
+           decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            enableDecaysCalculationThreads = False;
            callAllDecaysFunctions = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
            enableDecaysCalculationThreads = True;
@@ -3281,6 +3282,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
             semiAnalyticBCs, semiAnalyticSolns,
             semiAnalyticHighScaleFiles, semiAnalyticSUSYScaleFiles, semiAnalyticLowScaleFiles,
             semiAnalyticSolnsOutputFile, semiAnalyticEWSBSubstitutions = {}, semiAnalyticInputScale = "",
+            decaysFinalStateParticles = {},
             decaysSources = {}, decaysHeaders = {}, decaysSLHAIncludeFiles = {}},
 
            PrintHeadline["Starting FlexibleSUSY"];
@@ -4140,7 +4142,9 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
            If[FSCalculateDecays,
               PrintHeadline["Creating particle decays"];
 
+              decaysFinalStateParticles = Decays`CreateCompleteParticleList[Select[TreeMasses`GetParticles[], !TreeMasses`IsGhost[#]&]];
               DebugPrint["calculating decays for particles: ", FlexibleSUSY`DecayParticles];
+              DebugPrint["allowed final state particles: ", decaysFinalStateParticles];
 
               If[FlexibleSUSY`DecayParticles =!= {},
                  Print["Creating class for decays ..."];
@@ -4148,7 +4152,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                                       FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.cpp"}]}];
                  decaysHeaders = Join[decaysHeaders, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_table.hpp"}],
                                                       FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.hpp"}]}];
-                 WriteDecaysClass[FlexibleSUSY`DecayParticles,
+                 WriteDecaysClass[FlexibleSUSY`DecayParticles, decaysFinalStateParticles,
                                   {{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
                                    {FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.cpp.in"}],
