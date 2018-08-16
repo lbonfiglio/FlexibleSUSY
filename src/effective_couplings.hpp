@@ -49,6 +49,8 @@ std::complex<double> quadratic_interpolation(
 std::map<double,std::complex<double> > get_scalar_fermion_loop_data();
 std::map<double,std::complex<double> > get_pseudoscalar_fermion_loop_data();
 
+double two_body_phase_space_function(double, double, double);
+
 } // namespace effective_couplings
 
 } // namespace flexiblesusy

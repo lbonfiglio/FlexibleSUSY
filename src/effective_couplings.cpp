@@ -61,6 +61,13 @@ std::complex<double> AP12(double tau)
    return scaling_function(tau) / tau;
 }
 
+double two_body_phase_space_function(double m1, double m2, double m3)
+{
+   if(m2 + m3 >= m1)
+      return 0.0;
+   return (1 - Sqr((m2+m3)/m1)) * (1 - Sqr((m2-m3)/m1));
+}
+
 std::complex<double> scalar_diphoton_fermion_loop(
    double m_decay, double m_loop)
 {
