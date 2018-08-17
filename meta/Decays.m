@@ -32,7 +32,65 @@ functions calculating all decays for each particle.";
 CreateDecaysCalculationFunctions::usage="creates definitions for convenience
 functions calculating all decays for each particle.";
 
+FSParticleDecay::usage="head used for storing details of an particle decay,
+in the format
+   FSParticleDecay[particle, {final state particle}, {diagram 1, diagram 2, ...}]
+";
+
 Begin["`Private`"];
+
+GetInitialState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := particle;
+GetFinalState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := finalState;
+GetDecayDiagrams[FSParticleDecay[particle_, finalState_List, diagrams_List]] := diagrams;
+
+GetDecayTopologies[nProducts_, nLoops_] :=
+    (
+     Print["Error: decay topology with ", nProducts, " particles and ", nLoops, " loops not supported"];
+     Quit[1]
+    );
+
+(* tree-level two-body decay, with
+   vertex 1 = incoming state
+   vertex 2 = outgoing state
+   vertex 3 = outgoing state
+   vertex 4 = internal vertex *)
+GetDecayTopologies[2, 0] :=
+    {
+     {{0,0,0,1},
+      {0,0,0,1},
+      {0,0,0,1},
+      {1,1,1,0}}
+    };
+
+GetDecayTopologies[2, 1] :=
+    {
+     {{0,0,0,1,0,0},
+      {0,0,0,0,1,0},
+      {0,0,0,0,0,1},
+      {1,0,0,0,1,1},
+      {0,1,0,1,0,1},
+      {0,0,1,1,1,0}}
+     ,
+     {{0,0,0,1,0},
+      {0,0,0,0,1},
+      {0,0,0,0,1},
+      {1,0,0,0,2},
+      {0,1,1,2,0}}
+     ,
+     {{0,0,0,1,0},
+      {0,0,0,1,0},
+      {0,0,0,0,1},
+      {1,1,0,0,2},
+      {0,0,1,2,0}}
+     ,
+     {{0,0,0,0,1},
+      {0,0,0,1,0},
+      {0,0,0,0,1},
+      {0,1,0,0,2},
+      {1,0,1,2,0}}
+    };
+
+GetDecayTopologies[nProducts_] := Join @@ (GetDecayTopologies[nProducts, #]& /@ {0, 1});
 
 CreateCompleteParticleList[particles_List] := DeleteDuplicates[Join[particles, SARAH`AntiField[#]& /@ particles]];
 
@@ -85,7 +143,7 @@ GetDecaysForParticle[particle_, {minNumberOfProducts_Integer /; minNumberOfProdu
                                 allowedFinalStateParticles_List] :=
     Module[{i, finalStateSizes},
            finalStateSizes = Table[{i}, {i, minNumberOfProducts, maxNumberOfProducts}];
-           GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes
+           Flatten[GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes, 1]
           ];
 
 IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
@@ -94,21 +152,32 @@ IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
            PossibleZeroQ[chargeSum]
           ];
 
+GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
+    Module[{externalFields, diagrams},
+           externalFields = Join[{1 -> initialField}, MapIndexed[(First[#2] + 1 -> #1)&, finalFields]];
+           CXXDiagrams`FeynmanDiagramsOfType[graph, externalFields]
+          ];
+
+GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
+    Module[{nFinalParticles = Length[finalParticles], topologies},
+           topologies = GetDecayTopologies[nFinalParticles];
+           Flatten[GetContributingDiagramsForDecayGraph[initialParticle, finalParticles, #]& /@ topologies, 1]
+          ];
+
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
     Module[{genericFinalStates, finalStateParticlesClassified,
-            isPossibleDecay, concreteFinalStates,
-            decays = {exactNumberOfProducts, {}}},
+            isPossibleDecay, concreteFinalStates, decays},
            If[exactNumberOfProducts > 2,
               Print["Error: decays with ", exactNumberOfProducts,
                     " final particles are not currently supported."];
               Quit[1];
              ];
            genericFinalStates = GetAllowedGenericFinalStates[particle, exactNumberOfProducts];
-           finalStateParticlesClassified = GetClassifiedParticleLists[allowedFinalStateParticles];
            (* @todo checks on colour and Lorentz structure *)
-           isPossibleDecay[finalState_] := IsElectricChargeConservingDecay[particle, finalState];
+           isPossibleDecay[finalState_] := (IsElectricChargeConservingDecay[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
-           {exactNumberOfProducts, concreteFinalStates}
+           decays = FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates;
+           Select[decays, (GetDecayDiagrams[#] =!= {})&]
           ];
 
 GetDecaysForParticle[particle_, n_, allowedFinalStateParticles_List] :=
@@ -218,6 +287,17 @@ CreatePartialWidthCalculationProtoype[decayParticle_, productParticles_List] :=
 CreatePartialWidthCalculationFunction[decayParticle_, productParticles_List] :=
 *)
 
+CreatePartialWidthCalculationName[initialState_, finalState_List] :=
+    "get_partial_width<" <> CConversion`ToValidCSymbolString[initialState] <> "," <>
+    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField /@ finalState, ","] <> " >";
+
+CallPartialWidthCalculation[decay_FSParticleDecay] :=
+    Module[{initialState = GetInitialState[decay],
+            finalState = GetFinalState[decay], result = ""},
+           result = CreatePartialWidthCalculationName[initialState, finalState] <> "();\n";
+           result
+          ];
+
 CreateDecaysCalculationFunctionName[particle_, scope_:""] :=
     scope <> If[scope =!= "", "::", ""] <> "calculate_" <> CConversion`ToValidCSymbolString[particle] <> "_decays";
 
@@ -225,8 +305,8 @@ CreateDecaysCalculationPrototype[particle_] :=
     "void " <> CreateDecaysCalculationFunctionName[particle] <> "(const " <>
     FlexibleSUSY`FSModelName <> "_mass_eigenstates&);";
 
-CreateDecaysCalculationPrototypes[particles_List] :=
-    Utils`StringJoinWithSeparator[CreateDecaysCalculationPrototype /@ particles, "\n"];
+CreateDecaysCalculationPrototypes[decayLists_List] :=
+    Utils`StringJoinWithSeparator[CreateDecaysCalculationPrototype[First[#]]& /@ decayLists, "\n"];
 
 LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarType[CConversion`integerScalarCType]] :=
     Module[{idxStr, startStr, stopStr},
@@ -244,23 +324,24 @@ LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarTy
 LoopOverIndexCollection[loopBody_String, indices_List] :=
     Fold[LoopOverIndex[#1, Sequence @@ #2]&, loopBody, indices];
 
-CreateDecaysCalculationFunction[particle_] :=
-    Module[{dim, dimStart, loopIndices, result = "", body = ""},
+CreateDecaysCalculationFunction[decaysList_] :=
+    Module[{particle = First[decaysList], decayChannels = Last[decaysList],
+            dim, dimStart, loopIndices, result = "", body = ""},
            dimStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle] - 1;
            dim = TreeMasses`GetDimension[particle];
            loopIndices = If[dim > 1 || TreeMasses`GetDimensionWithoutGoldstones[particle] > 1,
                             {{"gI1", dimStart, dim}},
                             {}
                            ];
-           body = "auto model = model_;\n";
+           body = "auto model = model_;\n\n" <> StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = LoopOverIndexCollection[body, loopIndices];
            "void " <> CreateDecaysCalculationFunctionName[particle, "CLASSNAME"] <>
            "(const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates& model_)\n{\n"
            <> TextFormatting`IndentText[body] <> "}\n"
           ];
 
-CreateDecaysCalculationFunctions[particles_List] :=
-    Utils`StringJoinWithSeparator[CreateDecaysCalculationFunction /@ particles, "\n"];
+CreateDecaysCalculationFunctions[particleDecays_List] :=
+    Utils`StringJoinWithSeparator[CreateDecaysCalculationFunction /@ particleDecays, "\n"];
 
 CallDecaysFunction[particle_, arg_:"model", obj_:""] :=
     obj <> CreateDecaysCalculationFunctionName[particle] <> "(" <> arg <> ");\n"

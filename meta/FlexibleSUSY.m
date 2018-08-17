@@ -1773,8 +1773,8 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            callAllDecaysFunctions = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
            enableDecaysCalculationThreads = True;
            callAllDecaysFunctionsInThreads = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
-           decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decayParticles];
-           decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decayParticles];
+           decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decaysLists];
+           decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
