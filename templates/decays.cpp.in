@@ -72,16 +72,6 @@ void CLASSNAME::clear()
 /*   decay_table.clear(); */
 }
 
-void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
-{
-#ifdef ENABLE_THREADS
-@callAllDecaysFunctionsInThreads@
-#else
-@callAllDecaysFunctions@
-#endif
-}
-
-@decaysCalculationFunctions@
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double CLASSNAME::get_partial_width(
@@ -284,5 +274,17 @@ void test() {
    @ModelName@_decays cos;
    cos.get_partial_width<hh,VG,VG>(model, {}, {}, {});
 }
+*/
+
+void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
+{
+#ifdef ENABLE_THREADS
+@callAllDecaysFunctionsInThreads@
+#else
+@callAllDecaysFunctions@
+#endif
+}
+
+@decaysCalculationFunctions@
 
 } // namespace flexiblesusy
