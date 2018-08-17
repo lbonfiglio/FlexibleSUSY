@@ -57,6 +57,17 @@ enum class ParticleColorRep {
    antitriplet,
    octet
 };
+
+template<typename Field> struct is_fermion {
+   static constexpr bool value = Field::particle_type == ParticleType::fermion;
+};
+template<typename Field> struct is_vector {
+   static constexpr bool value = Field::particle_type == ParticleType::vector;
+};
+template<typename Field> struct is_scalar {
+   static constexpr bool value = Field::particle_type == ParticleType::scalar;
+};
+
 template<class Field> struct bar
 {
   using index_bounds = typename Field::index_bounds;
