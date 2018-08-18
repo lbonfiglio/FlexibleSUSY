@@ -294,7 +294,7 @@ CreatePartialWidthCalculationName[initialState_, finalState_List] :=
 CallPartialWidthCalculation[decay_FSParticleDecay] :=
     Module[{initialState = GetInitialState[decay],
             finalState = GetFinalState[decay], result = ""},
-           result = CreatePartialWidthCalculationName[initialState, finalState] <> "();\n";
+           result = CreatePartialWidthCalculationName[initialState, finalState] <> "(model_);\n";
            result
           ];
 

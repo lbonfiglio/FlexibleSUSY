@@ -1788,6 +1788,12 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                             "@ZBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetZBoson[]],
                             "@GluonName@"      -> CXXDiagrams`CXXNameOfField[TreeMasses`GetGluon[]],
                             "@PhotonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetPhoton[]],
+                             "@DownQuarkName@"     -> CXXDiagrams`CXXNameOfField[
+                                 If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
+                                    TreeMasses`GetSMDownQuarks[][[1]],
+                                    Quit[1]
+                                 ]
+                             ],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
            decaysVertices

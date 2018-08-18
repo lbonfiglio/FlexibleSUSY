@@ -20,18 +20,22 @@
 
 #include <cmath>
 
+#include <boost/range/algorithm.hpp>
+
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
+#include "@ModelName@_effective_couplings_for_decays.hpp"
+#include "effective_couplings.hpp"
 
 #include "config.h"
 #include "thread_pool.hpp"
-#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 namespace flexiblesusy {
 
 using namespace cxx_qft;
 using namespace cxx_qft::fields;
+using effective_couplings::two_body_phase_space_function;
 
 #define CLASSNAME @ModelName@_decays
 
@@ -47,9 +51,63 @@ bool has_generation_index()
    }
 }
 
-double two_body_phase_space_function(double mass, double MS1, double MS2) {
-  return 1.0;
+/*
+template<typename Field1, typename Field2, typename Field3>
+double dispatch_decay_vertex(EvaluationContext const& context, 
+const std::array<int,
+      detail::total_number_of_field_indices<
+         boost::mpl::vector<Field1, Field2, Field3>
+      >::value
+   > index);
+*/
+// S -> FF
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value && is_fermion<Field3>::value, double>::type
+dispatch_decay_vertex(EvaluationContext const& context, 
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SFF ";
+      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
 }
+// S -> VV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
+dispatch_decay_vertex(EvaluationContext const& context, 
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SVV ";
+      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+// S -> SV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_vector<Field3>::value, double>::type
+dispatch_decay_vertex(EvaluationContext const& context, 
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SSV ";
+      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+
+// S -> SS
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
+dispatch_decay_vertex(EvaluationContext const& context, 
+const std::array<int, detail::total_number_of_field_indices<boost::mpl::vector<Field1, Field2, Field3>>::value> index) {
+
+      std::cout << "SSS ";
+      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+
 /*
 const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
 {
@@ -83,13 +141,23 @@ double CLASSNAME::get_partial_width(
 {
    EvaluationContext context {model};
 
-   const double mFieldIn = context.mass<FieldIn>(indexIn);
+   const double mIn = context.mass<FieldIn>(indexIn);
+   const double mOut1 = context.mass<FieldOut1>(indexOut1);
+   const double mOut2 = context.mass<FieldOut2>(indexOut2);
 
-   double symmetry = 1;
-   if(std::is_same<FieldOut1, FieldOut2>::value && indexOut1 == indexOut2) {
-      symmetry = 1.0/2.0;
+   // phase space symmetry factor
+   double ps_symmetry = 1;
+   if(std::is_same<FieldOut1, FieldOut2>::value) {
+      std::cout << std::is_same<FieldOut1, FieldOut2>::value << '\n';
+      if (boost::range::equal(indexOut1, indexOut2)) {
+         ps_symmetry = 1.0/2.0;
+      }
    }
 
+   double ps = 1/(16*Pi)*sqrt(1. - 2.*(pow(mOut1,2) + pow(mOut2,2))/pow(mIn,2) + pow((mOut1+mOut2)*(mOut1-mOut2)/pow(mIn,2),2));
+
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   double mat2 = dispatch_decay_vertex<FieldIn,FieldOut1,FieldOut2>(context, indices);
    // S -> FF
    if(FieldIn::particle_type == ParticleType::scalar
       &&  FieldOut1::particle_type == ParticleType::fermion
@@ -117,7 +185,9 @@ double CLASSNAME::get_partial_width(
       && FieldOut2::particle_type == ParticleType::vector) {
 
    }
-   return 1.0;
+   
+   // phase space factor times symmetry factor times matrix element 2.
+   return ps * ps_symmetry * mat2;
 }
 
 // -------- specializations for decays needing higher order corrections --------
@@ -204,7 +274,7 @@ double CLASSNAME::get_partial_width<@HiggsBosonName@,@GluonName@,@GluonName@>(
    EvaluationContext context {model};
    const double mass = context.mass<@HiggsBosonName@>(indexIn);
    return 0.039788735772973836 * pow(mass, 3.0) 
-    * AbsSqr(effective_coupling<@HiggsBosonName@,@GluonName@,@GluonName@>(model, indexIn, indexOut1, indexOut2));
+      * AbsSqr(effective_coupling<@HiggsBosonName@,@GluonName@,@GluonName@>(model, indexIn, indexOut1, indexOut2));
 }
 
 // special case for H -> photon photon
@@ -218,7 +288,8 @@ double CLASSNAME::get_partial_width<@HiggsBosonName@,@PhotonName@,@PhotonName@>(
 {
    EvaluationContext context {model};
    const double mass = context.mass<@HiggsBosonName@>(indexIn);
-   return 0.0049735919716217296 * pow(mass, 3.0) * AbsSqr(effective_coupling<@HiggsBosonName@,@PhotonName@,@PhotonName@>(model, indexIn, indexOut1, indexOut2));
+   return 0.0049735919716217296 * pow(mass, 3.0) 
+      * AbsSqr(effective_coupling<@HiggsBosonName@,@PhotonName@,@PhotonName@>(model, indexIn, indexOut1, indexOut2));
 }
 
 // special case for H -> photon Z
@@ -265,14 +336,20 @@ double CLASSNAME::get_partial_width<@HiggsBosonName@,@HiggsBosonName@,@HiggsBoso
    const auto factor = 1.; //(gI1 == gI2) ? 1 : 2;
 
    return factor/(32*Pi * mass) * sqrt(two_body_phase_space_function(mass, MS1, MS2))
-                                * AbsSqr(effective_coupling<@HiggsBosonName@,@HiggsBosonName@,@HiggsBosonName@>(model, indexIn, indexOut1, indexOut2));
-   return 0.;
+      * AbsSqr(effective_coupling<@HiggsBosonName@,@HiggsBosonName@,@HiggsBosonName@>(model, indexIn, indexOut1, indexOut2));
 }
 
-void test() {
-   @ModelName@_mass_eigenstates const model;
-   @ModelName@_decays cos;
-   cos.get_partial_width<hh,VG,VG>(model, {}, {}, {});
+// special case for H -> Fd Fd
+/*
+template<>
+double CLASSNAME::get_partial_width<@HiggsBosonName@,@DownQuarkName@,@DownQuarkName@>(
+   @ModelName@_mass_eigenstates const& model,
+   typename field_indices<@HiggsBosonName@>::type const& indexIn,
+   typename field_indices<@DownQuarkName@>::type const& indexOut1,
+   typename field_indices<@DownQuarkName@>::type const& indexOut2
+   ) const
+{
+   // SM expression + pure BSM 1L corrections
 }
 */
 
