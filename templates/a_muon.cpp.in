@@ -41,7 +41,6 @@ using namespace cxx_qft;
 using Muon = fields::@AMuon_MuonField@;
 
 namespace {
-static constexpr double oneOver16PiSquared = 0.0063325739776461107152;
 
 double OneLoopFunctionF1C(double);
 double OneLoopFunctionF2C(double);
