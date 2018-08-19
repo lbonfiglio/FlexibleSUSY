@@ -42,7 +42,6 @@ CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
 StripLorentzIndices::usage="";
 NumberOfFieldIndices::usage="";
-FieldInfo::usage="";
 includeLorentzIndices::usage="";
 LoadVerticesIfNecessary::usage="";
 IsLorentzIndex::usage = "";
