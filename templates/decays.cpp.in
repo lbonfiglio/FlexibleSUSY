@@ -39,18 +39,6 @@ using effective_couplings::two_body_phase_space_function;
 
 #define CLASSNAME @ModelName@_decays
 
-template<typename Field>
-bool has_generation_index()
-{
-   if (Field::numberOfFieldIndices == 0 ||
-       (Field::numberOfFieldIndices == 1 &&
-        Field::color_rep != ParticleColorRep::singlet)) {
-      return false;
-   } else {
-      return true;
-   }
-}
-
 /*
 template<typename Field1, typename Field2, typename Field3>
 double dispatch_decay_vertex(EvaluationContext const& context, 
