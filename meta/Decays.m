@@ -271,42 +271,7 @@ GetAllowedGenericFinalStates[particle_?TreeMasses`IsFermion, n_Integer] :=
            _, Print["Error: cannot determine allowed generic final states for n = ", n]; Quit[1];
           ];
 
-(*
-CreatePartialWidthCalculationName[decayParticle_, productParticles_List] :=
-    Module[{inParticleNoIndices, outParticlesNoIndices},
-           inParticleNoIndices = Vertices`StripFieldIndices[decayParticle];
-           outParticlesNoIndices = Vertices`StripFieldIndices /@ productParticles;
-
-           "get_partial_width_" <> CConversion`ToValidCSymbolString[inParticleNoIndices] <>
-           "_to_" <> StringJoin[CConversion`ToValidCSymbolString /@ outParticlesNoIndices]
-          ];
-
-CreatePartialWidthCalculationProtoype[decayParticle_, productParticles_List] :=
-    "double " <> 
-
-CreatePartialWidthCalculationFunction[decayParticle_, productParticles_List] :=
-*)
-
-CreatePartialWidthCalculationName[initialState_, finalState_List] :=
-    "get_partial_width<" <> CConversion`ToValidCSymbolString[initialState] <> "," <>
-    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField /@ finalState, ","] <> " >";
-
-CallPartialWidthCalculation[decay_FSParticleDecay] :=
-    Module[{initialState = GetInitialState[decay],
-            finalState = GetFinalState[decay], result = ""},
-           result = CreatePartialWidthCalculationName[initialState, finalState] <> "(model_);\n";
-           result
-          ];
-
-CreateDecaysCalculationFunctionName[particle_, scope_:""] :=
-    scope <> If[scope =!= "", "::", ""] <> "calculate_" <> CConversion`ToValidCSymbolString[particle] <> "_decays";
-
-CreateDecaysCalculationPrototype[particle_] :=
-    "void " <> CreateDecaysCalculationFunctionName[particle] <> "(const " <>
-    FlexibleSUSY`FSModelName <> "_mass_eigenstates&);";
-
-CreateDecaysCalculationPrototypes[decayLists_List] :=
-    Utils`StringJoinWithSeparator[CreateDecaysCalculationPrototype[First[#]]& /@ decayLists, "\n"];
+LoopOverIndexRange[body_String, indices_List] :=
 
 LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarType[CConversion`integerScalarCType]] :=
     Module[{idxStr, startStr, stopStr},
@@ -324,17 +289,85 @@ LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarTy
 LoopOverIndexCollection[loopBody_String, indices_List] :=
     Fold[LoopOverIndex[#1, Sequence @@ #2]&, loopBody, indices];
 
+SkipFinalStateGoldstone[particle_] :=
+    Module[{particleString, particleTypeString, result = ""},
+           particleString = CConversion`ToValidCSymbolString[particle];
+           particleTypeString = CXXDiagrams`CXXNameOfField[particle];
+           If[TreeMasses`IsGoldstone[particle],
+              result = "if (is_goldstone<" <> particleTypeString <> " >(" <> particleString <> "_indices)) {\n" <>
+                       TextFormatting`IndentText["continue;\n"] <> "}\n";
+             ];
+           result
+          ];
+
+SkipFinalStateGoldstone[particles_List] :=
+    StringJoin[SkipFinalStateGoldstone /@ particles];
+
+CreatePartialWidthCalculationName[initialState_, finalState_List] :=
+    "get_partial_width<" <> CConversion`ToValidCSymbolString[initialState] <> "," <>
+    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField /@ finalState, ","] <> " >";
+
+CallPartialWidthCalculation[decay_FSParticleDecay] :=
+    Module[{i, initialState = GetInitialState[decay],
+            finalState = GetFinalState[decay], finalStateStrings,
+            indexArgs = "", declareFieldIndices, loopOverIndices, body = ""},
+           finalStateStrings = Table["out_" <> ToString[i], {i, 1, Length[finalState]}];
+           indexArgs = ", in_indices, " <> Utils`StringJoinWithSeparator[(# <> "_indices")& /@ finalStateStrings, ", "];
+           body = CreatePartialWidthCalculationName[initialState, finalState] <>
+                  "(model" <> indexArgs <> ");\n";
+           declareFieldIndices[field_, num_] :=
+               Module[{numIndices = CXXDiagrams`NumberOfFieldIndices[field]},
+                      If[numIndices == 0,
+                         "const field_indices<" <> CXXDiagrams`CXXNameOfField[field] <>
+                         " >::type out_" <> ToString[num] <> "_indices;\n",
+                         "const auto out_" <> ToString[num] <> "_indices = field_indices<" <>
+                         CXXDiagrams`CXXNameOfField[field] <> " >::type(out_index_" <> ToString[num] <> ");\n"
+                        ]
+                     ];
+           body = MapIndexed[declareFieldIndices[#1, First[#2]]&, finalState] <> body;
+           loopOverIndices[loopBody_String, field_, num_] :=
+               Module[{numIndices = CXXDiagrams`NumberOfFieldIndices[field], result = loopBody},
+                      If[numIndices != 0,
+                         result = "for (const auto& out_index_" <> ToString[num] <>
+                                  " : index_range<" <> CXXDiagrams`CXXNameOfField[field] <> " >()) {\n" <>
+                                  TextFormatting`IndentText[result] <> "}\n";
+                        ];
+                      result
+                     ];
+           body = Fold[loopOverIndices[#1, Sequence @@ #2]&, body, Reverse[MapIndexed[{#1, First[#2]}&, finalState]]];
+           body
+          ];
+
+CreateDecaysCalculationFunctionName[particle_, scope_:""] :=
+    scope <> If[scope =!= "", "::", ""] <> "calculate_" <> CConversion`ToValidCSymbolString[particle] <> "_decays";
+
+CreateDecaysCalculationPrototype[particle_] :=
+    "void " <> CreateDecaysCalculationFunctionName[particle] <> "(const " <>
+    FlexibleSUSY`FSModelName <> "_mass_eigenstates&);";
+
+CreateDecaysCalculationPrototypes[decayLists_List] :=
+    Utils`StringJoinWithSeparator[CreateDecaysCalculationPrototype[First[#]]& /@ decayLists, "\n"];
+
+CreateLocalScope[body_] := "{\n" <> TextFormatting`IndentText[body] <> "}\n";
+
 CreateDecaysCalculationFunction[decaysList_] :=
-    Module[{particle = First[decaysList], decayChannels = Last[decaysList],
-            dim, dimStart, loopIndices, result = "", body = ""},
-           dimStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle] - 1;
-           dim = TreeMasses`GetDimension[particle];
-           loopIndices = If[dim > 1 || TreeMasses`GetDimensionWithoutGoldstones[particle] > 1,
-                            {{"gI1", dimStart, dim}},
-                            {}
-                           ];
-           body = "auto model = model_;\n\n" <> StringJoin[CallPartialWidthCalculation /@ decayChannels];
-           body = LoopOverIndexCollection[body, loopIndices];
+    Module[{particle = First[decaysList], numParticleIndices,
+            decayChannels = Last[decaysList],
+            result = "", body = ""},
+           body = StringJoin[CreateLocalScope[CallPartialWidthCalculation[#]]& /@ decayChannels];
+           numParticleIndices = CXXDiagrams`NumberOfFieldIndices[particle];
+           If[numParticleIndices == 0,
+              body = "const field_indices<" <> CXXDiagrams`CXXNameOfField[particle] <>
+                     " >::type in_indices;\n\n" <> body;,
+              body = "const auto in_indices = field_indices<" <>
+                     CXXDiagrams`CXXNameOfField[particle] <> " >::type(index);\n\n" <> body;
+             ];
+           body = "auto model = model_;\n\n" <> body;
+           If[numParticleIndices != 0,
+              body = "for (const auto& index : index_range<" <>
+                     CXXDiagrams`CXXNameOfField[particle] <>
+                     ">()) {\n" <> TextFormatting`IndentText[body] <> "}\n";
+             ];
            "void " <> CreateDecaysCalculationFunctionName[particle, "CLASSNAME"] <>
            "(const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates& model_)\n{\n"
            <> TextFormatting`IndentText[body] <> "}\n"
