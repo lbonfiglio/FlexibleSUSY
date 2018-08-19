@@ -4177,6 +4177,9 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                    {FileNameJoin[{$flexiblesusyTemplateDir, "decays.cpp.in"}],
                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
                                   }];
+
+                 decaysSources = Join[decaysSources, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.cpp"}]}];
+                 decaysHeaders = Join[decaysHeaders, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.hpp"}]}];
                  WriteEffectiveCouplingsForDecaysClass[
                     {{FileNameJoin[{$flexiblesusyTemplateDir, "effective_couplings_for_decays.hpp.in"}],
                        FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_effective_couplings_for_decays.hpp"}]},
