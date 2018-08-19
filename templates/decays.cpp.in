@@ -130,7 +130,7 @@ void CLASSNAME::clear()
 /*   decay_table.clear(); */
 }
 
-
+// generic decay FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double CLASSNAME::get_partial_width(
    @ModelName@_mass_eigenstates const& model,
@@ -224,12 +224,11 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
                      - 0.5*(1 - x)/x * (2 - 13*x + 47*Sqr(x))
                      - 3.0/2.0 * (1 - 6*x + 4*Sqr(x))*Log(x);
 
-      res = 3.0/(128*pow(Pi,3)) * mass/Sqr(vev) * deltaV * RT * 
-        AbsSqr(effective_coupling<H,Z,Z>(model, indexIn, indexOut1, indexOut2));
+      res = 3.0/(128*pow(Pi,3)) * mass/Sqr(vev) * deltaV * RT;
    } else {
       res = 1.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    } 
-   return res * AbsSqr(effective_coupling<H,Z,Z>(model, indexIn, indexOut1, indexOut2));
+   return res * AbsSqr(effective_coupling<Z,Z,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> W+ W-
@@ -263,7 +262,7 @@ double CLASSNAME::get_partial_width<H,conj<W>::type,W>(
    } else {
       res = 2.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    }
-   return res * AbsSqr(effective_coupling<H,conj<W>::type,W>(model, indexIn, indexOut1, indexOut2));
+   return res * AbsSqr(effective_coupling<conj<W>::type,W,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 
@@ -280,7 +279,7 @@ double CLASSNAME::get_partial_width<H,G,G>(
    EvaluationContext context {model};
    const double mass = context.mass<H>(indexIn);
    return 0.039788735772973836 * pow(mass, 3.0) 
-      * AbsSqr(effective_coupling<H,G,G>(model, indexIn, indexOut1, indexOut2));
+      * AbsSqr(effective_coupling<G,G,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> photon photon
@@ -295,7 +294,7 @@ double CLASSNAME::get_partial_width<H,A,A>(
    EvaluationContext context {model};
    const double mass = context.mass<H>(indexIn);
    return 0.0049735919716217296 * pow(mass, 3.0) 
-      * AbsSqr(effective_coupling<H,A,A>(model, indexIn, indexOut1, indexOut2));
+      * AbsSqr(effective_coupling<A,A,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> photon Z
@@ -314,7 +313,7 @@ double CLASSNAME::get_partial_width<H,A,Z>(
    if(MVZ/mass >= 1.0)
       return 0.0;
    return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3) 
-    * AbsSqr(effective_coupling<H,A,Z>(model, indexIn, indexOut1, indexOut2));
+    * AbsSqr(effective_coupling<A,Z,H>(model, indexOut1, indexOut2, indexIn));
 }
 template<>
 double CLASSNAME::get_partial_width<H,Z,A>(
@@ -342,7 +341,7 @@ double CLASSNAME::get_partial_width<H,H,H>(
    const auto factor = 1.; //(gI1 == gI2) ? 1 : 2;
 
    return factor/(32*Pi * mass) * sqrt(two_body_phase_space_function(mass, MS1, MS2))
-      * AbsSqr(effective_coupling<H,H,H>(model, indexIn, indexOut1, indexOut2));
+      * AbsSqr(effective_coupling<H,H,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> Fd Fd
