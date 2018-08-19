@@ -232,12 +232,12 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
    return res * AbsSqr(effective_coupling<H,Z,Z>(model, indexIn, indexOut1, indexOut2));
 }
 
-// special case for H -> W W
+// special case for H -> W+ W-
 template<>
-double CLASSNAME::get_partial_width<H,W,W>(
+double CLASSNAME::get_partial_width<H,conj<W>::type,W>(
    @ModelName@_mass_eigenstates const& model,
    typename field_indices<H>::type const& indexIn,
-   typename field_indices<W>::type const& indexOut1,
+   typename field_indices<conj<W>::type>::type const& indexOut1,
    typename field_indices<W>::type const& indexOut2
    ) const
 {
@@ -263,7 +263,7 @@ double CLASSNAME::get_partial_width<H,W,W>(
    } else {
       res = 2.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    }
-   return res * AbsSqr(effective_coupling<H,W,W>(model, indexIn, indexOut1, indexOut2));
+   return res * AbsSqr(effective_coupling<H,conj<W>::type,W>(model, indexIn, indexOut1, indexOut2));
 }
 
 
@@ -348,7 +348,7 @@ double CLASSNAME::get_partial_width<H,H,H>(
 // special case for H -> Fd Fd
 /*
 template<>
-double CLASSNAME::get_partial_width<H,@DownQuarkName@,@DownQuarkName@>(
+double CLASSNAME::get_partial_width<H,conj<@DownQuarkName@>::type,@DownQuarkName@>(
    @ModelName@_mass_eigenstates const& model,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<@DownQuarkName@>::type const& indexOut1,
