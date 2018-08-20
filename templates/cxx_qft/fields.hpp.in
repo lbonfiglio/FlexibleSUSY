@@ -45,19 +45,13 @@ template<class Field> struct field_indices {
 
 namespace fields
 {
+
 enum class ParticleType {
    scalar,
    fermion,
    vector,
    ghost
 };
-enum class ParticleColorRep {
-   singlet,
-   triplet,
-   antitriplet,
-   octet
-};
-
 template<typename Field> struct is_fermion {
    static constexpr bool value = Field::particle_type == ParticleType::fermion;
 };
@@ -68,8 +62,45 @@ template<typename Field> struct is_scalar {
    static constexpr bool value = Field::particle_type == ParticleType::scalar;
 };
 
+enum class ParticleColorRep {
+   singlet,
+   triplet,
+   anti_triplet,
+   sextet,
+   octet
+};
+template<typename Field> struct is_triplet {
+   static constexpr bool value = Field::color_rep == ParticleColorRep::triplet;
+};
+template<typename Field> struct is_anti_triplet {
+   static constexpr bool value = Field::color_rep == ParticleColorRep::anti_triplet;
+};
+template<typename Field>
+constexpr typename std::enable_if<
+   is_triplet<Field>::value, ParticleColorRep
+   >::type
+color_conj() {
+   return ParticleColorRep::anti_triplet;
+}
+template<typename Field>
+constexpr typename std::enable_if<
+   is_anti_triplet<Field>::value, ParticleColorRep
+   >::type
+color_conj() {
+   return ParticleColorRep::triplet;
+}
+template<typename Field>
+constexpr typename std::enable_if<
+   !is_triplet<Field>::value && !is_anti_triplet<Field>::value, ParticleColorRep
+   >::type
+color_conj() {
+   return Field::color_rep;
+}
+
 template<class Field> struct bar
 {
+  static constexpr auto particle_type = Field::particle_type;
+  static constexpr auto color_rep = color_conj<Field>();
   using index_bounds = typename Field::index_bounds;
   static constexpr int numberOfGenerations = Field::numberOfGenerations;
   using sm_flags = typename Field::sm_flags;
@@ -82,6 +113,8 @@ template<class Field> struct bar
 
 template<class Field> struct conj
 {
+  static constexpr auto particle_type = Field::particle_type;
+  static constexpr auto color_rep = color_conj<Field>();
   using index_bounds = typename Field::index_bounds;
   static constexpr int numberOfGenerations = Field::numberOfGenerations;
   using sm_flags = typename Field::sm_flags;
