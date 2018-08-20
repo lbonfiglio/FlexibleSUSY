@@ -41,7 +41,7 @@ using effective_couplings::two_body_phase_space_function;
 
 /*
 template<typename Field1, typename Field2, typename Field3>
-double dispatch_decay_vertex(EvaluationContext const& context, 
+double dispatch_decay_vertex(EvaluationContext const& context,
 const std::array<int,
       detail::total_number_of_field_indices<
          boost::mpl::vector<Field1, Field2, Field3>
@@ -51,7 +51,7 @@ const std::array<int,
 // S -> FF
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value && is_fermion<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context, 
+dispatch_decay_vertex(EvaluationContext const& context,
 const std::array<int,
 detail::total_number_of_field_indices<
 boost::mpl::vector<Field1, Field2, Field3>
@@ -63,7 +63,7 @@ boost::mpl::vector<Field1, Field2, Field3>
 // S -> VV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context, 
+dispatch_decay_vertex(EvaluationContext const& context,
 const std::array<int,
 detail::total_number_of_field_indices<
 boost::mpl::vector<Field1, Field2, Field3>
@@ -75,7 +75,7 @@ boost::mpl::vector<Field1, Field2, Field3>
 // S -> SV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_vector<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context, 
+dispatch_decay_vertex(EvaluationContext const& context,
 const std::array<int,
 detail::total_number_of_field_indices<
 boost::mpl::vector<Field1, Field2, Field3>
@@ -88,7 +88,7 @@ boost::mpl::vector<Field1, Field2, Field3>
 // S -> SS
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context, 
+dispatch_decay_vertex(EvaluationContext const& context,
 const std::array<int, detail::total_number_of_field_indices<boost::mpl::vector<Field1, Field2, Field3>>::value> index) {
 
       std::cout << "SSS ";
@@ -173,7 +173,7 @@ double CLASSNAME::get_partial_width(
       && FieldOut2::particle_type == ParticleType::vector) {
 
    }
-   
+
    // phase space factor times symmetry factor times matrix element 2.
    return ps * ps_symmetry * mat2;
 }
@@ -215,7 +215,7 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
       res = 3.0/(128*pow(Pi,3)) * mass/Sqr(vev) * deltaV * RT;
    } else {
       res = 1.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
-   } 
+   }
    return res * AbsSqr(effective_coupling<Z,Z,H>(model, indexOut1, indexOut2, indexIn));
 }
 
@@ -266,7 +266,7 @@ double CLASSNAME::get_partial_width<H,G,G>(
 
    EvaluationContext context {model};
    const double mass = context.mass<H>(indexIn);
-   return 0.039788735772973836 * pow(mass, 3.0) 
+   return 0.039788735772973836 * pow(mass, 3.0)
       * AbsSqr(effective_coupling<G,G,H>(model, indexOut1, indexOut2, indexIn));
 }
 
@@ -281,7 +281,7 @@ double CLASSNAME::get_partial_width<H,A,A>(
 {
    EvaluationContext context {model};
    const double mass = context.mass<H>(indexIn);
-   return 0.0049735919716217296 * pow(mass, 3.0) 
+   return 0.0049735919716217296 * pow(mass, 3.0)
       * AbsSqr(effective_coupling<A,A,H>(model, indexOut1, indexOut2, indexIn));
 }
 
@@ -300,7 +300,7 @@ double CLASSNAME::get_partial_width<H,A,Z>(
    const double MVZ = context.mass<Z>(indexOut2);
    if(MVZ/mass >= 1.0)
       return 0.0;
-   return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3) 
+   return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3)
     * AbsSqr(effective_coupling<A,Z,H>(model, indexOut1, indexOut2, indexIn));
 }
 template<>
