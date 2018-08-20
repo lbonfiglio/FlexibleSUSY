@@ -345,7 +345,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
                                       MapIndexed[{#1, "out_" <> ToString[First[#2]] <> "_indices",
                                                   If[finalStateDims[[First[#2]]] > 1, "gO" <> ToString[First[#2]], ""]}&, finalState]]];
            body = body <> "\nreturn " <> CreateGenericPartialWidthCalculationName[initialState, finalState] <>
-                  "(in_indices" <> StringJoin[Table[", out_" <> ToString[i] <> "_indices", {i, 1, Length[finalState]}]] <> ");\n";
+                  "(model, in_indices" <> StringJoin[Table[", out_" <> ToString[i] <> "_indices", {i, 1, Length[finalState]}]] <> ");\n";
            returnType <> " " <> functionName <> "(" <> functionArgs <> ") const\n{\n" <>
            TextFormatting`IndentText[body] <> "}\n"
           ];
