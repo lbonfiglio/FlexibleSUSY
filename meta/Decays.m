@@ -373,7 +373,7 @@ CallPartialWidthCalculation[decay_FSParticleDecay] :=
            body = CreatePartialWidthCalculationName[decay] <> "(" <> functionArgs <> ");";
            loopIndices = Reverse[Select[MapIndexed[With[{idx = First[#2]},
                                                         If[#1 > 1,
-                                                           {"gO" <> ToString[idx], finalStateStarts[[idx]] - 1, #1 - 1},
+                                                           {"gO" <> ToString[idx], finalStateStarts[[idx]] - 1, #1},
                                                            {}
                                                           ]
                                                        ]&, finalStateDims], (# =!= {})&]];
@@ -398,13 +398,17 @@ CreateLocalScope[body_] := "{\n" <> TextFormatting`IndentText[body] <> "}\n";
 CreateDecaysCalculationFunction[decaysList_] :=
     Module[{particle = First[decaysList], particleDim, particleStart,
             decayChannels = Last[decaysList],
-            result = "", body = ""},
-           body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
-           body = "auto model = model_;\n\n" <> body;
+            runToScale = "", body = ""},
            particleDim = TreeMasses`GetDimension[particle];
            particleStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
+           runToScale = "const auto& decay_mass = PHYSICAL(" <> CConversion`ToValidCSymbolString[TreeMasses`GetMass[particle]] <>
+                        ");\nmodel.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
+           body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
+           body = "if (run_to_decay_particle_scale) {\n" <>
+                  TextFormatting`IndentText[runToScale] <> "}\n\n" <> body;
+           body = "auto model = model_;\n\n" <> body;
            If[particleDim > 1,
-              body = LoopOverIndexCollection[body, {{"gI1", particleStart - 1, particleDim - 1}}];
+              body = LoopOverIndexCollection[body, {{"gI1", particleStart - 1, particleDim}}] <> "\n";
              ];
            "void " <> CreateDecaysCalculationFunctionName[particle, "CLASSNAME"] <>
            "(const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates& model_)\n{\n"

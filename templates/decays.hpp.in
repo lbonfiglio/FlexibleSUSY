@@ -55,6 +55,7 @@ public:
 private:
 /*   @ModelName@_decay_table decay_table{}; */
    Decays_problems problems{};
+   bool run_to_decay_particle_scale{true};
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
