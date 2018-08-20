@@ -18,18 +18,19 @@
 
 // File generated at @DateAndTime@
 
-#include <cmath>
-
-#include <boost/range/algorithm.hpp>
-
+#include "cxx_qft/@ModelName@_fields.hpp"
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
 #include "@ModelName@_effective_couplings_for_decays.hpp"
-#include "effective_couplings.hpp"
 
 #include "config.h"
+#include "effective_couplings.hpp"
 #include "thread_pool.hpp"
+
+#include <boost/range/algorithm.hpp>
+
+#include <cmath>
 
 namespace flexiblesusy {
 
