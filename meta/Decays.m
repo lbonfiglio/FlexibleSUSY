@@ -334,7 +334,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
                       numIndices = CXXDiagrams`NumberOfFieldIndices[field];
                       result = "const field_indices<" <> CXXDiagrams`CXXNameOfField[field] <> " >::type " <> indicesName;
                       If[numIndices == 0 || dim <= 1,
-                         result = result <> ";\n";,
+                         result = result <> "{};\n";,
                          result = result <> "{{" <> ToString[indexVal] <>
                                   StringJoin[Table[", 0", {i, 1, numIndices - 1}]] <> "}};\n";
                         ];
