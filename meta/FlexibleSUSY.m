@@ -1766,7 +1766,8 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             enableDecaysCalculationThreads,
             callAllDecaysFunctions = "", callAllDecaysFunctionsInThreads = "",
             decaysListGetters = "", decaysGetters = "",
-            decaysCalculationPrototypes = "", decaysCalculationFunctions = ""},
+            decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
+            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = ""},
            numberOfDecayParticles = Length[decayParticles];
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            enableDecaysCalculationThreads = False;
@@ -1775,12 +1776,16 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            callAllDecaysFunctionsInThreads = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
            decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decaysLists];
            decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
+           partialWidthCalculationPrototypes = Decays`CreatePartialWidthCalculationPrototypes[decaysLists];
+           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
                             "@decaysGetters@" -> IndentText[decaysGetters],
                             "@decaysCalculationPrototypes@" -> IndentText[decaysCalculationPrototypes],
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
+                            "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],
+                            "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
                             "@decaysListGetters@" -> IndentText[decaysListGetters],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
                             "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]],

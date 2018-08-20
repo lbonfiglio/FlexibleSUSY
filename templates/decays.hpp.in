@@ -50,16 +50,18 @@ public:
 @decaysGetters@
 @decaysCalculationPrototypes@
 
+@partialWidthCalculationPrototypes@
+
+private:
+/*   @ModelName@_decay_table decay_table{}; */
+   Decays_problems problems{};
+
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
       const @ModelName@_mass_eigenstates&,
       const typename cxx_qft::field_indices<FieldIn>::type&,
       const typename cxx_qft::field_indices<FieldOut1>::type&,
       const typename cxx_qft::field_indices<FieldOut2>::type&) const;
-
-private:
-/*   @ModelName@_decay_table decay_table{}; */
-   Decays_problems problems{};
 };
 
 } // namespace flexiblesusy
