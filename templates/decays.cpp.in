@@ -57,7 +57,7 @@ detail::total_number_of_field_indices<
 boost::mpl::vector<Field1, Field2, Field3>
 >::value> index) {
       std::cout << "SFF ";
-      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
       return 1.;
 }
 // S -> VV
@@ -69,7 +69,7 @@ detail::total_number_of_field_indices<
 boost::mpl::vector<Field1, Field2, Field3>
 >::value> index) {
       std::cout << "SVV ";
-      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
       return 1.;
 }
 // S -> SV
@@ -81,7 +81,19 @@ detail::total_number_of_field_indices<
 boost::mpl::vector<Field1, Field2, Field3>
 >::value> index) {
       std::cout << "SSV ";
-      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+// S -> SV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field3>::value && is_vector<Field2>::value, double>::type
+dispatch_decay_vertex(EvaluationContext const& context,
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SSV ";
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
       return 1.;
 }
 
@@ -92,7 +104,7 @@ dispatch_decay_vertex(EvaluationContext const& context,
 const std::array<int, detail::total_number_of_field_indices<boost::mpl::vector<Field1, Field2, Field3>>::value> index) {
 
       std::cout << "SSS ";
-      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
       return 1.;
 }
 

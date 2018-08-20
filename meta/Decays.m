@@ -401,12 +401,12 @@ CreateDecaysCalculationFunction[decaysList_] :=
             runToScale = "", body = ""},
            particleDim = TreeMasses`GetDimension[particle];
            particleStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
-           runToScale = "const auto& decay_mass = PHYSICAL(" <> CConversion`ToValidCSymbolString[TreeMasses`GetMass[particle]] <>
-                        ");\nmodel.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
+           runToScale = "const auto& decay_mass = context.mass<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <>
+                        ">(field_indices<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <> ">::type {gI1});\n//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = "if (run_to_decay_particle_scale) {\n" <>
                   TextFormatting`IndentText[runToScale] <> "}\n\n" <> body;
-           body = "auto model = model_;\n\n" <> body;
+           body = "auto model = model_;\nEvaluationContext context {model_};\n\n" <> body;
            If[particleDim > 1,
               body = LoopOverIndexCollection[body, {{"gI1", particleStart - 1, particleDim}}] <> "\n";
              ];
