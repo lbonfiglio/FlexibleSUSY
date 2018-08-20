@@ -18,7 +18,6 @@
 
 // File generated at @DateAndTime@
 
-#include "cxx_qft/@ModelName@_fields.hpp"
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
@@ -127,9 +126,6 @@ void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
 @callAllDecaysFunctions@
 #endif
 }
-
-@decaysCalculationFunctions@
-@partialWidthCalculationFunctions@
 
 // generic decay FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
@@ -358,5 +354,8 @@ double CLASSNAME::get_partial_width<H,conj<@DownQuarkName@>::type,@DownQuarkName
    // SM expression + pure BSM 1L corrections
 }
 */
+
+@decaysCalculationFunctions@
+@partialWidthCalculationFunctions@
 
 } // namespace flexiblesusy
