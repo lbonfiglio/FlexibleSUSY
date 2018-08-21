@@ -191,28 +191,33 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
    unspecifiedEdgesLess = Cases[internalFieldCouplings,{i_,j_,_} /; i < j,{2}];
    unspecifiedEdgesEqual = Cases[internalFieldCouplings,{i_,i_,_},{2}];
 
-   insertFieldRulesLess = MapIndexed[#1 -> SARAH`FieldToInsert[#2[[1]]] &,unspecifiedEdgesLess];
-   insertFieldRulesGreater = (insertFieldRulesLess /. {Rule[{i_,j_,k_},field_] :> Rule[{j,i,k},SARAH`AntiField[field]]});
-   insertFieldRulesEqual = MapIndexed[#1 -> {SARAH`FieldToInsert[#2[[1]]+Length[insertFieldRulesLess]],
-                                            SARAH`AntiField[SARAH`FieldToInsert[#2[[1]]+Length[insertFieldRulesLess]]]} &,
-                                      unspecifiedEdgesEqual];
-   fieldsToInsert = Table[SARAH`FieldToInsert[k],
-             {k,Length[insertFieldRulesLess] + Length[insertFieldRulesEqual]}];
+   If[unspecifiedEdgesLess === {} && unspecifiedEdgesEqual === {},
+      diagrams = Table[k, {k, 1, Length[adjacencyMatrix]}] /. externalFields /.
+          {Thread[Rule[internalVertices, internalFieldCouplings]]};
+      ,
+      insertFieldRulesLess = MapIndexed[#1 -> SARAH`FieldToInsert[#2[[1]]] &,unspecifiedEdgesLess];
+      insertFieldRulesGreater = (insertFieldRulesLess /. {Rule[{i_,j_,k_},field_] :> Rule[{j,i,k},SARAH`AntiField[field]]});
+      insertFieldRulesEqual = MapIndexed[#1 -> {SARAH`FieldToInsert[#2[[1]]+Length[insertFieldRulesLess]],
+                                               SARAH`AntiField[SARAH`FieldToInsert[#2[[1]]+Length[insertFieldRulesLess]]]} &,
+                                         unspecifiedEdgesEqual];
+      fieldsToInsert = Table[SARAH`FieldToInsert[k],
+                {k,Length[insertFieldRulesLess] + Length[insertFieldRulesEqual]}];
 
-   unresolvedFieldCouplings = internalFieldCouplings
-     /. insertFieldRulesLess /. insertFieldRulesGreater /. insertFieldRulesEqual;
-   resolvedFields = SARAH`InsFields[{C @@@ unresolvedFieldCouplings,
-                                     fieldsToInsert}][[All,2]];
-   resolvedFieldCouplings = unresolvedFieldCouplings /.
-     ((Rule @@@ Transpose[{fieldsToInsert,#}]) & /@ resolvedFields);
+      unresolvedFieldCouplings = internalFieldCouplings
+        /. insertFieldRulesLess /. insertFieldRulesGreater /. insertFieldRulesEqual;
+      resolvedFields = SARAH`InsFields[{C @@@ unresolvedFieldCouplings,
+                                        fieldsToInsert}][[All,2]];
+      resolvedFieldCouplings = unresolvedFieldCouplings /.
+        ((Rule @@@ Transpose[{fieldsToInsert,#}]) & /@ resolvedFields);
 
-   diagrams = Table[k,{k,Length[adjacencyMatrix]}] /. externalFields /.
-     ((Rule @@@ Transpose[{internalVertices,#}]) & /@ resolvedFieldCouplings);
+      diagrams = Table[k,{k,Length[adjacencyMatrix]}] /. externalFields /.
+        ((Rule @@@ Transpose[{internalVertices,#}]) & /@ resolvedFieldCouplings);
+     ];
 
    DeleteDuplicates[diagrams,
      AllTrue[Cases[Transpose[{#1,#2}],{{___},{___}}], (* External lines *)
              (Sort[#[[1]]] === Sort[#[[2]]]&)] &]
-  ]
+  ];
 
 VerticesForDiagram[diagram_] := Select[diagram,Length[#] > 1 &]
 
