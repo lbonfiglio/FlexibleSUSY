@@ -179,7 +179,7 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
           insertFieldRulesLess,insertFieldRulesGreater,insertFieldRulesEqual,
           fieldsToInsert,
           unresolvedFieldCouplings,resolvedFields,resolvedFieldCouplings,
-          diagrams},
+          diagrams = {}},
    internalVertices = Complement[Table[k,{k,Length[adjacencyMatrix]}],externalVertices];
    externalRules = Flatten @ ({{_,#,_} :> SARAH`AntiField[# /. externalFields],
                                {#,_,_} :> SARAH`AntiField[# /. externalFields]} & /@ externalVertices);
@@ -207,11 +207,13 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
         /. insertFieldRulesLess /. insertFieldRulesGreater /. insertFieldRulesEqual;
       resolvedFields = SARAH`InsFields[{C @@@ unresolvedFieldCouplings,
                                         fieldsToInsert}][[All,2]];
-      resolvedFieldCouplings = unresolvedFieldCouplings /.
-        ((Rule @@@ Transpose[{fieldsToInsert,#}]) & /@ resolvedFields);
+      If[resolvedFields =!= {},
+         resolvedFieldCouplings = unresolvedFieldCouplings /.
+           ((Rule @@@ Transpose[{fieldsToInsert,#}]) & /@ resolvedFields);
 
-      diagrams = Table[k,{k,Length[adjacencyMatrix]}] /. externalFields /.
-        ((Rule @@@ Transpose[{internalVertices,#}]) & /@ resolvedFieldCouplings);
+         diagrams = Table[k,{k,Length[adjacencyMatrix]}] /. externalFields /.
+           ((Rule @@@ Transpose[{internalVertices,#}]) & /@ resolvedFieldCouplings);
+        ];
      ];
 
    DeleteDuplicates[diagrams,
