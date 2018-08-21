@@ -80,7 +80,6 @@ LIB@CLASSNAME@_HDR := \
 		$(DIR)/@CLASSNAME@_effective_couplings.hpp \
 		$(DIR)/@CLASSNAME@_ewsb_solver.hpp \
 		$(DIR)/@CLASSNAME@_ewsb_solver_interface.hpp \
-		$(DIR)/@CLASSNAME@_effective_couplings_for_decays.hpp \
 		$(DIR)/@CLASSNAME@_high_scale_constraint.hpp \
 		$(DIR)/@CLASSNAME@_info.hpp \
 		$(DIR)/@CLASSNAME@_initial_guesser.hpp \
