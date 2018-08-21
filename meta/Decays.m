@@ -164,6 +164,14 @@ IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
            PossibleZeroQ[chargeSum]
           ];
 
+IsPossibleNonZeroDiagram[diagram_] :=
+    Module[{vertices, vertexVals, isPossibleNonZeroVertex},
+           vertices = CXXDiagrams`VerticesForDiagram[diagram];
+           isPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
+           vertexVals = SARAH`Vertex /@ vertices;
+           And @@ (isPossibleNonZeroVertex /@ vertexVals)
+          ];
+
 ContainsOnlySupportedVertices[diagram_] :=
     Module[{vertices, vertexTypes, unsupportedVertices},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
@@ -183,7 +191,8 @@ IsSupportedDiagram[diagram_] := ContainsOnlySupportedVertices[diagram];
 GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
     Module[{externalFields, diagrams},
            externalFields = Join[{1 -> initialField}, MapIndexed[(First[#2] + 1 -> #1)&, finalFields]];
-           CXXDiagrams`FeynmanDiagramsOfType[graph, externalFields]
+           diagrams = CXXDiagrams`FeynmanDiagramsOfType[graph, externalFields];
+           Select[diagrams, IsPossibleNonZeroDiagram]
           ];
 
 GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
