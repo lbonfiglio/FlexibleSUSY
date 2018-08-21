@@ -164,16 +164,42 @@ IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
            PossibleZeroQ[chargeSum]
           ];
 
+IsPossibleNonZeroDiagram[diagram_] :=
+    Module[{vertices, vertexVals, isPossibleNonZeroVertex},
+           vertices = CXXDiagrams`VerticesForDiagram[diagram];
+           isPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
+           vertexVals = SARAH`Vertex /@ vertices;
+           And @@ (isPossibleNonZeroVertex /@ vertexVals)
+          ];
+
+ContainsOnlySupportedVertices[diagram_] :=
+    Module[{vertices, vertexTypes, unsupportedVertices},
+           vertices = CXXDiagrams`VerticesForDiagram[diagram];
+           vertexTypes = CXXDiagrams`VertexTypeForFields /@ vertices;
+           unsupportedVertices = Complement[vertexTypes, CXXDiagrams`VertexTypes[]];
+           If[unsupportedVertices =!= {},
+              MapIndexed[(If[!MemberQ[CXXDiagrams`VertexTypes[], vertexTypes[[First[#2]]]],
+                             Print["Warning: vertex with fields ", #1, " is not currently supported."];
+                             Print["    Diagrams involving this vertex will be discarded."];
+                            ];)&, vertices];
+             ];
+           unsupportedVertices === {}
+          ];
+
+IsSupportedDiagram[diagram_] := ContainsOnlySupportedVertices[diagram];
+
 GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
     Module[{externalFields, diagrams},
            externalFields = Join[{1 -> initialField}, MapIndexed[(First[#2] + 1 -> #1)&, finalFields]];
-           CXXDiagrams`FeynmanDiagramsOfType[graph, externalFields]
+           diagrams = CXXDiagrams`FeynmanDiagramsOfType[graph, externalFields];
+           Select[diagrams, IsPossibleNonZeroDiagram]
           ];
 
 GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
-    Module[{nFinalParticles = Length[finalParticles], topologies},
+    Module[{nFinalParticles = Length[finalParticles], topologies, diagrams},
            topologies = GetDecayTopologies[nFinalParticles];
-           Flatten[GetContributingDiagramsForDecayGraph[initialParticle, finalParticles, #]& /@ topologies, 1]
+           diagrams = Flatten[GetContributingDiagramsForDecayGraph[initialParticle, finalParticles, #]& /@ topologies, 1];
+           Select[diagrams, IsSupportedDiagram]
           ];
 
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=

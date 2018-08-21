@@ -25,6 +25,7 @@ BeginPackage["CXXDiagrams`", {"SARAH`", "TextFormatting`", "TreeMasses`", "Verti
 (* This module generates c++ code intended to be used similarly to SARAH's fields and Vertex[] function *)
 
 VertexTypes::usage="";
+VertexTypeForFields::usage="";
 CXXNameOfField::usage="";
 prefixNamespace::usage="";
 SpinTagOfField::usage="";
