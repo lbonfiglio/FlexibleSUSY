@@ -24,6 +24,7 @@ BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`"
 
 CreateCompleteParticleList::usage="";
 GetDecaysForParticle::usage="";
+GetVerticesForDecays::usage="gets required vertices for a list of decays";
 
 CallDecaysCalculationFunctions::usage="creates calls to functions calculating
 decays of the given particles.";
@@ -281,6 +282,14 @@ GetAllowedGenericFinalStates[particle_?TreeMasses`IsFermion, n_Integer] :=
                {GenericVectorName[], GenericFermionName[]}},
            _, Print["Error: cannot determine allowed generic final states for n = ", n]; Quit[1];
           ];
+
+GetVerticesForDecay[decay_FSParticleDecay] :=
+    Module[{diagrams = GetDecayDiagrams[decay]},
+           DeleteDuplicates[Flatten[CXXDiagrams`VerticesForDiagram /@ diagrams, 1]]
+          ];
+
+GetVerticesForDecays[particleDecays_List] :=
+    DeleteDuplicates[Flatten[GetVerticesForDecay /@ particleDecays, 1]]
 
 LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarType[CConversion`integerScalarCType]] :=
     Module[{idxStr, startStr, stopStr},
