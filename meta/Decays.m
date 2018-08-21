@@ -418,9 +418,11 @@ CreateDecaysCalculationFunction[decaysList_] :=
             runToScale = "", body = ""},
            particleDim = TreeMasses`GetDimension[particle];
            particleStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
-           runToScale = "const auto& decay_mass = context.mass<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <>
-                        ">(field_indices<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <> ">::type {" <>
-                        If[particleDim > 1, "{gI1}", ""] <> "});\n//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
+           runToScale =
+              ("const auto& decay_mass = context.mass<" <> # <>
+                 ">(field_indices<" <> # <> ">::type {gI1});\n" <>
+               "//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n"
+              )& @ CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]];
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = "if (run_to_decay_particle_scale) {\n" <>
                   TextFormatting`IndentText[runToScale] <> "}\n\n" <> body;
