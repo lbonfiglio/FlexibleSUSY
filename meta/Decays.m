@@ -149,6 +149,14 @@ GetDecaysForParticle[particle_, {minNumberOfProducts_Integer /; minNumberOfProdu
            Flatten[GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes, 1]
           ];
 
+(* returns False if state consists only of Goldstones or ghosts, for any set of generation indices *)
+IsPhysicalFinalState[finalState_List] :=
+    Module[{goldstones, onlyGoldstones},
+           goldstones = Select[finalState, TreeMasses`IsGoldstone];
+           isAlwaysGoldstone = (TreeMasses`GetDimensionWithoutGoldstones[#] == 0)& /@ goldstones;
+           (Select[finalState, TreeMasses`IsGhost] === {}) && !(Or @@ isAlwaysGoldstone)
+          ];
+
 IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
     Module[{chargeSum},
            chargeSum = Simplify[Plus @@ (Join[{-TreeMasses`GetElectricCharge[initialParticle]}, TreeMasses`GetElectricCharge /@ finalState])];
@@ -177,7 +185,7 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
              ];
            genericFinalStates = GetAllowedGenericFinalStates[particle, exactNumberOfProducts];
            (* @todo checks on colour and Lorentz structure *)
-           isPossibleDecay[finalState_] := (IsElectricChargeConservingDecay[particle, finalState]);
+           isPossibleDecay[finalState_] := (IsPhysicalFinalState[finalState] && IsElectricChargeConservingDecay[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
            decays = FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates;
            Select[decays, (GetDecayDiagrams[#] =!= {})&]
@@ -402,7 +410,8 @@ CreateDecaysCalculationFunction[decaysList_] :=
            particleDim = TreeMasses`GetDimension[particle];
            particleStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
            runToScale = "const auto& decay_mass = context.mass<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <>
-                        ">(field_indices<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <> ">::type {gI1});\n//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
+                        ">(field_indices<" <> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]] <> ">::type {" <>
+                        If[particleDim > 1, "{gI1}", ""] <> "});\n//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = "if (run_to_decay_particle_scale) {\n" <>
                   TextFormatting`IndentText[runToScale] <> "}\n\n" <> body;
