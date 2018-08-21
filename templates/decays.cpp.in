@@ -18,18 +18,18 @@
 
 // File generated at @DateAndTime@
 
-#include "@ModelName@_decays.hpp"
-#include "@ModelName@_info.hpp"
-#include "@ModelName@_mass_eigenstates.hpp"
-#include "@ModelName@_effective_couplings_for_decays.hpp"
+#include <cmath>
+
+#include <boost/range/algorithm.hpp>
 
 #include "config.h"
 #include "effective_couplings.hpp"
 #include "thread_pool.hpp"
 
-#include <boost/range/algorithm.hpp>
-
-#include <cmath>
+#include "@ModelName@_decays.hpp"
+#include "@ModelName@_info.hpp"
+#include "@ModelName@_mass_eigenstates.hpp"
+#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 namespace flexiblesusy {
 
@@ -38,75 +38,6 @@ using namespace cxx_qft::fields;
 using effective_couplings::two_body_phase_space_function;
 
 #define CLASSNAME @ModelName@_decays
-
-/*
-template<typename Field1, typename Field2, typename Field3>
-double dispatch_decay_vertex(EvaluationContext const& context,
-const std::array<int,
-      detail::total_number_of_field_indices<
-         boost::mpl::vector<Field1, Field2, Field3>
-      >::value
-   > index);
-*/
-// S -> FF
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value && is_fermion<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
-      std::cout << "SFF ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      return 1.;
-}
-// S -> VV
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
-      std::cout << "SVV ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      return 1.;
-}
-// S -> SV
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_vector<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
-      std::cout << "SSV ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      return 1.;
-}
-// S -> SV
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field3>::value && is_vector<Field2>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
-      std::cout << "SSV ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      return 1.;
-}
-
-// S -> SS
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
-dispatch_decay_vertex(EvaluationContext const& context,
-const std::array<int, detail::total_number_of_field_indices<boost::mpl::vector<Field1, Field2, Field3>>::value> index) {
-
-      std::cout << "SSS ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      return 1.;
-}
 
 /*
 const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
@@ -139,7 +70,70 @@ void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
 #endif
 }
 
-// generic decay FieldIn -> FieldOut1 FieldOut2
+// returns an amplitude squared
+// we need to distinquish between different combinations of scalars, fermions and vectors
+// as, for examples, for S -> SS we take |A|^2 while for S - > FF we take (|A_L|^2 + |A_R|^2)
+
+// S -> FF
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value && is_fermion<Field3>::value, double>::type
+amplitude_squared(EvaluationContext const& context,
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SFF ";
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+// S -> VV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
+amplitude_squared(EvaluationContext const& context,
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SVV ";
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+// S -> SV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_vector<Field3>::value, double>::type
+amplitude_squared(EvaluationContext const& context,
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SSV ";
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+// S -> SV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field3>::value && is_vector<Field2>::value, double>::type
+amplitude_squared(EvaluationContext const& context,
+const std::array<int,
+detail::total_number_of_field_indices<
+boost::mpl::vector<Field1, Field2, Field3>
+>::value> index) {
+      std::cout << "SSV ";
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      return 1.;
+}
+// S -> SS
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
+amplitude_squared(EvaluationContext const& context,
+const std::array<int, detail::total_number_of_field_indices<boost::mpl::vector<Field1, Field2, Field3>>::value> index) {
+
+      std::cout << "SSS ";
+      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      // return std::norm(vertex.result());
+      return 1.;
+}
+// generic decay of FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double CLASSNAME::get_partial_width(
    @ModelName@_mass_eigenstates const& model,
@@ -148,11 +142,13 @@ double CLASSNAME::get_partial_width(
    typename field_indices<FieldOut2>::type const& indexOut2
    ) const
 {
-   EvaluationContext context {model};
 
+   // phase space without symmetry factor
+   EvaluationContext context {model};
    const double mIn = context.mass<FieldIn>(indexIn);
    const double mOut1 = context.mass<FieldOut1>(indexOut1);
    const double mOut2 = context.mass<FieldOut2>(indexOut2);
+   double ps = 1/(16*Pi)*sqrt(1. - 2.*(pow(mOut1,2) + pow(mOut2,2))/pow(mIn,2) + pow((mOut1+mOut2)*(mOut1-mOut2)/pow(mIn,2),2));
 
    // phase space symmetry factor
    double ps_symmetry = 1;
@@ -163,37 +159,9 @@ double CLASSNAME::get_partial_width(
       }
    }
 
-   double ps = 1/(16*Pi)*sqrt(1. - 2.*(pow(mOut1,2) + pow(mOut2,2))/pow(mIn,2) + pow((mOut1+mOut2)*(mOut1-mOut2)/pow(mIn,2),2));
-
+   // matrix element squared
    const auto indices = concatenate(indexIn, indexOut1, indexOut2);
-   double mat2 = dispatch_decay_vertex<FieldIn,FieldOut1,FieldOut2>(context, indices);
-   // S -> FF
-   if(FieldIn::particle_type == ParticleType::scalar
-      &&  FieldOut1::particle_type == ParticleType::fermion
-      && FieldOut2::particle_type == ParticleType::fermion) {
-
-   }
-
-   // S -> VV
-   if(FieldIn::particle_type == ParticleType::scalar
-      &&  FieldOut1::particle_type == ParticleType::vector
-      && FieldOut2::particle_type == ParticleType::vector) {
-
-   }
-
-   // S -> SS
-   if(FieldIn::particle_type == ParticleType::scalar
-      &&  FieldOut1::particle_type == ParticleType::scalar
-      && FieldOut2::particle_type == ParticleType::scalar) {
-
-   }
-
-   // S -> SV
-   if(FieldIn::particle_type == ParticleType::scalar
-      &&  FieldOut1::particle_type == ParticleType::scalar
-      && FieldOut2::particle_type == ParticleType::vector) {
-
-   }
+   const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indices);
 
    // phase space factor times symmetry factor times matrix element 2.
    return ps * ps_symmetry * mat2;
