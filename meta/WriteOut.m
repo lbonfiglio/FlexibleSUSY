@@ -1280,17 +1280,48 @@ void " <> modelName <> "_slha_io::set_dcinfo(
 }";
 
 CreateSetDecaysPrototypes[modelName_String] := "\
-void set_decays(const " <> modelName <> "_decays&);";
+void set_decay_block(const Decays_list&);
+void set_decays(const " <> modelName <> "_decay_table&);";
 
 CreateSetDecaysFunctions[modelName_String] := "\
+/**
+ * Stores the branching ratios for a given particle in the SLHA
+ * object.
+ *
+ * @param decays struct containing individual particle decays
+ */
+void " <> modelName <> "_slha_io::set_decay_block(const Decays_list& decays_list)
+{
+   const auto pdg = decays_list.get_particle_id();
+   const auto width = decays_list.get_total_width();
+   const std::string name = " <> modelName <> "_info::get_particle_name_from_pdg(pdg);
+
+   std::ostringstream decay;
+
+   decay << \"Block DECAY \"
+         << format_total_width(pdg, width, name + \" decays\");
+
+   for (const auto& channel : decays_list) {
+      const auto partial_width = channel.second.get_width();
+      const auto branching_ratio = partial_width / width;
+      const auto final_state = channel.second.get_final_state_particle_ids();
+
+      decay << format_decay(branching_ratio, final_state, \"\");
+   }
+
+   slha_io.set_block(decay);
+}
+
 /**
  * Stores the particle decay branching ratios in the SLHA object.
  *
  * @param decays struct containing decays data
  */
-void " <> modelName <> "_slha_io::set_decays(const " <> modelName <> "_decays& decays)
+void " <> modelName <> "_slha_io::set_decays(const " <> modelName <> "_decay_table& decay_table)
 {
-
+   for (const auto& particle : decay_table) {
+      set_decay_block(particle);
+   }
 }";
 
 CreateFillDecaysDataPrototypes[modelName_String] := "\
@@ -1305,7 +1336,7 @@ void " <> modelName <> "_slha_io::fill_decays_data(const " <> modelName <> "_dec
    set_dcinfo(decays_problems);
 
    if (!decays_error) {
-      /* set_decays(decays.get_decay_table()); */
+      set_decays(decays.get_decay_table());
    }
 }";
 
