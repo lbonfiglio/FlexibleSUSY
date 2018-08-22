@@ -39,12 +39,12 @@ using effective_couplings::two_body_phase_space_function;
 
 #define CLASSNAME @ModelName@_decays
 
-/*
+
 const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
 {
    return decay_table;
 }
-*/
+
 const Decays_problems& CLASSNAME::get_problems() const
 {
    return problems;
@@ -58,7 +58,7 @@ void CLASSNAME::clear_problems()
 void CLASSNAME::clear()
 {
    clear_problems();
-/*   decay_table.clear(); */
+   decay_table.clear();
 }
 
 void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
