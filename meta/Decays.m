@@ -41,6 +41,10 @@ in the format
    FSParticleDecay[particle, {final state particle}, {diagram 1, diagram 2, ...}]
 ";
 
+CreateDecayTableGetterPrototypes::usage="create getter prototypes for C++ decay table";
+CreateDecayTableGetterFunctions::usage="create getter definitions for C++ decay table";
+CreateDecayTableInitialization::usage="create C++ initializer for decay table."
+
 Begin["`Private`"];
 
 GetInitialState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := particle;
@@ -482,6 +486,106 @@ CallDecaysCalculationFunctions[particles_List, enableDecaysThreads_] :=
               result = StringJoin[CallDecaysFunction /@ particles];
              ];
            result
+          ];
+
+CreateDecayTableEntryGetterName[particle_] :=
+    "get_" <> CConversion`ToValidCSymbolString[particle] <> "_decays";
+
+CreateDecayTableEntryGetterPrototype[particle_] :=
+    Module[{dim},
+           dim = TreeMasses`GetDimension[particle];
+           "Decays_list& " <> CreateDecayTableEntryGetterName[particle] <> "(" <>
+           If[dim > 1, "int", ""] <> ");"
+          ];
+
+CreateDecayTableEntryConstGetterPrototype[particle_] :=
+    Module[{dim},
+           dim = TreeMasses`GetDimension[particle];
+           "const Decays_list& " <> CreateDecayTableEntryGetterName[particle] <> "(" <>
+           If[dim > 1, "int", ""] <> ") const;"
+          ];
+
+CreateDecayTableEntryGetterFunctionBody[particle_, rows_List] :=
+    Module[{i, dim, idxName = "gI1", errMsg = "", body = ""},
+           dim = TreeMasses`GetDimension[particle];
+           If[dim != Length[rows],
+              Print["Error: number of rows (", Length[rows], ") does not match size of"];
+              Print["    ", particle, " multiplet."];
+              Quit[1];
+             ];
+           If[dim == 1,
+              body = "return decay_table[" <> ToString[rows[[1]]] <> "];\n";
+              ,
+              body = "switch (" <> idxName <> ") {\n";
+              For[i = 0, i < dim, i++,
+                  body = body <> "case " <> ToString[i] <> ": return decay_table[" <> ToString[rows[[i + 1]]] <> "]; break;\n";
+                 ];
+              body = body <> "}\n\n";
+              errMsg = "std::ostringstream sstr;\n" <>
+                       "sstr << \"invalid particle index \" << std::to_string(" <> idxName <> ") << '\\n';\n\n" <>
+                       "throw OutOfBoundsError(sstr.str());\n";
+              body = body <> errMsg;
+             ];
+           body
+          ];
+
+CreateDecayTableEntryGetterFunction[particle_, rows_List, scope_:"CLASSNAME"] :=
+    Module[{dim, body},
+           dim = TreeMasses`GetDimension[particle];
+           body = CreateDecayTableEntryGetterFunctionBody[particle, rows];
+           "Decays_list& " <> scope <> If[scope != "", "::", ""] <>
+           CreateDecayTableEntryGetterName[particle] <> "(" <>
+           If[dim > 1, "int gI1", ""] <> ")\n{\n" <>
+           TextFormatting`IndentText[body] <> "}"
+          ];
+
+CreateDecayTableEntryConstGetterFunction[particle_, rows_List, scope_:"CLASSNAME"] :=
+    Module[{dim, body},
+           dim = TreeMasses`GetDimension[particle];
+           body = CreateDecayTableEntryGetterFunctionBody[particle, rows];
+           "const Decays_list& " <> scope <> If[scope != "", "::", ""] <>
+           CreateDecayTableEntryGetterName[particle] <> "(" <>
+           If[dim > 1, "int gI1", ""] <> ") const\n{\n" <>
+           TextFormatting`IndentText[body] <> "}"
+          ];
+
+CreateDecayTableEntryGetterFunction[particle_, row_Integer, scope_:"CLASSNAME"] :=
+    CreateDecayTableEntryGetterFunction[particle, {row}, scope];
+
+CreateDecayTableEntryConstGetterFunction[particle_, row_Integer, scope_:"CLASSNAME"] :=
+    CreateDecayTableEntryConstGetterFunction[particle, {row}, scope];
+
+CreateDecayTableGetterPrototypes[decayParticles_List] :=
+    Utils`StringJoinWithSeparator[(CreateDecayTableEntryGetterPrototype[#] <> "\n" <>
+                                   CreateDecayTableEntryConstGetterPrototype[#])& /@ decayParticles, "\n"];
+
+CreateDecayTableGetterFunctions[decayParticles_List, scope_:"CLASSNAME"] :=
+    Module[{i, dims, offsets, rowAssignments, defs = ""},
+           dims = TreeMasses`GetDimension /@ decayParticles;
+           offsets = If[Length[dims] == 1, {0}, Join[{0}, Accumulate[dims[[2;;]]]]];
+           rowAssignments = MapIndexed[{decayParticles[[First[#2]]], Table[offsets[[First[#2]]] + i, {i, 0, #1 - 1}]}&, dims];
+           defs = (CreateDecayTableEntryGetterFunction[#[[1]], #[[2]], scope] <> "\n\n" <>
+                   CreateDecayTableEntryConstGetterFunction[#[[1]], #[[2]], scope])& /@ rowAssignments;
+           Utils`StringJoinWithSeparator[defs, "\n"]
+          ];
+
+CreateDecayTableInitialization[decayParticles_List] :=
+    Module[{i, dims, dimsWithoutGoldstones, starts, pdgCodes, initializerList = ""},
+           dims = TreeMasses`GetDimension /@ decayParticles;
+           dimsWithoutGoldstones = TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles;
+           starts = TreeMasses`GetDimensionStartSkippingGoldstones /@ decayParticles;
+           pdgCodes = Parameters`GetPDGCodesForParticle /@ decayParticles;
+           For[i = 1, i <= Length[decayParticles], i++,
+               If[dims[[i]] != Length[pdgCodes[[i]]],
+                  Print["Error: number of PDG codes does not match size of ", decayParticles[[i]], " multiplet."];
+                  Quit[1];
+                 ];
+               If[dimsWithoutGoldstones[[i]] > 0,
+                  initializerList = initializerList <> If[initializerList == "", "", ", "] <>
+                                    Utils`StringJoinWithSeparator[("Decays_list(" <> ToString[#] <> ")")& /@ pdgCodes[[i, starts[[i]] ;;]], ", "];
+                 ];
+              ];
+           ": decay_table({" <> initializerList <> "})"
           ];
 
 End[]

@@ -19,72 +19,68 @@
 #ifndef DECAY_H
 #define DECAY_H
 
-#include <algorithm>
-#include <cstddef>
 #include <initializer_list>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace flexiblesusy {
 
-namespace detail {
-
-template <class Container>
-std::size_t decay_hash_impl(Container pdgs)
-{
-   Container sorted(pdgs);
-   std::sort(sorted.begin(), sorted.end());
-
-   std::size_t hash_value = 0;
-   return hash_value;
-}
-
-} // namespace detail
-
-template <class T>
-std::size_t decay_hash(T&& pdgs)
-{
-   return detail::decay_hash_impl(std::forward<T>(pdgs));
-}
-
-template <class T>
-std::size_t decay_hash(std::initializer_list<T> pdgs)
-{
-   return detail::decay_hash_impl(std::vector<T>(pdgs));
-}
-
 class Decay {
 public:
    Decay(int, std::initializer_list<int>, double);
+   ~Decay() = default;
+   Decay(const Decay&) = default;
+   Decay(Decay&&) = default;
+   Decay& operator=(const Decay&) = default;
+   Decay& operator=(Decay&&) = default;
 
-   int get_initial_particle() const { return initial_pdg; }
-   const std::vector<int>& get_final_state_particles() const {
-      return product_pdgs;
+   int get_initial_particle_id() const { return pid_in; }
+   const std::vector<int>& get_final_state_particle_ids() const {
+      return pids_out;
    }
-   std::size_t get_final_state_size() const { return product_pdgs.size(); }
-   double get_width() const { return width; }
+   std::size_t get_final_state_size() const { return pids_out.size(); }
 
+   double get_width() const { return width; }
    void set_width(double w) { width = w; }
 
 private:
-   int initial_pdg{0};
-   std::vector<int> product_pdgs{};
+   int pid_in{0};
+   std::vector<int> pids_out{};
    double width{0.};
 };
 
+std::size_t hash_decay(const Decay& decay);
+
 class Decays_list {
+private:
+   using List_type = std::unordered_map<std::size_t, Decay>;
 public:
-   explicit Decays_list(int particle_id);
+   using iterator = List_type::iterator;
+   using const_iterator = List_type::const_iterator;
+
+   explicit Decays_list(int);
    ~Decays_list() = default;
+   Decays_list(const Decays_list&) = default;
+   Decays_list(Decays_list&&) = default;
+   Decays_list& operator=(const Decays_list&) = default;
+   Decays_list& operator=(Decays_list&&) = default;
+
+   iterator begin() noexcept { return decays.begin(); }
+   const_iterator begin() const noexcept { return decays.begin(); }
+   const_iterator cbegin() const noexcept { return decays.cbegin(); }
+   iterator end() noexcept { return decays.end(); }
+   const_iterator end() const noexcept { return decays.end(); }
+   const_iterator cend() const noexcept { return decays.end(); }
 
    void clear();
    void set_decay(double width, std::initializer_list<int> products);
+   int get_particle_id() const { return initial_pdg; }
    const Decay& get_decay(std::initializer_list<int> products) const;
    double get_total_width() const { return total_width; }
 
 private:
    int initial_pdg{0};
-   std::map<std::size_t, Decay> decays{};
+   std::unordered_map<std::size_t, Decay> decays{};
    double total_width{0.};
 };
 

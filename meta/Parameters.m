@@ -182,6 +182,8 @@ given description string.";
 GetParticleFromDescription::usage="Returns particle symbol from a
 given description string.";
 GetPDGCodesForParticle::usage="Returns the PDG codes for a particle."
+CreateParticleNameFromPDGCases::usage="Create list of switch cases setting particle name
+from integer PDG code.";
 
 NumberOfIndependentEntriesOfSymmetricMatrix::usage="Returns number of
 independent parameters of a real symmetric nxn matrix";
@@ -1616,6 +1618,32 @@ GetPDGCodesForParticle[particle_] :=
                pdgList = {};
               ];
            pdgList
+          ];
+
+CreateParticleNameFromPDGCases[particles_List] :=
+    Module[{i, j, dims, starts, pdgCodes, names, result = ""},
+           dims = TreeMasses`GetDimension /@ particles;
+           dimsWithoutGoldstones = TreeMasses`GetDimensionWithoutGoldstones /@ particles;
+           starts = TreeMasses`GetDimensionStartSkippingGoldstones /@ particles;
+           pdgCodes = GetPDGCodesForParticle /@ particles;
+           For[i = 1, i <= Length[particles], i++,
+               If[dims[[i]] != Length[pdgCodes[[i]]],
+                  Print["Error: number of PDG codes does not match ", particles[[i]], " multiplet size."];
+                  Quit[1];
+                 ];
+               If[dimsWithoutGoldstones[[i]] > 0,
+                  names = If[dims[[i]] > 1,
+                             Table[CConversion`ToValidCSymbolString[particles[[i]]] <> "(" <> ToString[j] <> ")", {j, starts[[i]], dims[[i]]}],
+                             {CConversion`ToValidCSymbolString[particles[[i]]]}
+                            ];
+                  Print["pdgs = ", pdgCodes[[i]]];
+                  Print["start = ", starts[[i]]];
+                  Print["names = ", names];
+                  result = result <> StringJoin[("case " <> ToString[#[[1]]] <> ": name = \"" <> #[[2]] <> "\"; break;\n")&
+                                                /@ Thread[{#1,#2}& @@ {pdgCodes[[i, starts[[i]] ;;]], names}]];
+                 ];
+              ];
+           result
           ];
 
 NumberOfIndependentEntriesOfSymmetricMatrix[n_] := (n^2 + n) / 2;

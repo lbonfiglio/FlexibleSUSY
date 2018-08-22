@@ -38,6 +38,13 @@ public:
    using iterator = Table_type::iterator;
    using const_iterator = Table_type::const_iterator;
 
+   @ModelName@_decay_table();
+   ~@ModelName@_decay_table() = default;
+   @ModelName@_decay_table(const @ModelName@_decay_table&) = default;
+   @ModelName@_decay_table(@ModelName@_decay_table&&) = default;
+   @ModelName@_decay_table& operator=(const @ModelName@_decay_table&) = default;
+   @ModelName@_decay_table& operator=(@ModelName@_decay_table&&) = default;
+
    iterator begin() noexcept { return decay_table.begin(); }
    const_iterator begin() const noexcept { return decay_table.begin(); }
    const_iterator cbegin() const noexcept { return decay_table.cbegin(); }
@@ -48,7 +55,7 @@ public:
    void clear();
    void print(std::ostream&) const;
 
-@decaysListGetters@
+@decaysListGettersPrototypes@
 private:
    Table_type decay_table;
 };

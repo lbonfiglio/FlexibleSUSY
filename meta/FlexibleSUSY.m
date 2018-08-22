@@ -1765,10 +1765,11 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
     Module[{maxFinalStateParticles = 2, decaysLists = {}, decaysVertices = {}, numberOfDecayParticles = 0,
             enableDecaysCalculationThreads,
             callAllDecaysFunctions = "", callAllDecaysFunctionsInThreads = "",
-            decaysListGetters = "", decaysGetters = "",
+            decaysListGettersPrototypes = "", decaysListGettersFunctions = "",
+            decaysGetters = "", initDecayTable = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
             partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = ""},
-           numberOfDecayParticles = Length[decayParticles];
+           numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            decaysVertices = DeleteDuplicates[Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1]];
            enableDecaysCalculationThreads = False;
@@ -1779,6 +1780,9 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
            partialWidthCalculationPrototypes = Decays`CreatePartialWidthCalculationPrototypes[decaysLists];
            partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists];
+           decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
+           decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
+           initDecayTable = Decays`CreateDecayTableInitialization[decayParticles];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
@@ -1787,7 +1791,9 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],
                             "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
-                            "@decaysListGetters@" -> IndentText[decaysListGetters],
+                            "@decaysListGettersPrototypes@" -> IndentText[decaysListGettersPrototypes],
+                            "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
+                            "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
                             "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]],
                             "@WBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetWBoson[]],
@@ -2329,7 +2335,8 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
             isLowEnergyModel = "false",
             isSupersymmetricModel = "false",
             isFlexibleEFTHiggs = "false",
-            gaugeCouplingNormalizationDecls = "", gaugeCouplingNormalizationDefs = ""},
+            gaugeCouplingNormalizationDecls = "", gaugeCouplingNormalizationDefs = "",
+            setParticleNameFromPDG = ""},
            inputParameterEnum  = Parameters`CreateInputParameterEnum[inputParameters];
            inputParameterNames = Parameters`CreateInputParameterNames[inputParameters];
            extraParameterEnum  = Parameters`CreateExtraParameterEnum[extraParameters];
@@ -2350,6 +2357,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
            isFlexibleEFTHiggs = CConversion`CreateCBoolValue[FlexibleSUSY`FlexibleEFTHiggs];
            gaugeCouplingNormalizationDecls = WriteOut`GetGaugeCouplingNormalizationsDecls[SARAH`Gauge];
            gaugeCouplingNormalizationDefs  = WriteOut`GetGaugeCouplingNormalizationsDefs[SARAH`Gauge];
+           setParticleNameFromPDG = Parameters`CreateParticleNameFromPDGCases[particles];
            WriteOut`ReplaceInFiles[files,
                           { "@gaugeCouplingNormalizationDecls@"-> IndentText[gaugeCouplingNormalizationDecls],
                             "@gaugeCouplingNormalizationDefs@" -> IndentText[gaugeCouplingNormalizationDefs],
@@ -2369,6 +2377,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                             "@inputParameterNames@"-> IndentText[WrapLines[inputParameterNames]],
                             "@extraParameterEnum@" -> IndentText[WrapLines[extraParameterEnum]],
                             "@extraParameterNames@"-> IndentText[WrapLines[extraParameterNames]],
+                            "@setParticleNameFromPDG@" -> IndentText[setParticleNameFromPDG],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];

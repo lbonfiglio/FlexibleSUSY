@@ -19,16 +19,44 @@
 #include "decay.hpp"
 #include "error.hpp"
 
+#include <boost/functional/hash.hpp>
+
+#include <algorithm>
 #include <sstream>
 
 namespace flexiblesusy {
 
+namespace {
+
+template <class Container>
+std::size_t hash_pid_list(int pid_in, Container pids_out)
+{
+   Container sorted(pids_out);
+   std::sort(sorted.begin(), sorted.end());
+
+   boost::hash<int> hash_pid;
+   auto seed = hash_pid(pid_in);
+   boost::hash_range(seed, sorted.begin(), sorted.end());
+
+   return seed;
+}
+
+} // anonymous namespace
+
+std::size_t hash_decay(const Decay& decay)
+{
+   int pid_in = decay.get_initial_particle_id();
+   const auto& pids_out = decay.get_final_state_particle_ids();
+   return hash_pid_list(pid_in, pids_out);
+}
+
 Decay::Decay(
-   int initial_pdg_, std::initializer_list<int> product_pdgs_, double width_)
-   : initial_pdg(initial_pdg_)
-   , product_pdgs(product_pdgs_)
+   int pid_in_, std::initializer_list<int> pids_out_, double width_)
+   : pid_in(pid_in_)
+   , pids_out(pids_out_)
    , width(width_)
 {
+   std::sort(pids_out.begin(), pids_out.end());
 }
 
 Decays_list::Decays_list(int initial_pdg_)
@@ -42,22 +70,17 @@ void Decays_list::clear()
    total_width = 0.;
 }
 
-void Decays_list::set_decay(
-   double width, std::initializer_list<int> product_pdgs)
+void Decays_list::set_decay(double width, std::initializer_list<int> pids_out)
 {
-   const auto decay_id = decay_hash(product_pdgs);
+   const Decay decay(initial_pdg, pids_out, width);
+   const auto decay_hash = hash_decay(decay);
 
-   const auto pos = decays.find(decay_id);
-   // @todo more efficient implementation
+   const auto pos = decays.find(decay_hash);
    if (pos != std::end(decays)) {
-      // @todo not currently checking initial states match
-      // @todo if worried about failure of key creation,
-      // could check that PDGs match
       total_width -= pos->second.get_width();
       pos->second.set_width(width);
    } else {
-      decays.insert(std::make_pair(decay_id,
-                                   Decay(initial_pdg, product_pdgs, width)));
+      decays.insert(pos, std::make_pair(decay_hash, decay));
    }
    total_width += width;
 }
@@ -65,9 +88,10 @@ void Decays_list::set_decay(
 const Decay& Decays_list::get_decay(
    std::initializer_list<int> product_pdgs) const
 {
-   const auto decay_id = decay_hash(product_pdgs);
+   const Decay decay(initial_pdg, product_pdgs, 0.);
+   const auto decay_hash = hash_decay(decay);
 
-   const auto pos = decays.find(decay_id);
+   const auto pos = decays.find(decay_hash);
 
    if (pos == std::end(decays)) {
       std::ostringstream msg;
