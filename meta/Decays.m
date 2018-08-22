@@ -168,6 +168,32 @@ IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
            PossibleZeroQ[chargeSum]
           ];
 
+(* @todo handle more than 2 particles in final state and non-SM color representations *)
+(* @todo properly handle bar, conj heads *)
+IsColorInvariantDecay[initialParticle_, finalState_List] :=
+    Module[{initialStateRep, finalStateReps, result = True},
+           If[Length[finalState] == 2,
+              initialStateRep = SARAH`getColorRep[initialParticle];
+              finalStateReps = Sort[SARAH`getColorRep /@ finalState];
+              Switch[initialStateRep,
+                     S, result = ((finalStateReps === {S, S}) ||
+                                  (finalStateReps === {T, T}) ||
+                                  (finalStateReps === {-T, -T}) ||
+                                  (finalStateReps === Sort[{-T, T}]) ||
+                                  (finalStateReps === {O, O}));,
+                     T|-T, result = ((finalStateReps === Sort[{T, S}]) ||
+                                     (finalStateReps === Sort[{-T, S}]) ||
+                                     (finalStateReps === Sort[{O, S}]));,
+                     O, result = ((finalStateReps === Sort[{O, S}]) ||
+                                  (finalStateReps === {T, T}) ||
+                                  (finalStateReps === {-T, -T}) ||
+                                  (finalStateReps === Sort[{-T, T}]));,
+                     _, result = True; (* unhandled case *)
+                    ];
+             ];
+           result
+          ];
+
 IsPossibleNonZeroDiagram[diagram_] :=
     Module[{vertices, vertexVals, isPossibleNonZeroVertex},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
@@ -216,7 +242,9 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
              ];
            genericFinalStates = GetAllowedGenericFinalStates[particle, exactNumberOfProducts];
            (* @todo checks on colour and Lorentz structure *)
-           isPossibleDecay[finalState_] := (IsPhysicalFinalState[finalState] && IsElectricChargeConservingDecay[particle, finalState]);
+           isPossibleDecay[finalState_] := (IsPhysicalFinalState[finalState] &&
+                                            IsElectricChargeConservingDecay[particle, finalState] &&
+                                            IsColorInvariantDecay[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
            decays = FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates;
            Select[decays, (GetDecayDiagrams[#] =!= {})&]
