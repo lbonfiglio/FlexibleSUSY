@@ -1305,7 +1305,7 @@ void " <> modelName <> "_slha_io::set_decay_block(const Decays_list& decays_list
       const auto partial_width = channel.second.get_width();
       const auto branching_ratio = partial_width / width;
       const auto final_state = channel.second.get_final_state_particle_ids();
-      std::string comment = \"#BR( \" + name + \" ->\";
+      std::string comment = \"BR(\" + name + \" ->\";
       for (auto id : final_state) {
          comment += \" \" + " <> modelName <> "_info::get_particle_name_from_pdg(id);\n
       }
