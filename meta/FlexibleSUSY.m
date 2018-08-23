@@ -2359,7 +2359,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
            isFlexibleEFTHiggs = CConversion`CreateCBoolValue[FlexibleSUSY`FlexibleEFTHiggs];
            gaugeCouplingNormalizationDecls = WriteOut`GetGaugeCouplingNormalizationsDecls[SARAH`Gauge];
            gaugeCouplingNormalizationDefs  = WriteOut`GetGaugeCouplingNormalizationsDefs[SARAH`Gauge];
-           setParticleNameFromPDG = Parameters`CreateParticleNameFromPDGCases[particles];
+           setParticleNameFromPDG = Parameters`CreateParticleNameFromPDGCases[DeleteDuplicates[Join[particles, SARAH`AntiField /@ particles]]];
            WriteOut`ReplaceInFiles[files,
                           { "@gaugeCouplingNormalizationDecls@"-> IndentText[gaugeCouplingNormalizationDecls],
                             "@gaugeCouplingNormalizationDefs@" -> IndentText[gaugeCouplingNormalizationDefs],
