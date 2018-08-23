@@ -847,10 +847,13 @@ DeclareIndices[indexedFields_List, arrayName_String] :=
            decl
           ];
 
+(* @todo implement or remove this! *)
+SarahToFSVertexConventions[sortedFields_, expr_] := expr;
+
 CreateScalarVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, expr, resultType},
-           sortedIndexFields = vertex[[1]];
+           sortedIndexedFields = vertex[[1]];
            sortedFields = StripFieldIndices[sortedIndexedFields];
            indexedFields = GetIndexedFieldsForVertex[fields, vertex];
 
