@@ -437,15 +437,37 @@ CreatePartialWidthCalculationFunctions[particleDecays_List] :=
            Utils`StringJoinWithSeparator[CreatePartialWidthCalculationFunction /@ allDecays, "\n"]
           ];
 
+CallPDGCodeGetter[SARAH`bar[particle_], args__] :=
+    "-" <> CallPDGCodeGetter[particle, args];
+
+CallPDGCodeGetter[Susyno`LieGroups`conj[particle_], args__] :=
+   "-" <> CallPDGCodeGetter[particle, args];
+
+CallPDGCodeGetter[particle_, idx_String, namespace_] :=
+    Module[{dim = TreeMasses`GetDimension[particle], particleStr, result = ""},
+           particleStr = namespace <> If[namespace != "", "::", ""] <> CConversion`ToValidCSymbolString[particle];
+           result = namespace <> If[namespace != "", "::", ""] <> "get_pdg_code_for_particle(" <>
+                    particleStr;
+           If[dim > 1,
+              result = result <> ", " <> idx;
+             ];
+           result <> ")"
+          ];
+
 CallPartialWidthCalculation[decay_FSParticleDecay] :=
     Module[{i, initialState = GetInitialState[decay], initialStateDim,
-            finalState = GetFinalState[decay], finalStateDims, loopIndices, body = ""},
+            finalState = GetFinalState[decay], finalStateDims, functionArgs = "",
+            pdgsList = "", loopIndices, body = ""},
            initialStateDim = TreeMasses`GetDimension[initialState];
            finalStateDims = TreeMasses`GetDimension /@ finalState;
            finalStateStarts = TreeMasses`GetDimensionStartSkippingGoldstones /@ finalState;
            functionArgs = "model" <> If[initialStateDim > 1, ", gI1", ""] <>
                           MapIndexed[If[#1 > 1, ", gO" <> ToString[First[#2]], ""]&, finalStateDims];
-           body = CreatePartialWidthCalculationName[decay] <> "(" <> functionArgs <> ");";
+           pdgsList = MapIndexed[With[{idx = First[#2]},
+                                      CallPDGCodeGetter[#1, If[finalStateDims[[idx]] > 1, "gO" <> ToString[idx], ""], FlexibleSUSY`FSModelName <> "_info"]]&,
+                                 finalState];
+           pdgsList = "{" <> Utils`StringJoinWithSeparator[pdgsList, ", "] <> "}";
+           body = "decays.set_decay(" <> CreatePartialWidthCalculationName[decay] <> "(" <> functionArgs <> "), " <> pdgsList <> ");";
            loopIndices = Reverse[Select[MapIndexed[With[{idx = First[#2]},
                                                         If[#1 > 1,
                                                            {"gO" <> ToString[idx], finalStateStarts[[idx]] - 1, #1},
@@ -482,6 +504,8 @@ CreateDecaysCalculationFunction[decaysList_] :=
                "//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n"
               )& @ CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]];
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
+           body = "auto& decays = decay_table.get_" <> CConversion`ToValidCSymbolString[particle] <>
+                  "_decays(" <> If[particleDim > 1, "gI1", ""] <> ");\n\n" <> body;
            body = "if (run_to_decay_particle_scale) {\n" <>
                   TextFormatting`IndentText[runToScale] <> "}\n\n" <> body;
            body = "auto model = model_;\nEvaluationContext context {model_};\n\n" <> body;
