@@ -104,11 +104,14 @@ IsParameter::usage="returns True if symbol is a model/input/output/phase paramet
 IsModelParameter::usage="returns True if parameter is a model parameter";
 IsInputParameter::usage="returns True if parameter is an input parameter";
 IsOutputParameter::usage="returns True if parameter is a defined output parameter";
-IsIndex::usage="returns True if given symbol is an index";
 IsPhase::usage="returns True if given symbol is a phase";
 IsExtraParameter::usage="return True if parameter is an auxiliary parameter";
 IsGaugeCoupling::usage="returns True if parameter is a gauge coupling.";
 
+IsIndex::usage="returns True if given symbol is an index";
+IsLorentzIndex::usage="returns True if given symbol is a Lorentz index";
+IsColorIndex::usage="returns True if given symbol is a color index";
+IsGenerationIndex::usage="returns True if given symbol is a generation index";
 GetIndices::usage="returns list of indices from a given parameter";
 
 AllModelParametersAreReal::usage="returns True if all model parameters
@@ -679,6 +682,10 @@ IsIndex[i_ /; MemberQ[sarahIndices,i]] := True;
 IsIndex[_] := False;
 IsIndex[indices_List] := And @@ (IsIndex /@ indices);
 IsIndex[indices__] := IsIndex[{indices}];
+
+IsLorentzIndex[index_] := StringMatchQ[ToString @ index, "lt" ~~ __];
+IsColorIndex[index_] := StringMatchQ[ToString @ index, "ct" ~~ __];
+IsGenerationIndex[index_] := StringMatchQ[ToString @ index, "gt" ~~ __];
 
 GetIndices[parameter_[indices__] /; And @@ (IsIndex /@ {indices})] := {indices};
 GetIndices[parameter_] := {};

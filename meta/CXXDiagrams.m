@@ -45,9 +45,6 @@ StripLorentzIndices::usage="";
 NumberOfFieldIndices::usage="";
 includeLorentzIndices::usage="";
 LoadVerticesIfNecessary::usage="";
-IsLorentzIndex::usage = "";
-IsColorIndex::usage = "";
-IsGenerationIndex::usage = "";
 
 Begin["`Private`"];
 
@@ -578,15 +575,11 @@ VertexTypeForFields[fields_List] :=
     vertexType
   ]
 
-IsLorentzIndex[index_] := StringMatchQ[ToString @ index, "lt" ~~ __];
-IsColorIndex[index_] := StringMatchQ[ToString @ index, "ct" ~~ __];
-IsGenerationIndex[index_] := StringMatchQ[ToString @ index, "gt" ~~ __];
-
 StripLorentzIndices[p_Symbol] := p;
 StripLorentzIndices[SARAH`bar[p_]] := SARAH`bar[StripLorentzIndices[p]];
 StripLorentzIndices[Susyno`LieGroups`conj[p_]] := Susyno`LieGroups`conj[StripLorentzIndices[p]];
 StripLorentzIndices[p_] := Module[{remainingIndices},
-                                  remainingIndices = Select[p[[1]], (!IsLorentzIndex[#] &)];
+                                  remainingIndices = Select[p[[1]], (!Parameters`IsLorentzIndex[#] &)];
                                   If[Length[remainingIndices] === 0, Head[p],
                                      Head[p][remainingIndices]]
                                   ];
