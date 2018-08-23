@@ -1642,9 +1642,6 @@ CreateParticleNameFromPDGCases[particles_List] :=
                              Table[CConversion`ToValidCSymbolString[particles[[i]]] <> "(" <> ToString[j] <> ")", {j, starts[[i]], dims[[i]]}],
                              {CConversion`ToValidCSymbolString[particles[[i]]]}
                             ];
-                  Print["pdgs = ", pdgCodes[[i]]];
-                  Print["start = ", starts[[i]]];
-                  Print["names = ", names];
                   result = result <> StringJoin[("case " <> ToString[#[[1]]] <> ": name = \"" <> #[[2]] <> "\"; break;\n")&
                                                 /@ Thread[{#1,#2}& @@ {pdgCodes[[i, starts[[i]] ;;]], names}]];
                  ];
