@@ -82,6 +82,7 @@ void Decays_list::set_decay(double width, std::initializer_list<int> pids_out)
    } else {
       decays.insert(pos, std::make_pair(decay_hash, decay));
    }
+
    total_width += width;
 }
 

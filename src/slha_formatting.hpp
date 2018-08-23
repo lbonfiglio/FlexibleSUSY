@@ -67,10 +67,10 @@ inline boost::format format_element(
 template <typename Container>
 boost::format format_decay(double br, const Container& pids, const std::string& name)
 {
-   const std::size_t nda = pids.size();
+   const int nda = pids.size();
 
    boost::format formatted_ids("");
-   for (std::size_t i = nda - 1; i >= 0; --i) {
+   for (int i = nda - 1; i >= 0; --i) {
       formatted_ids = boost::format(" %9d%s") % pids[i] % formatted_ids;
    }
 
