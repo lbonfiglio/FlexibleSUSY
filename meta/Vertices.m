@@ -27,6 +27,11 @@ BeginPackage["Vertices`", {
     "TreeMasses`",
     "LatticeUtils`"}]
 
+FSVertexTypes = { ScalarVertex, ChiralVertex, MomentumDifferenceVertex, InverseMetricVertex };
+
+VertexTypes::usage="";
+VertexTypeForFields::usage="Returns the vertex type for a vertex with a given list of fields.";
+
 VertexRules::usage;
 ToCpPattern::usage="ToCpPattern[cp] converts field indices inside cp to patterns, e.g. ToCpPattern[Cp[bar[UFd[{gO1}]], Sd[{gI1}], Glu[{1}]][PL]] === Cp[bar[UFd[{gO1_}]], Sd[{gI1_}], Glu[{1}]][PL].";
 ToCp::usage="ToCp[cpPattern] converts field index patterns inside cpPattern to symbols, e.g. ToCp@Cp[bar[UFd[{gO1_}]], Sd[{gI1_}], Glu[{1}]][PL] === Cp[bar[UFd[{gO1}]], Sd[{gI1}], Glu[{1}]][PL].";
@@ -45,6 +50,61 @@ StripGroupStructure::usage="Removes group generators and Kronecker deltas.";
 StripFieldIndices::usage;
 
 Begin["`Private`"]
+
+VertexTypes[] := FSVertexTypes;
+
+IsScalarVertex[fields_List] :=
+    Module[{scalarCount, ghostCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsVector] != 0,
+              Return[False];
+             ];
+           scalarCount = Count[fields, _?TreeMasses`IsScalar];
+           ghostCount = Count[fields, _?TreeMasses`IsGhost];
+           Or[(scalarCount == 3 && ghostCount == 0),
+              (scalarCount == 1 && ghostCount == 2),
+              (scalarCount == 4 && ghostCount == 0)]
+          ];
+
+IsChiralVertex[fields_List] :=
+    Module[{fermionCount, scalarCount, vectorCount},
+           If[Count[fields, _?TreeMasses`IsGhost] != 0,
+              Return[False];
+             ];
+           fermionCount = Count[fields, _?TreeMasses`IsFermion];
+           If[fermionCount != 2,
+              Return[False];
+             ];
+           scalarCount = Count[fields, _?TreeMasses`IsScalar];
+           vectorCount = Count[fields, _?TreeMasses`IsVector];
+           Or[scalarCount == 1 && vectorCount == 0,
+              scalarCount == 0 && vectorCount == 1]
+          ];
+
+IsMomentumDifferenceVertex[fields_List] :=
+    Module[{scalarCount, vectorCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
+              Return[False];
+             ];
+           scalarCount = Count[fields, _?TreeMasses`IsScalar];
+           vectorCount = Count[fields, _?TreeMasses`IsVector];
+           scalarCount == 2 && vectorCount == 1
+          ];
+
+IsInverseMetricVertex[fields_List] :=
+    Module[{scalarCount, vectorCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
+              Return[False];
+             ];
+           scalarCount = Count[fields, _?TreeMasses`IsScalar];
+           vectorCount = Count[fields, _?TreeMasses`IsVector];
+           (vectorCount == 2) && (scalarCount == 1 || scalarCount == 2)
+          ];
+
+VertexTypeForFields[fields_List /; IsScalarVertex[fields]] := ScalarVertex;
+VertexTypeForFields[fields_List /; IsChiralVertex[fields]] := ChiralVertex;
+VertexTypeForFields[fields_List /; IsMomentumDifferenceVertex[fields]] := MomentumDifferenceVertex;
+VertexTypeForFields[fields_List /; IsInverseMetricVertex[fields]] := InverseMetricVertex;
+VertexTypeForFields[fields_List] := "UnknownVertexType" <> ToString[fields];
 
 (* There is a sign ambiguity when SARAH`Vertex[] factors an SSV-type
    vertex into a coefficient and a Lorentz part even though the

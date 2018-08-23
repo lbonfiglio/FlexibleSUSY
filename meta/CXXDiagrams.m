@@ -24,8 +24,6 @@ BeginPackage["CXXDiagrams`", {"SARAH`", "TextFormatting`", "TreeMasses`", "Verti
 
 (* This module generates c++ code intended to be used similarly to SARAH's fields and Vertex[] function *)
 
-VertexTypes::usage="";
-VertexTypeForFields::usage="";
 CXXNameOfField::usage="";
 prefixNamespace::usage="";
 SpinTagOfField::usage="";
@@ -47,17 +45,6 @@ includeLorentzIndices::usage="";
 LoadVerticesIfNecessary::usage="";
 
 Begin["`Private`"];
-
-(* The supported vertex types.
- They have the same names as their c++ counterparts. *)
-vertexTypes = {
-    ScalarVertex,
-    ChiralVertex,
-    MomentumDifferenceVertex,
-    InverseMetricVertex
-};
-
-VertexTypes[] := vertexTypes
 
 (* Return a string corresponding to the c++ class name of the field.
  Note that "bar" and "conj" get turned into bar<...>::type and
@@ -230,7 +217,7 @@ CreateVertexData[fields_List] :=
     "template<> struct " <> dataClassName <> "\n" <>
     "{\n" <>
     TextFormatting`IndentText[
-      "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
+      "using vertex_type = " <> SymbolName[Vertices`VertexTypeForFields[fields]] <>
          ";"] <> "\n" <>
     "};"
   ]
@@ -266,7 +253,7 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
   Module[{sortedFields, sortedIndexedFields, indexedFields,
           fieldsOrdering, sortedFieldsOrdering, inverseFOrdering,
           fOrderingWRTSortedF, vertex, vExpression, vertexIsZero = False,
-          vertexType = VertexTypeForFields[fields], expr, exprL, exprR,
+          vertexType = Vertices`VertexTypeForFields[fields], expr, exprL, exprR,
           vertexRules, incomingScalar, outgoingScalar,
           stripGroupStructure = {SARAH`Lam[__] -> 2, SARAH`fSU3[__] -> 1}},
     sortedFields = Vertices`SortFieldsInCp[fields];
@@ -276,20 +263,20 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
 
     If[vertexIsZero,
        Return[Switch[vertexType,
-         ScalarVertex,
+         Vertices`ScalarVertex,
          "return vertex_type(0);",
 
-         ChiralVertex,
+         Vertices`ChiralVertex,
          "return vertex_type(0, 0);",
 
-         MomentumDifferenceVertex,
+         Vertices`MomentumDifferenceVertex,
          "return vertex_type(0, " <> StringJoin[Riffle[
             ToString /@ Flatten[Position[fields,
                field_ /; TreeMasses`IsScalar[field] || TreeMasses`IsGhost[field],
                {1}, Heads -> False] - 1],
             ", "]] <> ");",
 
-         InverseMetricVertex,
+         Vertices`InverseMetricVertex,
          "return vertex_type(0);"]]];
 
     sortedIndexedFields = vertex[[1]];
@@ -304,7 +291,7 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
     indexedFields = sortedIndexedFields[[fOrderingWRTSortedF]];
 
     Switch[vertexType,
-      ScalarVertex,
+      Vertices`ScalarVertex,
       vertexRules = {(SARAH`Cp @@ sortedIndexedFields) ->
         Vertices`FindVertexWithLorentzStructure[Rest[vertex], 1][[1]]};
 
@@ -319,7 +306,7 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
       "return vertex_type(result);",
 
-      ChiralVertex,
+      Vertices`ChiralVertex,
       vertexRules = {
         (SARAH`Cp @@ sortedIndexedFields)[SARAH`PL] ->
           Vertices`FindVertexWithLorentzStructure[Rest[vertex], SARAH`PL][[1]],
@@ -343,7 +330,7 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
       Parameters`ExpressionToString[exprR] <> ";\n\n" <>
       "return vertex_type(left, right);",
 
-      MomentumDifferenceVertex,
+      Vertices`MomentumDifferenceVertex,
       {incomingScalar, outgoingScalar} = Replace[vertex[[2,2]],
         SARAH`Mom[is_,_] - SARAH`Mom[os_,_] :> {is, os}];
       vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
@@ -363,7 +350,7 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
       "return vertex_type(result, minuend_index, subtrahend_index);",
 
-      InverseMetricVertex,
+      Vertices`InverseMetricVertex,
       vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
 
       expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
@@ -546,34 +533,6 @@ DeclareIndices[indexedFields_List, arrayName_String] :=
 GetComplexScalarCType[] :=
     CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
 
-(* Returns the vertex type for a vertex with a given list of fields *)
-VertexTypeForFields[fields_List] :=
-  Module[{fermions, scalarCount, vectorCount, fermionCount, ghostCount,
-          vertexType = "UnknownVertexType" <> ToString[fields]},
-    scalarCount = Length @ Select[fields, TreeMasses`IsScalar];
-    vectorCount = Length @ Select[fields, TreeMasses`IsVector];
-    fermionCount = Length @ Select[fields, TreeMasses`IsFermion];
-    ghostCount = Length @ Select[fields, TreeMasses`IsGhost];
-
-    If[fermionCount === 0 && scalarCount === 3 && vectorCount === 0 && ghostCount == 0,
-       vertexType = ScalarVertex];
-    If[fermionCount === 0 && scalarCount === 1 && vectorCount === 0 && ghostCount == 2,
-       vertexType = ScalarVertex];
-    If[fermionCount === 0 && scalarCount === 4 && vectorCount === 0 && ghostCount == 0,
-       vertexType = ScalarVertex];
-    If[fermionCount === 2 && scalarCount === 1 && vectorCount === 0 && ghostCount == 0,
-       vertexType = ChiralVertex];
-    If[fermionCount === 2 && scalarCount === 0 && vectorCount === 1 && ghostCount == 0,
-       vertexType = ChiralVertex];
-    If[fermionCount === 0 && scalarCount === 2 && vectorCount === 1 && ghostCount == 0,
-       vertexType = MomentumDifferenceVertex];
-    If[fermionCount === 0 && scalarCount === 1 && vectorCount === 2 && ghostCount == 0,
-       vertexType = InverseMetricVertex];
-    If[fermionCount === 0 && scalarCount === 2 && vectorCount === 2 && ghostCount == 0,
-       vertexType = InverseMetricVertex];
-
-    vertexType
-  ]
 
 StripLorentzIndices[p_Symbol] := p;
 StripLorentzIndices[SARAH`bar[p_]] := SARAH`bar[StripLorentzIndices[p]];

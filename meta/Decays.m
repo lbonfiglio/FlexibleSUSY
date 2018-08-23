@@ -205,10 +205,10 @@ IsPossibleNonZeroDiagram[diagram_] :=
 ContainsOnlySupportedVertices[diagram_] :=
     Module[{vertices, vertexTypes, unsupportedVertices},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
-           vertexTypes = CXXDiagrams`VertexTypeForFields /@ vertices;
-           unsupportedVertices = Complement[vertexTypes, CXXDiagrams`VertexTypes[]];
+           vertexTypes = Vertices`VertexTypeForFields /@ vertices;
+           unsupportedVertices = Complement[vertexTypes, Vertices`VertexTypes[]];
            If[unsupportedVertices =!= {},
-              MapIndexed[(If[!MemberQ[CXXDiagrams`VertexTypes[], vertexTypes[[First[#2]]]],
+              MapIndexed[(If[!MemberQ[Vertices`VertexTypes[], vertexTypes[[First[#2]]]],
                              Print["Warning: vertex with fields ", #1, " is not currently supported."];
                              Print["    Diagrams involving this vertex will be discarded."];
                             ];)&, vertices];
