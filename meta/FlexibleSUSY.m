@@ -2338,6 +2338,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
             isSupersymmetricModel = "false",
             isFlexibleEFTHiggs = "false",
             gaugeCouplingNormalizationDecls = "", gaugeCouplingNormalizationDefs = "",
+            getPDGCodeFromParticleEnumNoIndex = "", getPDGCodeFromParticleEnumIndex = "",
             setParticleNameFromPDG = ""},
            inputParameterEnum  = Parameters`CreateInputParameterEnum[inputParameters];
            inputParameterNames = Parameters`CreateInputParameterNames[inputParameters];
@@ -2359,6 +2360,8 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
            isFlexibleEFTHiggs = CConversion`CreateCBoolValue[FlexibleSUSY`FlexibleEFTHiggs];
            gaugeCouplingNormalizationDecls = WriteOut`GetGaugeCouplingNormalizationsDecls[SARAH`Gauge];
            gaugeCouplingNormalizationDefs  = WriteOut`GetGaugeCouplingNormalizationsDefs[SARAH`Gauge];
+           getPDGCodeFromParticleEnumNoIndex = Parameters`CreatePDGCodeFromParticleCases[particles];
+           getPDGCodeFromParticleEnumIndex = Parameters`CreatePDGCodeFromParticleIndexedCases[particles];
            setParticleNameFromPDG = Parameters`CreateParticleNameFromPDGCases[DeleteDuplicates[Join[particles, SARAH`AntiField /@ particles]]];
            WriteOut`ReplaceInFiles[files,
                           { "@gaugeCouplingNormalizationDecls@"-> IndentText[gaugeCouplingNormalizationDecls],
@@ -2379,6 +2382,8 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                             "@inputParameterNames@"-> IndentText[WrapLines[inputParameterNames]],
                             "@extraParameterEnum@" -> IndentText[WrapLines[extraParameterEnum]],
                             "@extraParameterNames@"-> IndentText[WrapLines[extraParameterNames]],
+                            "@getPDGCodeFromParticleEnumNoIndex@" -> IndentText[getPDGCodeFromParticleEnumNoIndex],
+                            "@getPDGCodeFromParticleEnumIndex@" -> IndentText[getPDGCodeFromParticleEnumIndex],
                             "@setParticleNameFromPDG@" -> IndentText[setParticleNameFromPDG],
                             Sequence @@ GeneralReplacementRules[]
                           } ];

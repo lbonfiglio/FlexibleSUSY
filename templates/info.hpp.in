@@ -49,6 +49,8 @@ namespace @ModelName@_info {
    constexpr bool is_supersymmetric_model = @isSupersymmetricModel@;
    constexpr bool is_FlexibleEFTHiggs = @isFlexibleEFTHiggs@;
 
+   int get_pdg_code_for_particle(Particles);
+   int get_pdg_code_for_particle(Particles, int);
    std::string get_particle_name_from_pdg(int);
    void print(std::ostream&);
 

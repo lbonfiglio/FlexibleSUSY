@@ -182,6 +182,10 @@ given description string.";
 GetParticleFromDescription::usage="Returns particle symbol from a
 given description string.";
 GetPDGCodesForParticle::usage="Returns the PDG codes for a particle."
+CreatePDGCodeFromParticleCases::usage="Create list of switch cases setting PDG code
+for particles with no generation index.";
+CreatePDGCodeFromParticleIndexedCases::usage="Create list of switch cases settings PDG codes
+for particles with generation index.";
 CreateParticleNameFromPDGCases::usage="Create list of switch cases setting particle name
 from integer PDG code.";
 
@@ -1625,6 +1629,28 @@ GetPDGCodesForParticle[particle_] :=
               ];
            pdgList
           ];
+
+CreatePDGCodeFromParticleCase[particle_] :=
+    Module[{particleName,
+            pdgs = GetPDGCodesForParticle[particle],
+            dim = TreeMasses`GetDimension[particle], value},
+           particleName = CConversion`ToValidCSymbolString[particle];
+           If[dim != Length[pdgs],
+              Print["Error: number of PDG codes does not match ", particle, " multiplet size."];
+              Quit[1];
+             ];
+           If[dim == 1,
+              value = "pdg = " <> ToString[First[pdgs]];,
+              value = "pdg_codes = {" <> Utils`StringJoinWithSeparator[ToString /@ pdgs, ", "] <> "}";
+             ];
+           "case " <> particleName <> ": " <> value <> "; break;\n"
+          ];
+
+CreatePDGCodeFromParticleCases[particles_List] :=
+    StringJoin[CreatePDGCodeFromParticleCase /@ Select[particles, (TreeMasses`GetDimension[#] == 1)&]];
+
+CreatePDGCodeFromParticleIndexedCases[particles_List] :=
+    StringJoin[CreatePDGCodeFromParticleCase /@ Select[particles, (TreeMasses`GetDimension[#] > 1)&]];
 
 CreateParticleNameFromPDGCases[particles_List] :=
     Module[{i, j, dims, starts, pdgCodes, names, result = ""},
