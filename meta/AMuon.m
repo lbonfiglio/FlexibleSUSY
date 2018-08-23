@@ -82,7 +82,7 @@ IsDiagramSupported[vertexCorrectionGraph,diagram_] :=
   ]
 
 AMuonCreateMuonPhysicalMass[] := "return context.model.get_physical().M" <>
-                             CXXDiagrams`CXXNameOfField[AMuonGetMuon[]] <>
+                             TreeMasses`CreateFieldClassName[AMuonGetMuon[]] <>
                              If[GetCXXMuonIndex[] =!= Null,
                                 "( " <> ToString @ GetCXXMuonIndex[] <> " )",
                                 ""] <>
@@ -130,13 +130,13 @@ CXXEvaluatorForDiagramFromGraph[diagram_,vertexCorrectionGraph] :=
 
 CXXEvaluatorFS[photonEmitter_,exchangeParticle_] :=
   "AMuonVertexCorrectionFS<" <>
-  CXXDiagrams`CXXNameOfField[photonEmitter] <> ", " <>
-  CXXDiagrams`CXXNameOfField[exchangeParticle] <> ">"
+  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
 
 CXXEvaluatorSF[photonEmitter_,exchangeParticle_] :=
   "AMuonVertexCorrectionSF<" <> 
-  CXXDiagrams`CXXNameOfField[photonEmitter] <> ", " <>
-  CXXDiagrams`CXXNameOfField[exchangeParticle] <> ">"
+  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
   
 GetMinMass[particle_] :=
     Module[{dim = TreeMasses`GetDimension[particle],

@@ -1795,12 +1795,12 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                             "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
-                            "@HiggsBosonName@" -> CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]],
-                            "@WBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetWBoson[]],
-                            "@ZBosonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetZBoson[]],
-                            "@GluonName@"      -> CXXDiagrams`CXXNameOfField[TreeMasses`GetGluon[]],
-                            "@PhotonName@"     -> CXXDiagrams`CXXNameOfField[TreeMasses`GetPhoton[]],
-                             "@DownQuarkName@"     -> CXXDiagrams`CXXNameOfField[
+                            "@HiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetHiggsBoson[]],
+                            "@WBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetWBoson[]],
+                            "@ZBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetZBoson[]],
+                            "@GluonName@"      -> TreeMasses`CreateFieldClassName[TreeMasses`GetGluon[]],
+                            "@PhotonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetPhoton[]],
+                             "@DownQuarkName@"     -> TreeMasses`CreateFieldClassName[
                                  If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
                                     TreeMasses`GetSMDownQuarks[][[1]],
                                     Quit[1]
@@ -1999,9 +1999,9 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
   Module[{fields, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
           strongCoupling},
     fields = CXXDiagrams`CreateFields[];
-    vertexData = StringJoin @ Riffle[CXXDiagrams`CreateVertexData /@
+    vertexData = StringJoin @ Riffle[Vertices`CreateVertexData /@
                                        DeleteDuplicates[vertices], "\n\n"];
-    cxxVertices = CXXDiagrams`CreateVertices[vertices];
+    cxxVertices = Vertices`CreateVertices[vertices];
     massFunctions = CXXDiagrams`CreateMassFunctions[];
     unitCharge = CXXDiagrams`CreateUnitCharge[];
     strongCoupling = CXXDiagrams`CreateStrongCoupling[];
@@ -2060,7 +2060,7 @@ WriteAMuonClass[files_List] :=
       getMSUSY = AMuon`AMuonGetMSUSY[];
 
       WriteOut`ReplaceInFiles[files,
-        {"@AMuon_MuonField@"      -> CXXDiagrams`CXXNameOfField[AMuon`AMuonGetMuon[]],
+        {"@AMuon_MuonField@"      -> TreeMasses`CreateFieldClassName[AMuon`AMuonGetMuon[]],
          "@AMuon_MuonPhysicalMass@"       -> TextFormatting`IndentText[muonPhysicalMass],
          "@AMuon_Calculation@"    -> TextFormatting`IndentText[calculation],
          "@AMuon_GetMSUSY@"       -> IndentText[WrapLines[getMSUSY]],

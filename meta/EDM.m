@@ -71,13 +71,13 @@ IsDiagramSupported[field_,vertexCorrectionGraph,diagram_] :=
 
 EDMCreateInterfaceFunctionForField[field_,gTaggedDiagrams_List] :=
   Module[{prototype,definition,numberOfIndices = CXXDiagrams`NumberOfFieldIndices[field]},
-    prototype = "double calculate_edm_" <> CXXNameOfField[field] <>
+    prototype = "double calculate_edm_" <> TreeMasses`CreateFieldClassName[field] <>
                  "(" <> If[TreeMasses`GetDimension[field] =!= 1,
                            " int generationIndex, ",
                            " "] <>
                  "const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates& model );";
                  
-    definition = "double calculate_edm_" <> CXXNameOfField[field] <>
+    definition = "double calculate_edm_" <> TreeMasses`CreateFieldClassName[field] <>
                  "(" <> If[TreeMasses`GetDimension[field] =!= 1,
                            " int generationIndex, ",
                            " "] <>
@@ -129,14 +129,14 @@ CXXEvaluatorForFieldAndDiagramFromGraph[field_,diagram_,vertexCorrectionGraph] :
   ]
 
 CXXEvaluatorFS[field_,photonEmitter_,exchangeParticle_] :=
-  "EDMVertexCorrectionFS<" <> CXXDiagrams`CXXNameOfField[field] <> ", " <>
-  CXXDiagrams`CXXNameOfField[photonEmitter] <> ", " <>
-  CXXDiagrams`CXXNameOfField[exchangeParticle] <> ">"
+  "EDMVertexCorrectionFS<" <> TreeMasses`CreateFieldClassName[field] <> ", " <>
+  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
 
 CXXEvaluatorSF[field_,photonEmitter_,exchangeParticle_] :=
-  "EDMVertexCorrectionSF<" <> CXXDiagrams`CXXNameOfField[field] <> ", " <>
-  CXXDiagrams`CXXNameOfField[photonEmitter] <> ", " <>
-  CXXDiagrams`CXXNameOfField[exchangeParticle] <> ">"
+  "EDMVertexCorrectionSF<" <> TreeMasses`CreateFieldClassName[field] <> ", " <>
+  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
 
 End[];
 EndPackage[];

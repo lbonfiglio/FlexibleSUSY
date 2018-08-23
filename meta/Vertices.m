@@ -25,12 +25,19 @@ BeginPackage["Vertices`", {
     "SelfEnergies`",
     "Parameters`",
     "TreeMasses`",
+    "CConversion`",
     "LatticeUtils`"}]
 
 FSVertexTypes = { ScalarVertex, ChiralVertex, MomentumDifferenceVertex, InverseMetricVertex };
 
 VertexTypes::usage="";
 VertexTypeForFields::usage="Returns the vertex type for a vertex with a given list of fields.";
+
+LoadVerticesIfNecessary::usage="";
+
+CreateVertexData::usage="";
+CreateVertices::usage="";
+VertexFunctionBodyForFields::usage="";
 
 VertexRules::usage;
 ToCpPattern::usage="ToCpPattern[cp] converts field indices inside cp to patterns, e.g. ToCpPattern[Cp[bar[UFd[{gO1}]], Sd[{gI1}], Glu[{1}]][PL]] === Cp[bar[UFd[{gO1_}]], Sd[{gI1_}], Glu[{1}]][PL].";
@@ -129,31 +136,31 @@ VertexTypeForFields[fields_List] := "UnknownVertexType" <> ToString[fields];
    mapping is determined to be {Sd -> S1, conj[Sd] -> S2}. *)
 
 VertexRules[nPointFunctions_, massMatrices_] := Block[{
-	UnitaryMatrixQ,
-	nCpPatterns,
-	cpPatterns = DeleteRedundantCpPatterns[
-	    ToCpPattern /@ RenumberCpIndices /@ Cases[
-		nPointFunctions, _SARAH`Cp|_SARAH`Cp[_], {0, Infinity}]]
+        UnitaryMatrixQ,
+        nCpPatterns,
+        cpPatterns = DeleteRedundantCpPatterns[
+            ToCpPattern /@ RenumberCpIndices /@ Cases[
+                nPointFunctions, _SARAH`Cp|_SARAH`Cp[_], {0, Infinity}]]
     },
     (UnitaryMatrixQ[#] = True)& /@
         Flatten@DeleteCases[massMatrices[[All,3]], Null];
     UnitaryMatrixQ[_] := False;
     nCpPatterns = Length[cpPatterns];
     MapIndexed[
-	DoneLn[#1 -> VertexExp[#1, nPointFunctions, massMatrices],
-	       "[",First[#2],"/",nCpPatterns,"] calculating ", #1, "... "]&,
-	cpPatterns]
+        DoneLn[#1 -> VertexExp[#1, nPointFunctions, massMatrices],
+               "[",First[#2],"/",nCpPatterns,"] calculating ", #1, "... "]&,
+        cpPatterns]
 ];
 
 SortCps[nPointFunctions_List] := Module[{
-	exprs = nPointFunctions[[All,2]]
+        exprs = nPointFunctions[[All,2]]
     },
     Fold[
-	Module[{sortedCp = SortCp[#2]},
-	    If[sortedCp =!= #2, #1 /. #2 -> sortedCp, #1]] &,
-	nPointFunctions,
-	Union @ Select[Cases[exprs, _SARAH`Cp|_SARAH`Cp[_], Infinity],
-		       UnresolvedColorFactorFreeQ[#, exprs] &]]
+        Module[{sortedCp = SortCp[#2]},
+            If[sortedCp =!= #2, #1 /. #2 -> sortedCp, #1]] &,
+        nPointFunctions,
+        Union @ Select[Cases[exprs, _SARAH`Cp|_SARAH`Cp[_], Infinity],
+                       UnresolvedColorFactorFreeQ[#, exprs] &]]
 ];
 
 SortCp[SARAH`Cp[fields__]] :=
@@ -164,24 +171,24 @@ SortCp[SARAH`Cp[fields__][lor_]] := SortCp[SARAH`Cp[fields]][lor];
 (* see OrderVVVV[] in SARAH/Package/SPheno/SPhenoFunc.m *)
 SortCp[cp : SARAH`Cp[vectors__][lor_Integer]] /; CpType[cp] === VVVV :=
 Module[{
-	vs = StripExtraFieldIndices[{vectors}],
-	svs, lors,
-	sortedVectors,
-	ssvs, sortedLors,
-	map
+        vs = StripExtraFieldIndices[{vectors}],
+        svs, lors,
+        sortedVectors,
+        ssvs, sortedLors,
+        map
     },
     sortedVectors = SortFieldsInCp[vs];
     svs  = StripFieldIndices[vs];
     ssvs = StripFieldIndices[sortedVectors];
     lors = {
-	SARAH`g[ svs[[1]],  svs[[2]]] SARAH`g[ svs[[3]],  svs[[4]]],
-	SARAH`g[ svs[[1]],  svs[[3]]] SARAH`g[ svs[[2]],  svs[[4]]],
-	SARAH`g[ svs[[1]],  svs[[4]]] SARAH`g[ svs[[2]],  svs[[3]]]
+        SARAH`g[ svs[[1]],  svs[[2]]] SARAH`g[ svs[[3]],  svs[[4]]],
+        SARAH`g[ svs[[1]],  svs[[3]]] SARAH`g[ svs[[2]],  svs[[4]]],
+        SARAH`g[ svs[[1]],  svs[[4]]] SARAH`g[ svs[[2]],  svs[[3]]]
     };
     sortedLors = {
-	SARAH`g[ssvs[[1]], ssvs[[2]]] SARAH`g[ssvs[[3]], ssvs[[4]]],
-	SARAH`g[ssvs[[1]], ssvs[[3]]] SARAH`g[ssvs[[2]], ssvs[[4]]],
-	SARAH`g[ssvs[[1]], ssvs[[4]]] SARAH`g[ssvs[[2]], ssvs[[3]]]
+        SARAH`g[ssvs[[1]], ssvs[[2]]] SARAH`g[ssvs[[3]], ssvs[[4]]],
+        SARAH`g[ssvs[[1]], ssvs[[3]]] SARAH`g[ssvs[[2]], ssvs[[4]]],
+        SARAH`g[ssvs[[1]], ssvs[[4]]] SARAH`g[ssvs[[2]], ssvs[[3]]]
     };
     map = Ordering[sortedLors, 3, OrderedQ[First@Position[lors, #]& /@ {##}]&];
     (SARAH`Cp @@ sortedVectors)[map[[lor]]]
@@ -189,16 +196,16 @@ Module[{
 
 (* see WriteFermionProp[] in SARAH/Package/SPheno/SPhenoLoopMasses *)
 SortCp[cp : SARAH`Cp[fields__][lor:PL|PR]] /; CpType[cp] === FFV := Module[{
-	fs = StripExtraFieldIndices[{fields}],
-	sorted,
-	fermions, sortedFermions
+        fs = StripExtraFieldIndices[{fields}],
+        sorted,
+        fermions, sortedFermions
     },
     sorted = SortFieldsInCp[fs];
-    fermions       = Select[fs	   , GetFieldType@ToRotatedField[#] === F &];
+    fermions       = Select[fs     , GetFieldType@ToRotatedField[#] === F &];
     sortedFermions = Select[sorted , GetFieldType@ToRotatedField[#] === F &];
     If[First[fermions] === First[sortedFermions],
-	  (SARAH`Cp @@ sorted)[lor],
-	- (SARAH`Cp @@ sorted)[First @ Complement[{PL, PR}, {lor}]]]
+          (SARAH`Cp @@ sorted)[lor],
+        - (SARAH`Cp @@ sorted)[First @ Complement[{PL, PR}, {lor}]]]
 ];
 
 SortFieldsInCp[fields_List] :=
@@ -208,26 +215,26 @@ SortFieldsInCp[fields_List] :=
    SARAH`CurrentStates =!= FSEigenstates *)
 GetTypeSort[Susyno`LieGroups`conj[x_]] :=
     Switch[GetFieldType[x],
-	S, Szc,
-	V, Vc ,
-	A, Ab ];
+        S, Szc,
+        V, Vc ,
+        A, Ab ];
 
 GetTypeSort[SARAH`bar[x_]] :=
     Switch[GetFieldType[x],
-	F, Fb,
-	G, Gb];
+        F, Fb,
+        G, Gb];
 
 GetTypeSort[x_ /; SARAH`bar[x] === x] /;
     GetFieldType[x] === F :=
-	   Fm;
+           Fm;
 
 GetTypeSort[x_] :=
     Switch[GetFieldType[x],
-	F, Fn,
-	S, Sn,
-	V, Vn,
-	G, Gn,
-	A, An];
+        F, Fn,
+        S, Sn,
+        V, Vn,
+        G, Gn,
+        A, An];
 
 GetFieldType[x_] := SARAH`getType[x, False, FlexibleSUSY`FSEigenstates];
 
@@ -244,7 +251,7 @@ EnforceCpColorStructures[externalField_, exprs_List] := Fold[
     EnforceCpColorStructure[externalField, #1, #2] &,
     exprs,
     Select[Cases[exprs, _SARAH`Cp|_SARAH`Cp[_], Infinity],
-	   !UnresolvedColorFactorFreeQ[#, exprs] &]
+           !UnresolvedColorFactorFreeQ[#, exprs] &]
 ];
 
 EnforceCpColorStructure[extField_, exprs_List, cp:SARAH`Cp[fields__]] :=
@@ -256,7 +263,7 @@ EnforceCpColorStructure[extField_, exprs_List, cp:SARAH`Cp[fields__][lor_]] :=
     exprs;
 
 CpColorStructureFunction[extField_, fields_List, cp_, wrap_] := Module[{
-	reordered = PullExternalFieldsToLeft[extField, fields]
+        reordered = PullExternalFieldsToLeft[extField, fields]
     },
     If[fields === reordered,
        Identity,
@@ -269,7 +276,7 @@ CpColorStructureFunction[extField_, fields_List, cp_, wrap_] := Module[{
 PullExternalFieldsToLeft[f_, lst:{a_?IsUnrotated, b_?IsUnrotated, ___}] /;
     FieldHead@ToRotatedField[a] === FieldHead@ToRotatedField[b] === f &&
     StripFieldIndices[a] === Susyno`LieGroups`conj@StripFieldIndices[b] :=
-	lst;
+        lst;
 
 PullExternalFieldsToLeft[
     f_,
@@ -277,38 +284,38 @@ PullExternalFieldsToLeft[
     {x___, b_Susyno`LieGroups`conj?IsUnrotated, y___, a_?IsUnrotated, z___}] /;
     FieldHead@ToRotatedField[a] === FieldHead@ToRotatedField[b] === f &&
     StripFieldIndices[a] === Susyno`LieGroups`conj@StripFieldIndices[b] :=
-	{a, b, x, y, z}
+        {a, b, x, y, z}
 
 (* in case f is colored real scalar *)
 PullExternalFieldsToLeft[
     f_, {x___, a_?IsUnrotated, y___, b_?IsUnrotated, z___}] /;
     FieldHead@ToRotatedField[a] === FieldHead@ToRotatedField[b] === f &&
     StripFieldIndices[a] === StripFieldIndices[b] :=
-	{a, b, x, y, z}
+        {a, b, x, y, z}
 
 (* fall back on external fields in rotated basis *)
 
 PullExternalFieldsToLeft[f_, lst:{a_, b_, ___}] /;
     FieldHead[a] === FieldHead[b] === f &&
     StripFieldIndices[a] === Susyno`LieGroups`conj@StripFieldIndices[b] :=
-	lst;
+        lst;
 
 PullExternalFieldsToLeft[
     f_, {x___, a_, y___, b_Susyno`LieGroups`conj, z___} |
         {x___, b_Susyno`LieGroups`conj, y___, a_, z___}] /;
     FieldHead[a] === FieldHead[b] === f &&
     StripFieldIndices[a] === Susyno`LieGroups`conj@StripFieldIndices[b] :=
-	{a, b, x, y, z};
+        {a, b, x, y, z};
 
 (* in case f is colored real scalar *)
 PullExternalFieldsToLeft[f_, {x___, a_, y___, b_, z___}] /;
     FieldHead[a] === FieldHead[b] === f &&
     StripFieldIndices[a] === StripFieldIndices[b] :=
-	{a, b, x, y, z};
+        {a, b, x, y, z};
 
 PullExternalFieldsToLeft[f_, lst_] := (
     Print["Vertices`Private`PullExternalFieldsToLeft[",
-	  f, ", ", lst, "] failed."];
+          f, ", ", lst, "] failed."];
     Abort[]
 );
 
@@ -323,8 +330,8 @@ StripExtraFieldIndices[field_] /; !FreeQ[field, _[_?VectorQ]] &&
 StripExtraFieldIndices[field_] /; !FreeQ[field, _[{_Integer, ___}?VectorQ]] &&
     !MatchQ[SARAH`getIndizes @ FieldHead[field], {SARAH`generation, ___}] :=
     StripExtraFieldIndices[
-	field /.
-	    head_Symbol[{_Integer, indices___}?VectorQ] :> head[{indices}]];
+        field /.
+            head_Symbol[{_Integer, indices___}?VectorQ] :> head[{indices}]];
 
 StripExtraFieldIndices[field_] := field;
 
@@ -333,14 +340,14 @@ DeleteRedundantCpPatterns[cpPatterns_] :=
     Gather[cpPatterns, MatchQ[#1, #2] || MatchQ[#2, #1]&];
 
 VertexExp[cpPattern_, nPointFunctions_, massMatrices_] := Module[{
-	cp = ToCp[cpPattern],
-	rotatedCp, fieldsInRotatedCp,
-	sarahVertex,
-	fields, vertices,
-	lorentzTag, lorentz, vertex,
-	strippedIndices,
-	contraction,
-	factor
+        cp = ToCp[cpPattern],
+        rotatedCp, fieldsInRotatedCp,
+        sarahVertex,
+        fields, vertices,
+        lorentzTag, lorentz, vertex,
+        strippedIndices,
+        contraction,
+        factor
     },
     rotatedCp = ReplaceUnrotatedFields[cp];
     fieldsInRotatedCp = GetParticleList[rotatedCp];
@@ -350,65 +357,65 @@ VertexExp[cpPattern_, nPointFunctions_, massMatrices_] := Module[{
     lorentzTag = GetLorentzStructure[rotatedCp];
     {vertex, lorentz} = FindVertexWithLorentzStructure[vertices, lorentzTag];
     strippedIndices = Complement[Flatten[FieldIndexList /@ fields],
-				 Flatten[FieldIndexList /@ fieldsInRotatedCp]];
+                                 Flatten[FieldIndexList /@ fieldsInRotatedCp]];
     vertex = StripGroupStructure[
-	ResolveColorFactor[
-	    vertex, fields, cpPattern, nPointFunctions[[All,2]]],
-	strippedIndices];
+        ResolveColorFactor[
+            vertex, fields, cpPattern, nPointFunctions[[All,2]]],
+        strippedIndices];
     contraction = Block[{
-	    SARAH`sum
-	    (* corrupts a polynomial (monomial + monomial + ...) summand *)
-	},
-	ExpandSarahSum @ SimplifyContraction @
-	InTermsOfRotatedVertex[
-	    vertex, lorentz,
-	    GetParticleList[cp], massMatrices]];
+            SARAH`sum
+            (* corrupts a polynomial (monomial + monomial + ...) summand *)
+        },
+        ExpandSarahSum @ SimplifyContraction @
+        InTermsOfRotatedVertex[
+            vertex, lorentz,
+            GetParticleList[cp], massMatrices]];
     (* see SPhenoCouplingList[] in SARAH/Package/SPheno/SPhenoCoupling.m
        for the following sign factor *)
     factor = If[GetFieldType /@ fieldsInRotatedCp === {S,S,V}, -1, 1];
     -I factor TreeMasses`ReplaceDependencies[contraction] /.
-	Parameters`ApplyGUTNormalization[]
+        Parameters`ApplyGUTNormalization[]
 ];
 
 SARAHVertex[fieldsInRotatedCp_List] := Module[{
-	sarahVertex = SARAH`Vertex @ StripFieldIndices[fieldsInRotatedCp],
-	fields,
-	restoreIndicesRules
+        sarahVertex = SARAH`Vertex @ StripFieldIndices[fieldsInRotatedCp],
+        fields,
+        restoreIndicesRules
     },
     Assert[MatchQ[sarahVertex, {_, __}]];
     fields = First[sarahVertex];
     Assert[StripFieldIndices[fields] === StripFieldIndices[fieldsInRotatedCp]];
     restoreIndicesRules = Flatten[
-	Thread[Take[Last[#], Length @ First[#]] -> First[#]]& /@
-	Transpose[{FieldIndexList /@ fieldsInRotatedCp,
-		   FieldIndexList /@ fields}]];
+        Thread[Take[Last[#], Length @ First[#]] -> First[#]]& /@
+        Transpose[{FieldIndexList /@ fieldsInRotatedCp,
+                   FieldIndexList /@ fields}]];
     sarahVertex /. restoreIndicesRules
 ];
 
 StripGroupStructure[expr_, indices_List] := Module[{
-	indexPattern = Alternatives@@indices
+        indexPattern = Alternatives@@indices
     },
     expr /. {
-	PatternWithDistinctIndices[SARAH`Delta, 2, indexPattern] -> 1,
-	SARAH`epsTensor[__] -> 1,
-	SARAH`Lam[__] -> 2,
-	SARAH`Sig[__] -> 2,
-	SARAH`fSU2[__] -> 1,
-	SARAH`fSU3[__] -> 1,
-	SARAH`CG[SARAH`SU[3], {{1,0},{0,1},{1,0},{0,1}}][a_,b_,c_,d_] -> SARAH`Delta[a,b] SARAH`Delta[c,d],
-	SARAH`CG[SARAH`SU[3], {{0,1},{1,0},{0,1},{1,0}}][a_,b_,c_,d_] -> SARAH`Delta[a,b] SARAH`Delta[c,d],
-	SARAH`Generator[SARAH`SU[3],___][___] -> 2
+        PatternWithDistinctIndices[SARAH`Delta, 2, indexPattern] -> 1,
+        SARAH`epsTensor[__] -> 1,
+        SARAH`Lam[__] -> 2,
+        SARAH`Sig[__] -> 2,
+        SARAH`fSU2[__] -> 1,
+        SARAH`fSU3[__] -> 1,
+        SARAH`CG[SARAH`SU[3], {{1,0},{0,1},{1,0},{0,1}}][a_,b_,c_,d_] -> SARAH`Delta[a,b] SARAH`Delta[c,d],
+        SARAH`CG[SARAH`SU[3], {{0,1},{1,0},{0,1},{1,0}}][a_,b_,c_,d_] -> SARAH`Delta[a,b] SARAH`Delta[c,d],
+        SARAH`Generator[SARAH`SU[3],___][___] -> 2
     }
 ];
 
 PatternWithDistinctIndices[head_, nIndices_, indexPattern_] :=
 ReleaseHold[Block[{
-	patternNames = Table[Unique[], {nIndices}],
-	UnsameQ
+        patternNames = Table[Unique[], {nIndices}],
+        UnsameQ
     },
     With[{condition = UnsameQ @@ patternNames},
-	 head @@ (Pattern[#, indexPattern]& /@ patternNames) /;
-	 Hold[condition]]]];
+         head @@ (Pattern[#, indexPattern]& /@ patternNames) /;
+         Hold[condition]]]];
 
 FindVertexWithLorentzStructure[vertices_List, lorentz_Integer] :=
     vertices[[lorentz]];
@@ -418,27 +425,27 @@ FindVertexWithLorentzStructure[vertices_List, lorentz_] :=
 
 simplifyContractionDispatch = Dispatch[{
     HoldPattern[
-	SARAH`sum[i_, 1, d_, x_ z_?UnitaryMatrixQ[i_, j_]]
-	/; HasContractionQ[x, Susyno`LieGroups`conj[z[i, _]]] &&
-	SARAH`getDim[z] === d] :>
+        SARAH`sum[i_, 1, d_, x_ z_?UnitaryMatrixQ[i_, j_]]
+        /; HasContractionQ[x, Susyno`LieGroups`conj[z[i, _]]] &&
+        SARAH`getDim[z] === d] :>
     (x /. Susyno`LieGroups`conj[z[i, k_]] :> SARAH`Delta[j, k]),
 
     HoldPattern[
-	SARAH`sum[i_,1,d_, x_ Susyno`LieGroups`conj[z_?UnitaryMatrixQ[i_,j_]]]
-	/; HasContractionQ[x, z[i, _]] &&
-	SARAH`getDim[z] === d] :>
+        SARAH`sum[i_,1,d_, x_ Susyno`LieGroups`conj[z_?UnitaryMatrixQ[i_,j_]]]
+        /; HasContractionQ[x, z[i, _]] &&
+        SARAH`getDim[z] === d] :>
     (x /. z[i, k_] :> SARAH`Delta[j, k]),
 
     HoldPattern[
-	SARAH`sum[i_, 1, d_, x_ z_?UnitaryMatrixQ[j_, i_]]
-	/; HasContractionQ[x, Susyno`LieGroups`conj[z[_, i]]] &&
-	SARAH`getDim[z] === d] :>
+        SARAH`sum[i_, 1, d_, x_ z_?UnitaryMatrixQ[j_, i_]]
+        /; HasContractionQ[x, Susyno`LieGroups`conj[z[_, i]]] &&
+        SARAH`getDim[z] === d] :>
     (x /. Susyno`LieGroups`conj[z[k_, i]] :> SARAH`Delta[j, k]),
 
     HoldPattern[
-	SARAH`sum[i_,1,d_, x_ Susyno`LieGroups`conj[z_?UnitaryMatrixQ[j_,i_]]]
-	/; HasContractionQ[x, z[_, i]] &&
-	SARAH`getDim[z] === d] :>
+        SARAH`sum[i_,1,d_, x_ Susyno`LieGroups`conj[z_?UnitaryMatrixQ[j_,i_]]]
+        /; HasContractionQ[x, z[_, i]] &&
+        SARAH`getDim[z] === d] :>
     (x /. z[k_, i] :> SARAH`Delta[j, k]),
 
     s:HoldPattern[
@@ -464,33 +471,33 @@ FindContraction[x_, form:_?UnitaryMatrixQ[___, i_Symbol,___]] :=
     FindContraction[x, form, i];
 
 FindContraction[x_, form:HoldPattern@Susyno`LieGroups`conj
-		[_?UnitaryMatrixQ[___, i_Symbol, ___]]] :=
+                [_?UnitaryMatrixQ[___, i_Symbol, ___]]] :=
     FindContraction[x, form, i];
 
 FindContraction[x_Times, form_, index_] := Module[{
-	structure = FindContraction[#, form, index]& /@ List@@x,
-	match
+        structure = FindContraction[#, form, index]& /@ List@@x,
+        match
     },
     Which[MatchQ[structure, {Unindexed..}], Unindexed,
-	  (match =
-	   Replace[structure,
-		   {{Unindexed... , p:Except[Unindexed], Unindexed...} -> p,
-		    _ -> False}]) =!= False, match,
-	  MatchQ[structure, {___, Mixed, ___}], Mixed,
-	  MatchQ[structure, {___, Except[Unindexed], ___}], Indexed,
-	  True, Print["Vertices`Private`FindContraction[",
-		      x, ", ", form, ", ", index, "] failed."]; Abort[]]
+          (match =
+           Replace[structure,
+                   {{Unindexed... , p:Except[Unindexed], Unindexed...} -> p,
+                    _ -> False}]) =!= False, match,
+          MatchQ[structure, {___, Mixed, ___}], Mixed,
+          MatchQ[structure, {___, Except[Unindexed], ___}], Indexed,
+          True, Print["Vertices`Private`FindContraction[",
+                      x, ", ", form, ", ", index, "] failed."]; Abort[]]
 ];
 
 FindContraction[x_Plus, form_, index_] := Module[{
-	structure = FindContraction[#, form, index]& /@ List@@x,
-	match
+        structure = FindContraction[#, form, index]& /@ List@@x,
+        match
     },
     Which[MatchQ[structure, {Unindexed..}], Unindexed,
-	  MatchQ[structure, {(f:Except[Unindexed])..}], First[structure],
-	  MatchQ[structure, {___, Except[Unindexed], ___}], Mixed,
-	  True, Print["Vertices`Private`FindContraction[",
-		      x, ", ", form, ", ", index, "] failed."]; Abort[]]
+          MatchQ[structure, {(f:Except[Unindexed])..}], First[structure],
+          MatchQ[structure, {___, Except[Unindexed], ___}], Mixed,
+          True, Print["Vertices`Private`FindContraction[",
+                      x, ", ", form, ", ", index, "] failed."]; Abort[]]
 ];
 
 FindContraction[HoldPattern@SARAH`sum[_, _, _, x_], form_, index_] :=
@@ -508,15 +515,15 @@ ExpandSarahSum[expr_] := expr //.
 
 InTermsOfRotatedVertex[vertex_, lorentz_, uFields_List, massMatrices_] :=
 Block[{
-	SARAH`bar
+        SARAH`bar
     },
     Fold[If[IsUnrotated[#2],
-	    RewriteUnrotatedField[
-		#1, lorentz, #2,
-		SingleCase[massMatrices,
-			   _[_,FieldHead@ToRotatedField[#2],z_] :> z]],
-	    #1]&,
-	 vertex, RestoreBarOnMajorana[uFields, lorentz]]
+            RewriteUnrotatedField[
+                #1, lorentz, #2,
+                SingleCase[massMatrices,
+                           _[_,FieldHead@ToRotatedField[#2],z_] :> z]],
+            #1]&,
+         vertex, RestoreBarOnMajorana[uFields, lorentz]]
 ];
 
 RestoreBarOnMajorana[uFields_List, lorentz_] :=
@@ -527,8 +534,8 @@ RestoreBarOnMajorana[uFields_List, LorentzProduct[gamma[_], PL|PR]] :=
 
 RestoreBarOnMajoranaUntil[lastPos_Integer, uFields_List] :=
 MapIndexed[If[First[#2] <= lastPos && MajoranaQ@FieldHead@ToRotatedField[#1],
-	      SARAH`bar[#1], #1]&,
-	   uFields];
+              SARAH`bar[#1], #1]&,
+           uFields];
 
 RewriteUnrotatedField[
     expr_, _,
@@ -581,14 +588,14 @@ RewriteUnrotatedField[
     ContractMixingMatrix[expr, uField, u, Susyno`LieGroups`conj];
 
 ContractMixingMatrix[expr_, uField_, z_, op_] := Module[{
-	uIndices = FieldIndexList[uField],
-	field = ToRotatedField[uField],
-	uIndex, i = Unique["gl"]
+        uIndices = FieldIndexList[uField],
+        field = ToRotatedField[uField],
+        uIndex, i = Unique["gl"]
     },
     (* CHECK: does the first index always denote the flavour? *)
     uIndex = First[uIndices];
     SARAH`sum[i, SARAH`getGenStart[field], SARAH`getGen[field],
-	      (expr /. uIndex -> i) op @ z[i, uIndex]]
+              (expr /. uIndex -> i) op @ z[i, uIndex]]
 ];
 
 FieldHead[Susyno`LieGroups`conj[field_]] := FieldHead[field];
@@ -601,7 +608,7 @@ FieldHead[field_Symbol] := field;
 
 ToCpPattern[cp : _SARAH`Cp|_SARAH`Cp[_]] := cp /.
     ((# -> (# /. Thread[(# -> If[Head[#] === Symbol, Pattern[#, _], #])& /@
-			FieldIndexList[#]]))& /@
+                        FieldIndexList[#]]))& /@
      GetParticleList[cp]);
 
 ToCp[cpPattern : _SARAH`Cp|_SARAH`Cp[_]] := cpPattern /. p_Pattern :> First[p];
@@ -619,7 +626,7 @@ RenumberCpIndices[SARAH`Cp[fields__][l_]] :=
     (SARAH`Cp @@ RenumberFieldIndices[{fields}])[l]
 
 RenumberFieldIndices[fields_List] := Block[{
-	UsedSarahIndexQ
+        UsedSarahIndexQ
     },
     UsedSarahIndexQ[_] := False;
     RenumberFieldIndices /@ fields
@@ -630,9 +637,9 @@ RenumberFieldIndices[field_] :=
 
 RenumberSarahIndex[index_Symbol?UsedSarahIndexQ] :=
     RenumberSarahIndex @ Symbol @
-	StringReplace[ToString[index],
-		      RegularExpression["[[:digit:]]+$"] :>
-		      ToString[ToExpression["$0"]+1]];
+        StringReplace[ToString[index],
+                      RegularExpression["[[:digit:]]+$"] :>
+                      ToString[ToExpression["$0"]+1]];
 
 RenumberSarahIndex[index_Symbol] := (UsedSarahIndexQ[index] = True; index);
 
@@ -643,54 +650,66 @@ ResolveColorFactor[vertex_, fields_, cpPattern_, exprs_] /;
 
 (* see SARAH`sumOverNonAbelianIndizes[] *)
 ResolveColorFactor[vertex_, fields_, cpPattern_, exprs_] := Module[{
-	loopArgs,
-	internalColorIndices = InternalColorIndices[fields],
-	externalColorIndices = ExternalColorIndices[fields],
-	sumIdx, sumRange
+        loopArgs,
+        internalColorIndices = InternalColorIndices[fields],
+        externalColorIndices = ExternalColorIndices[fields],
+        sumIdx, sumRange
     },
     Assert[Length[externalColorIndices] === 2];
     (* Q: does one need to sum also over external color indices?
        A: it is a way to strip the color structure of this class
        of vertices *)
     Length[internalColorIndices] === 2 || (
-	Print["Vertices`Private`ResolveColorFactor[",
-	      vertex, ", ", fields, ", ", cpPattern, ", ", exprs, "] failed."];
-	Abort[]);
+        Print["Vertices`Private`ResolveColorFactor[",
+              vertex, ", ", fields, ", ", cpPattern, ", ", exprs, "] failed."];
+        Abort[]);
     sumRange = ColorIndexRange[First @ internalColorIndices, fields];
     loopArgs = Prepend[{#, 1}& /@ externalColorIndices, {sumIdx, sumRange}];
     Sum @@
     Prepend[loopArgs,
-	    vertex /. Alternatives@@internalColorIndices -> sumIdx] //.
+            vertex /. Alternatives@@internalColorIndices -> sumIdx] //.
       SARAH`sum[a_,b_,c_,x_] /; !FreeQ[x, (SARAH`fSU3|SARAH`Lam)[___,a,___]] :>
       Sum[x, {a, b, c}]
 ];
 
 InternalColorIndices[fields_List] :=
     Union@Cases[Drop[FieldIndexList /@ fields, 2],
-		_?SarahColorIndexQ, Infinity];
+                _?SarahColorIndexQ, Infinity];
 
 ExternalColorIndices[fields_List] :=
     Union@Cases[Take[FieldIndexList /@ fields, 2],
-		_?SarahColorIndexQ, Infinity];
+                _?SarahColorIndexQ, Infinity];
 
 FieldIndexList[field_] := Flatten@Cases[field, _?VectorQ, {0, Infinity}];
 
 StripFieldIndices[field_] := field /. head_[_?VectorQ] :> head;
 
+StripLorentzIndices[p_Symbol] := p;
+StripLorentzIndices[SARAH`bar[p_]] := SARAH`bar[StripLorentzIndices[p]];
+StripLorentzIndices[Susyno`LieGroups`conj[p_]] := Susyno`LieGroups`conj[StripLorentzIndices[p]];
+StripLorentzIndices[p_] :=
+    Module[{remainingIndices},
+           remainingIndices = Select[p[[1]], (!Parameters`IsLorentzIndex[#] &)];
+           If[Length[remainingIndices] === 0,
+              Head[p],
+              Head[p][remainingIndices]
+             ]
+          ];
+
 ColorIndexRange[colorIndex_, fields_] :=
     SingleCase[
-	SARAH`getIndizesWI[First @ Select[fields, !FreeQ[#, colorIndex] &]],
-	{color, n_} :> n];
+        SARAH`getIndizesWI[First @ Select[fields, !FreeQ[#, colorIndex] &]],
+        {color, n_} :> n];
 
 UnresolvedColorFactorFreeQ[cpPattern_, exprs_] := Module[{
-	fstPos = First@Position[exprs, cpPattern],
-	cpInstance,
-	exprInstance
+        fstPos = First@Position[exprs, cpPattern],
+        cpInstance,
+        exprInstance
     },
     cpInstance = Extract[exprs, fstPos];
     exprInstance = Extract[exprs, Take[fstPos, 1]];
     FreeQ[Coefficient[exprInstance //. SARAH`sum[__, ex_] :> ex, cpInstance],
-	  C]
+          C]
 ];
 
 (* CHECK: are the following right semantics of SARAH indices? *)
@@ -735,6 +754,249 @@ ReplaceUnrotatedFields[SARAH`Cp[p__]] :=
 
 ReplaceUnrotatedFields[SARAH`Cp[p__][lorentz_]] :=
     ReplaceUnrotatedFields[SARAH`Cp[p]][lorentz];
+
+LoadVerticesIfNecessary[] :=
+    If[Head[SARAH`VertexList3] === Symbol || Length[SARAH`VertexList3] === 0,
+       SA`CurrentStates = FlexibleSUSY`FSEigenstates;
+       SARAH`InitVertexCalculation[FlexibleSUSY`FSEigenstates, False];
+       SARAH`partDefinition = ParticleDefinitions[FlexibleSUSY`FSEigenstates];
+       SARAH`Particles[SARAH`Current] = SARAH`Particles[FlexibleSUSY`FSEigenstates];
+       SARAH`ReadVertexList[FlexibleSUSY`FSEigenstates, False, False, True];
+       SARAH`MakeCouplingLists;
+      ];
+
+CreateVertexData[fields_List] :=
+    Module[{dataClassName,indexBounds,parsedVertex},
+           dataClassName = "VertexData<" <> StringJoin[Riffle[
+               TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] & /@ fields,
+               ", "]] <> ">";
+
+           "template<> struct " <> dataClassName <> "\n" <> "{\n" <>
+           TextFormatting`IndentText[
+               "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
+               ";"] <> "\n" <> "};"
+          ];
+
+(* Returns the necessary c++ code corresponding to the vertices that need to be calculated. *)
+CreateVertices[vertices_List] :=
+    StringJoin @\[NonBreakingSpace]Riffle[CreateVertex[#] & /@ DeleteDuplicates[vertices], "\n\n"]
+
+(* Creates the actual c++ code for a vertex with given fields.
+ You should never need to change this code! *)
+CreateVertex[fields_List] :=
+    Module[{parsedVertex, functionClassName},
+           LoadVerticesIfNecessary[];
+           functionClassName = "Vertex<" <> StringJoin @ Riffle[
+           TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] & /@ fields, ", "] <> ">";
+
+           "template<> template <class EvaluationContext> inline\n" <>
+           functionClassName <> "::vertex_type\n" <>
+           functionClassName <> "::evaluate(const indices_type& indices, const EvaluationContext& context)\n" <>
+           "{\n" <>
+           TextFormatting`IndentText @ VertexFunctionBodyForFields[fields] <> "\n" <>
+           "}"
+          ];
+
+VertexFunctionBodyForFields[fields_List] :=
+    Switch[Length[fields],
+           3, VertexFunctionBodyForFieldsImpl[fields, SARAH`VertexList3],
+           4, VertexFunctionBodyForFieldsImpl[fields, SARAH`VertexList4],
+           _, "non-(3,4)-point vertex"
+          ];
+
+GetIndexedFieldsForVertex[fields_, vertex_] :=
+    Module[{sortedIndexedFields, sortedFields,
+            fieldsOrdering, sortedFieldsOrdering,
+            inverseFOrdering, fOrderingWRTSortedF},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+
+           (* Mathematica 7 does not know about permutations... :'-( *)
+           fieldsOrdering = Ordering[fields];
+           sortedFieldsOrdering = Ordering[sortedFields];
+
+           inverseFOrdering = Ordering[fieldsOrdering];
+           fOrderingWRTSortedF = sortedFieldsOrdering[[inverseFOrdering]];
+
+           sortedIndexedFields[[fOrderingWRTSortedF]]
+          ];
+
+CreateZeroVertex[fields_?IsScalarVertex] := "return vertex_type(0);";
+CreateZeroVertex[fields_?IsChiralVertex] := "return vertex_type(0, 0);";
+CreateZeroVertex[fields_?IsMomentumDifferenceVertex] :=
+    "return vertex_type(0, " <>
+    StringJoin[Riffle[
+        ToString /@ Flatten[Position[fields,
+                                     field_ /; TreeMasses`IsScalar[field] || TreeMasses`IsGhost[field],
+                                     {1}, Heads -> False] - 1], ", "]] <> ");";
+CreateZeroVertex[fields_?IsInverseMetricVertex] := "return vertex_type(0);";
+
+(* Creates local declarations of field indices, whose values are taken
+   from the elements of `arrayName'.
+ *)
+DeclareIndices[indexedFields_List, arrayName_String] :=
+    Module[{p, total = 0, fieldIndexList, decl = ""},
+           DeclareIndex[idx_, num_Integer, an_String] := (
+               "const int " <> CConversion`ToValidCSymbolString[idx] <>
+               " = " <> an <> "[" <> ToString[num] <> "];\n");
+           For[p = 1, p <= Length[indexedFields], p++,
+               fieldIndexList = FieldIndexList[indexedFields[[p]]];
+               decl = decl <> StringJoin[DeclareIndex[#, total++, arrayName]& /@ fieldIndexList];
+              ];
+           Assert[total == Total[Length[FieldIndexList[#]]& /@ indexedFields]];
+           decl
+          ];
+
+CreateScalarVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) ->
+                          FindVertexWithLorentzStructure[Rest[vertex], 1][[1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                  sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(result);"
+          ];
+
+CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, exprL, exprR, resultTypeL, resultTypeR},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`PL] ->
+                          FindVertexWithLorentzStructure[Rest[vertex], SARAH`PL][[1]],
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`PR] ->
+                          FindVertexWithLorentzStructure[Rest[vertex], SARAH`PR][[1]]
+                         };
+
+           exprL = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`PL],
+                                        sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+           exprR = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`PR],
+                                        sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           exprL = SarahToFSVertexConventions[sortedFields, exprL];
+           exprR = SarahToFSVertexConventions[sortedFields, exprR];
+           exprL = TreeMasses`ReplaceDependenciesReverse[exprL];
+           exprR = TreeMasses`ReplaceDependenciesReverse[exprR];
+
+           resultTypeL = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+           resultTypeR = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[exprL + exprR] <> "\n" <>
+           "const " <> resultTypeL <> " left = " <>
+           Parameters`ExpressionToString[exprL] <> ";\n\n" <>
+           "const " <> resultTypeR <> " right = " <>
+           Parameters`ExpressionToString[exprR] <> ";\n\n" <>
+           "return vertex_type(left, right);"
+          ];
+
+CreateMomentumDifferenceVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            incomingScalar, outgoingScalar, vertexRules,
+            expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           {incomingScalar, outgoingScalar} = Replace[vertex[[2,2]],
+                                                      SARAH`Mom[is_,_] - SARAH`Mom[os_,_] :> {is, os}];
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           "int minuend_index = " <>
+           ToString[Position[indexedFields, incomingScalar][[1,1]] - 1] <> ";\n" <>
+           "int subtrahend_index = " <>
+           ToString[Position[indexedFields, outgoingScalar][[1,1]] - 1] <> ";\n\n" <>
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(result, minuend_index, subtrahend_index);"
+          ];
+
+CreateInverseMetricVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFIelds, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(result);"
+          ];
+
+VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
+    Module[{sortedFields,
+            vertex, vertexType = VertexTypeForFields[fields],
+            stripGroupStructure = {SARAH`Lam[__] -> 2, SARAH`fSU3[__] -> 1}},
+
+           sortedFields = SortFieldsInCp[fields];
+
+           vertex = Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1];
+
+           If[vertex === {},
+              Return[CreateZeroVertex[fields]];
+             ];
+
+           vertex = vertex[[1]];
+
+           Switch[vertexType,
+                  ScalarVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  ChiralVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  MomentumDifferenceVertex, CreateMomentumDifferenceVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  InverseMetricVertex, CreateInverseMetricVertexFunctionBody[fields, vertex, stripGroupStructure]
+                 ]
+          ];
+
+(* Get a mathematical expression of the requested vertex
+   in terms of its canonically ordered vertex. *)
+CanonicalizeCoupling[coupling_, sortedFields_List, sortedIndexedFields_List] :=
+    Module[{expr},
+           (* Note: Cannot use indexed fields, because their internal
+              SARAH ordering is different... *)
+           expr = Vertices`SortCp[coupling];
+
+           (* Index the fields *)
+           expr = expr /. {SARAH`Cp @@ sortedFields -> SARAH`Cp @@ sortedIndexedFields}
+          ];
 
 End[] (* `Private` *)
 

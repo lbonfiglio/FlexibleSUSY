@@ -366,8 +366,8 @@ LoopOverIndexCollection[loopBody_String, indices_List] :=
     Fold[LoopOverIndex[#1, Sequence @@ #2]&, loopBody, indices];
 
 CreateGenericPartialWidthCalculationName[initialState_, finalState_List] :=
-    "get_partial_width<" <> CXXDiagrams`CXXNameOfField[initialState] <> "," <>
-    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField /@ finalState, ","] <> " >";
+    "get_partial_width<" <> TreeMasses`CreateFieldClassName[initialState] <> "," <>
+    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ finalState, ","] <> " >";
 
 CreatePartialWidthCalculationName[decay_FSParticleDecay, scope_:""] :=
     Module[{initialState, initialStateName,
@@ -407,7 +407,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
                Module[{i, dim, numIndices, result = ""},
                       dim = TreeMasses`GetDimension[field];
                       numIndices = CXXDiagrams`NumberOfFieldIndices[field];
-                      result = "const field_indices<" <> CXXDiagrams`CXXNameOfField[field] <> " >::type " <> indicesName;
+                      result = "const field_indices<" <> TreeMasses`CreateFieldClassName[field] <> " >::type " <> indicesName;
                       If[numIndices == 0 || dim <= 1,
                          result = result <> "{};\n";,
                          result = result <> "{{" <> ToString[indexVal] <>
@@ -502,7 +502,7 @@ CreateDecaysCalculationFunction[decaysList_] :=
               ("const auto& decay_mass = context.mass<" <> # <>
                  ">(field_indices<" <> # <> ">::type " <> If[particleDim > 1, "{gI1}", "{}"] <> ");\n" <>
                "//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n"
-              )& @ CXXDiagrams`CXXNameOfField[TreeMasses`GetHiggsBoson[]];
+              )& @ TreeMasses`CreateFieldClassName[TreeMasses`GetHiggsBoson[]];
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = "auto& decays = decay_table.get_" <> CConversion`ToValidCSymbolString[particle] <>
                   "_decays(" <> If[particleDim > 1, "gI1", ""] <> ");\n\n" <> body;
