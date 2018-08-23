@@ -1298,7 +1298,7 @@ void " <> modelName <> "_slha_io::set_decay_block(const Decays_list& decays_list
 
    std::ostringstream decay;
 
-   decay << \"Block DECAY \"
+   decay << \"DECAY \"
          << format_total_width(pdg, width, name + \" decays\");
 
    for (const auto& channel : decays_list) {
