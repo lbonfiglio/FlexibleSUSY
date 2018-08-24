@@ -1302,7 +1302,11 @@ void " <> modelName <> "_slha_io::set_decay_block(const Decays_list& decays_list
          << format_total_width(pdg, width, name + \" decays\");
 
    for (const auto& channel : decays_list) {
-      const auto partial_width = channel.second.get_width();
+      auto partial_width = channel.second.get_width();
+      // make sure we don't print -0 in the table
+      if (is_zero(partial_width)) {
+         partial_width = abs(partial_width);
+      }
       const auto branching_ratio = partial_width / width;
       const auto final_state = channel.second.get_final_state_particle_ids();
       std::string comment = \"BR(\" + name + \" ->\";
