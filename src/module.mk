@@ -54,8 +54,6 @@ LIBFLEXI_HDR := \
 		$(DIR)/convergence_tester.hpp \
 		$(DIR)/convergence_tester_drbar.hpp \
 		$(DIR)/coupling_monitor.hpp \
-		$(DIR)/cxx_qft_generic_fields.hpp \
-		$(DIR)/cxx_qft_generic_vertices.hpp \
 		$(DIR)/database.hpp \
 		$(DIR)/decay.hpp \
 		$(DIR)/derivative.hpp \
