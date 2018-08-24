@@ -227,7 +227,7 @@ GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
 
 GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
     Module[{nFinalParticles = Length[finalParticles], topologies, diagrams},
-           topologies = GetDecayTopologies[nFinalParticles];
+           topologies = GetDecayTopologies[nFinalParticles, 0];
            diagrams = Flatten[GetContributingDiagramsForDecayGraph[initialParticle, finalParticles, #]& /@ topologies, 1];
            Select[diagrams, IsSupportedDiagram]
           ];
