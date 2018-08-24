@@ -1771,7 +1771,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = ""},
            numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
-           decaysVertices = DeleteDuplicates[Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1]];
+           decaysVertices = DeleteDuplicates[Flatten[Permutations /@ Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1], 1]];
            enableDecaysCalculationThreads = False;
            callAllDecaysFunctions = Decays`CallDecaysCalculationFunctions[decayParticles, enableDecaysCalculationThreads];
            enableDecaysCalculationThreads = True;
