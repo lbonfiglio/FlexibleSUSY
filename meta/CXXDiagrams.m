@@ -24,19 +24,18 @@ BeginPackage["CXXDiagrams`", {"SARAH`", "TextFormatting`", "TreeMasses`", "Verti
 
 (* This module generates c++ code intended to be used similarly to SARAH's fields and Vertex[] function *)
 
-SpinTagOfField::usage="";
+FeynmanDiagramsOfType::usage="";
+VerticesForDiagram::usage="";
+
 AtomHead::usage="";
 LorentzConjugateOperation::usage="";
 LorentzConjugate::usage="";
 RemoveLorentzConjugation::usage="";
 CreateFields::usage="";
-FeynmanDiagramsOfType::usage="";
-VerticesForDiagram::usage="";
 CreateMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
 NumberOfFieldIndices::usage="";
-includeLorentzIndices::usage="";
 
 Begin["`Private`"];
 
