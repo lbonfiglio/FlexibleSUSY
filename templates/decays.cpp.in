@@ -75,64 +75,83 @@ void CLASSNAME::calculate_decays(const @ModelName@_mass_eigenstates& model)
 // as, for examples, for S -> SS we take |A|^2 while for S - > FF we take (|A_L|^2 + |A_R|^2)
 
 // S -> FF
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value && is_fermion<Field3>::value, double>::type
+template <typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value &&
+                           is_fermion<Field3>::value,
+                        double>::type
 amplitude_squared(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
-      std::cout << "SFF ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      return 1.;
+                  typename field_indices<Field1>::type const& indexIn,
+                  typename field_indices<Field2>::type const& indexOut1,
+                  typename field_indices<Field3>::type const& indexOut2)
+{
+   std::cout << "SFF ";
+   const auto mA = context.mass<Field1>(indexIn);
+   const auto muB = context.mass<Field2>(indexOut1) / mA;
+   const auto muC = context.mass<Field2>(indexOut2) / mA;
+   
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+
+   const auto L = vertex.left();
+   const auto R = vertex.right();
+   
+   return mA * mA *
+          ((std::norm(L) + std::norm(R)) * (1. - muB * muB - muC * muC) -
+           2. * muB * muC * 2. * std::real(std::conj(L) * R) );
 }
 // S -> VV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
 amplitude_squared(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
+                  typename field_indices<Field1>::type const& indexIn,
+                  typename field_indices<Field2>::type const& indexOut1,
+                  typename field_indices<Field3>::type const& indexOut2)
+{
       std::cout << "SVV ";
       //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      // return vertex.result();
       return 1.;
 }
 // S -> SV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_vector<Field3>::value, double>::type
 amplitude_squared(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
+                  typename field_indices<Field1>::type const& indexIn,
+                  typename field_indices<Field2>::type const& indexOut1,
+                  typename field_indices<Field3>::type const& indexOut2)
+{
       std::cout << "SSV ";
       //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      // return vertex.result();
       return 1.;
 }
 // S -> SV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field3>::value && is_vector<Field2>::value, double>::type
 amplitude_squared(EvaluationContext const& context,
-const std::array<int,
-detail::total_number_of_field_indices<
-boost::mpl::vector<Field1, Field2, Field3>
->::value> index) {
+                  typename field_indices<Field1>::type const& indexIn,
+                  typename field_indices<Field2>::type const& indexOut1,
+                  typename field_indices<Field3>::type const& indexOut2)
+{
       std::cout << "SSV ";
       //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
+      // return vertex.result();
       return 1.;
 }
 // S -> SS
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
 amplitude_squared(EvaluationContext const& context,
-const std::array<int, detail::total_number_of_field_indices<boost::mpl::vector<Field1, Field2, Field3>>::value> index) {
+                  typename field_indices<Field1>::type const& indexIn,
+                  typename field_indices<Field2>::type const& indexOut1,
+                  typename field_indices<Field3>::type const& indexOut2) {
 
       std::cout << "SSS ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      // return std::norm(vertex.result());
-      return 1.;
+      const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+      return std::norm(vertex.result());
 }
+
 // generic decay of FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double CLASSNAME::get_partial_width(
@@ -160,8 +179,7 @@ double CLASSNAME::get_partial_width(
    }
 
    // matrix element squared
-   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
-   const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indices);
+   const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indexIn, indexOut1, indexOut2);
 
    // phase space factor times symmetry factor times matrix element 2.
    return ps * ps_symmetry * mat2;
@@ -176,6 +194,7 @@ using G = @GluonName@;
 using A = @PhotonName@;
 
 // special case for Higgs -> Z Z
+// TODO: implement higher order corrections
 template<>
 double CLASSNAME::get_partial_width<H,Z,Z>(
    @ModelName@_mass_eigenstates const& model,
@@ -209,6 +228,7 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
 }
 
 // special case for H -> W+ W-
+// TODO: implement higher order corrections
 template<>
 double CLASSNAME::get_partial_width<H,conj<W>::type,W>(
    @ModelName@_mass_eigenstates const& model,
@@ -275,13 +295,12 @@ double CLASSNAME::get_partial_width<H,A,A>(
 }
 
 // special case for H -> photon Z
-template<>
-double CLASSNAME::get_partial_width<H,A,Z>(
+template <>
+double CLASSNAME::get_partial_width<H, A, Z>(
    @ModelName@_mass_eigenstates const& model,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<A>::type const& indexOut1,
-   typename field_indices<Z>::type const& indexOut2
-   ) const
+   typename field_indices<Z>::type const& indexOut2) const
 {
 
    EvaluationContext context {model};
