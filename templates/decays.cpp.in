@@ -18,18 +18,19 @@
 
 // File generated at @DateAndTime@
 
-#include <cmath>
-
-#include <boost/range/algorithm.hpp>
-
-#include "config.h"
-#include "effective_couplings.hpp"
-#include "thread_pool.hpp"
-
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
 #include "@ModelName@_effective_couplings_for_decays.hpp"
+
+#include "config.h"
+#include "effective_couplings.hpp"
+#include "thread_pool.hpp"
+#include "wrappers.hpp"
+
+#include <boost/range/algorithm.hpp>
+
+#include <cmath>
 
 namespace flexiblesusy {
 
@@ -87,13 +88,13 @@ amplitude_squared(EvaluationContext const& context,
    const auto mA = context.mass<Field1>(indexIn);
    const auto muB = context.mass<Field2>(indexOut1) / mA;
    const auto muC = context.mass<Field2>(indexOut2) / mA;
-   
+
    const auto indices = concatenate(indexIn, indexOut1, indexOut2);
    const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
 
    const auto L = vertex.left();
    const auto R = vertex.right();
-   
+
    // eq. B.35b
    return mA * mA *
           ((std::norm(L) + std::norm(R)) * (1. - muB * muB - muC * muC) -
@@ -191,7 +192,7 @@ double CLASSNAME::get_partial_width(
    const double mIn = context.mass<FieldIn>(indexIn);
    const double mOut1 = context.mass<FieldOut1>(indexOut1);
    const double mOut2 = context.mass<FieldOut2>(indexOut2);
-   double ps = 1/(16*Pi)*sqrt(1. - 2.*(pow(mOut1,2) + pow(mOut2,2))/pow(mIn,2) + pow((mOut1+mOut2)*(mOut1-mOut2)/pow(mIn,2),2));
+   double ps = 1/(16*Pi)*Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2));
 
    // phase space symmetry factor
    double ps_symmetry = 1;
