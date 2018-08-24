@@ -192,14 +192,15 @@ double CLASSNAME::get_partial_width(
    const double mIn = context.mass<FieldIn>(indexIn);
    const double mOut1 = context.mass<FieldOut1>(indexOut1);
    const double mOut2 = context.mass<FieldOut2>(indexOut2);
-   double ps = 1/(16*Pi)*Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2));
+
+   const double ps = Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2)) / (16*Pi);
 
    // phase space symmetry factor
    double ps_symmetry = 1;
    if(std::is_same<FieldOut1, FieldOut2>::value) {
       std::cout << std::is_same<FieldOut1, FieldOut2>::value << '\n';
       if (boost::range::equal(indexOut1, indexOut2)) {
-         ps_symmetry = 1.0/2.0;
+         ps_symmetry = 0.5;
       }
    }
 
