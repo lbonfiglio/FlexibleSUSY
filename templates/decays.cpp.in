@@ -300,7 +300,8 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
    if(4*x > 1.0) {
       // const auto vd = MODELPARAMETER(vd);
       // const auto vu = MODELPARAMETER(vu);
-      const auto vev = 1.0; //sqrt(Sqr(vd) + Sqr(vu));
+      // TODO: specify the vev correctly
+      const auto vev = 246.0; //sqrt(Sqr(vd) + Sqr(vu));
       const double sw2 = Sqr(Sin(model.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
 
       const double deltaV = 7.0/12.0 - 10.0/9.0 * sw2 + 40.0/27.0 * Sqr(sw2);
@@ -312,13 +313,14 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
    } else {
       res = 1.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    }
-   return res * AbsSqr(effective_coupling<Z,Z,H>(model, indexOut1, indexOut2, indexIn));
+   const auto indices = concatenate(indexOut1, indexOut2, indexIn);
+   return res * std::norm(Vertex<Z,Z,H>::evaluate(indices, context).value());
 }
 
 // special case for H -> W+ W-
 // TODO: implement higher order corrections
 template<>
-double CLASSNAME::get_partial_width<H,conj<W>::type,W>(
+double CLASSNAME::get_partial_width<H,W,conj<W>::type>(
    @ModelName@_mass_eigenstates const& model,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<conj<W>::type>::type const& indexOut1,
@@ -335,7 +337,8 @@ double CLASSNAME::get_partial_width<H,conj<W>::type,W>(
    if(4*x > 1.0) {
       // const auto vd = MODELPARAMETER(vd);
       // const auto vu = MODELPARAMETER(vu);
-      const auto vev = 1.0; //sqrt(Sqr(vd) + Sqr(vu));
+      // TODO: specify the vev correctly
+      const auto vev = 246.0; //sqrt(Sqr(vd) + Sqr(vu));
       const double sw2 = Sqr(Sin(model.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
 
       // deltaV is 1 for W-bosons
@@ -347,7 +350,8 @@ double CLASSNAME::get_partial_width<H,conj<W>::type,W>(
    } else {
       res = 2.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    }
-   return res * AbsSqr(effective_coupling<conj<W>::type,W,H>(model, indexOut1, indexOut2, indexIn));
+   const auto indices = concatenate(indexOut2, indexOut1, indexIn);
+   return res * std::norm(Vertex<conj<W>::type,W,H>::evaluate(indices, context).value());
 }
 
 
