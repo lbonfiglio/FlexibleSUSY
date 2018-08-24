@@ -14,6 +14,7 @@ LIBFLEXI_SRC := \
 		$(DIR)/composite_convergence_tester.cpp \
 		$(DIR)/database.cpp \
 		$(DIR)/decay.cpp \
+		$(DIR)/decay_amplitudes.cpp \
 		$(DIR)/dilog.cpp \
 		$(DIR)/dilogc.f \
 		$(DIR)/effective_couplings.cpp \
@@ -56,6 +57,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/coupling_monitor.hpp \
 		$(DIR)/database.hpp \
 		$(DIR)/decay.hpp \
+		$(DIR)/decay_amplitudes.hpp \
 		$(DIR)/derivative.hpp \
 		$(DIR)/dilog.hpp \
 		$(DIR)/effective_couplings.hpp \
