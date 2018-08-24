@@ -159,6 +159,7 @@ CreateDependenceFunctions::usage="";
 
 ColorChargedQ::usage="";
 FieldInfo::usage="";
+includeLorentzIndices::usage="";
 IsScalar::usage="";
 IsFermion::usage="";
 IsVector::usage="";
