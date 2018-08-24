@@ -150,7 +150,7 @@ amplitude_squared(EvaluationContext const& context,
    }
    const auto indices = concatenate(indexIn, indexOut1, indexOut2);
    const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
-   return result * std::norm(vertex.result());
+   return result * std::norm(vertex.value(1,2));
 }
 // S -> V S
 template<typename Field1, typename Field2, typename Field3>
@@ -174,7 +174,7 @@ amplitude_squared(EvaluationContext const& context,
       const auto indices = concatenate(indexIn, indexOut1, indexOut2);
       const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
       // eq. B.35b
-      return std::norm(vertex.result());
+      return std::norm(vertex.value());
 }
 
 // generic decay of FieldIn -> FieldOut1 FieldOut2
