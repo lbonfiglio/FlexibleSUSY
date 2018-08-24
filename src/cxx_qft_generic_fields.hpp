@@ -69,6 +69,11 @@ struct is_scalar {
    static constexpr bool value = Field::particle_type == ParticleType::scalar;
 };
 
+template<typename Field>
+struct is_massless {
+   static constexpr bool value = Field::massless;
+};
+
 enum class ParticleColorRep {
    singlet,
    triplet,
@@ -117,6 +122,7 @@ struct bar {
    static constexpr double electric_charge = Field::electric_charge;
    static constexpr auto particle_type = Field::particle_type;
    static constexpr auto color_rep = color_conj<Field>();
+   static constexpr auto massless = Field::massless;
 };
 
 template<class Field>
@@ -131,6 +137,7 @@ struct conj {
    static constexpr double electric_charge = Field::electric_charge;
    static constexpr auto particle_type = Field::particle_type;
    static constexpr auto color_rep = color_conj<Field>();
+   static constexpr auto massless = Field::massless;
 };
 
 template<class Field>
