@@ -84,7 +84,6 @@ amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
 {
-   std::cout << "SFF ";
    const auto mA = context.mass<Field1>(indexIn);
    const auto muB = context.mass<Field2>(indexOut1) / mA;
    const auto muC = context.mass<Field2>(indexOut2) / mA;
@@ -95,10 +94,12 @@ amplitude_squared(EvaluationContext const& context,
    const auto L = vertex.left();
    const auto R = vertex.right();
    
+   // eq. B.35b
    return mA * mA *
           ((std::norm(L) + std::norm(R)) * (1. - muB * muB - muC * muC) -
            2. * muB * muC * 2. * std::real(std::conj(L) * R) );
 }
+
 // S -> VV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
@@ -107,25 +108,50 @@ amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
 {
-      std::cout << "SVV ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      // return vertex.result();
-      return 1.;
+   const auto mA = context.mass<Field1>(indexIn);
+   double res;
+   // B.37
+   if(Field2::massless && Field3::massless) {
+      res = 4.;
+   } else if((Field2::massless && !Field3::massless) || (!Field2::massless && Field3::massless)) {
+      res = 3.;
+   } else {
+      const auto muB2 = pow(context.mass<Field2>(indexOut1) / mA, 2);
+      const auto muC2 = pow(context.mass<Field2>(indexOut2) / mA, 2);
+      res = 1./(4.*muB2*muC2) * (
+         pow(muB2 + muC2, 2) - 2.*(muB2 + muC2) + 8.*muB2*muC2 + 1
+      );
+   }
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+   return res * std::norm(vertex.value());
 }
-// S -> SV
-template<typename Field1, typename Field2, typename Field3>
-typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_vector<Field3>::value, double>::type
+// S -> S V
+template <typename Field1, typename Field2, typename Field3>
+typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value &&
+                           is_vector<Field3>::value,
+                        double>::type
 amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field1>::type const& indexIn,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
 {
-      std::cout << "SSV ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      // return vertex.result();
-      return 1.;
+   const auto mA2 = pow(context.mass<Field1>(indexIn), 2);
+   const auto muB2 = pow(context.mass<Field2>(indexOut1), 2) / mA2;
+
+   double result;
+   // B.36
+   if (Field3::massless) {
+      result = -2. * mA2 * (1 + muB2);
+   } else {
+      const auto muC2 = pow(context.mass<Field2>(indexOut2), 2) / mA2;
+      result = mA2/muC2 * (pow(muC2 - muB2, 2) -2. * (muB2 + muC2) + 1.);
+   }
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+   return result * std::norm(vertex.result());
 }
-// S -> SV
+// S -> V S
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field3>::value && is_vector<Field2>::value, double>::type
 amplitude_squared(EvaluationContext const& context,
@@ -133,11 +159,9 @@ amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
 {
-      std::cout << "SSV ";
-      //const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(index, context);
-      // return vertex.result();
-      return 1.;
+      return amplitude_squared<Field1, Field3, Field2>(context, indexIn, indexOut2, indexOut1);
 }
+
 // S -> SS
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
@@ -146,9 +170,9 @@ amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2) {
 
-      std::cout << "SSS ";
       const auto indices = concatenate(indexIn, indexOut1, indexOut2);
       const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+      // eq. B.35b
       return std::norm(vertex.result());
 }
 
