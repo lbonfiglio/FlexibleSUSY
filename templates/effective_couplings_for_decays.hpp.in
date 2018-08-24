@@ -13,7 +13,7 @@ template<typename FieldIn, typename FieldOut1, typename FieldOut2>
       const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
       const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
       const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) {
-      return 1.;
+      return 0.;
    }
 
 } // namespace flexiblesusy
