@@ -205,8 +205,8 @@ double CLASSNAME::get_partial_width(
    // matrix element squared
    const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indexIn, indexOut1, indexOut2);
 
-   // phase space factor times symmetry factor times matrix element 2.
-   return ps * ps_symmetry * mat2;
+   // flux * phase space factor * symmetry factor * matrix element^2
+   return 1./(2*mIn) * ps * ps_symmetry * mat2;
 }
 
 // -------- specializations for decays needing higher order corrections --------
