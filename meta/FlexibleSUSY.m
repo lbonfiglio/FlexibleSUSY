@@ -2153,9 +2153,9 @@ ExampleDecaysIncludes[] :=
                                                                      "decays_problems.hpp"}, "\n"];
 
 ExampleCalculateDecaysForModel[] := FlexibleSUSY`FSModelName <>
-"_decays decays;
+"_decays decays(std::get<0>(models));
 if (spectrum_generator_settings.get(Spectrum_generator_settings::calculate_decays)) {
-   decays.calculate_decays(std::get<0>(models));
+   decays.calculate_decays();
 }";
 
 ExampleSetDecaysSLHAOutput[] := "\
@@ -2168,7 +2168,7 @@ if (show_decays) {
 }";
 
 ExampleCalculateCmdLineDecays[] :=
-    FlexibleSUSY`FSModelName <> "_decays decays;\ndecays.calculate_decays(model);";
+    FlexibleSUSY`FSModelName <> "_decays decays(model);\ndecays.calculate_decays();";
 
 WriteExampleCmdLineOutput[enableDecays_] :=
     If[enableDecays,

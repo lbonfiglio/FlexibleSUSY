@@ -40,12 +40,14 @@ class @ModelName@_mass_eigenstates;
 
 class @ModelName@_decays {
 public:
+   @ModelName@_decays(@ModelName@_mass_eigenstates const& model) : 
+      model_{model}, context_{model} {}
    const @ModelName@_decay_table& get_decay_table() const;
    const Decays_problems& get_problems() const;
 
    void clear();
    void clear_problems();
-   void calculate_decays(const @ModelName@_mass_eigenstates&);
+   void calculate_decays();
 
 @decaysGetters@
 @decaysCalculationPrototypes@
@@ -53,16 +55,17 @@ public:
 @partialWidthCalculationPrototypes@
 
 private:
+   @ModelName@_mass_eigenstates const& model_;
    @ModelName@_decay_table decay_table{};
    Decays_problems problems{};
    bool run_to_decay_particle_scale{true};
+   cxx_qft::EvaluationContext const& context_;
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
-      const @ModelName@_mass_eigenstates&,
-      const typename cxx_qft::field_indices<FieldIn>::type&,
-      const typename cxx_qft::field_indices<FieldOut1>::type&,
-      const typename cxx_qft::field_indices<FieldOut2>::type&) const;
+      typename cxx_qft::field_indices<FieldIn>::type const&,
+      typename cxx_qft::field_indices<FieldOut1>::type const&,
+      typename cxx_qft::field_indices<FieldOut2>::type const&) const;
 };
 
 } // namespace flexiblesusy
