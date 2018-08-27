@@ -213,7 +213,7 @@ amplitude_squared(EvaluationContext const& context,
 
    if (Field3::massless) {
       const auto mA2 = Sqr(context.mass<Field1>(indexIn));
-      const auto muB2 = Sqr(context.mass<Field2>(indexOut2)) / mA2;
+      const auto muB2 = Sqr(context.mass<Field2>(indexOut1)) / mA2;
 
       return -2. * mA2 * (1. + muB2) * AbsSqr(vertex.value(1, 2));
    }
