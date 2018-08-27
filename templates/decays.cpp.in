@@ -457,6 +457,7 @@ double CLASSNAME::get_partial_width<H,H,H>(
 // special case for H -> Fd Fd
 template<>
 double CLASSNAME::get_partial_width<H,conj<dq>::type,dq>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<dq>::type const& indexOut1,
    typename field_indices<dq>::type const& indexOut2
@@ -468,6 +469,7 @@ double CLASSNAME::get_partial_width<H,conj<dq>::type,dq>(
 // special case for H -> Fu Fu
 template<>
 double CLASSNAME::get_partial_width<H,conj<uq>::type,uq>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<uq>::type const& indexOut1,
    typename field_indices<uq>::type const& indexOut2
