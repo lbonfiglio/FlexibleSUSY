@@ -1806,6 +1806,12 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                                     Quit[1]
                                  ]
                              ],
+                             "@UpQuarkName@"     -> TreeMasses`CreateFieldClassName[
+                                If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
+                                   TreeMasses`GetSMUpQuarks[][[1]],
+                                   Quit[1]
+                                ]
+                             ],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
            decaysVertices
