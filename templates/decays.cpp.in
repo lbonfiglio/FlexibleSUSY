@@ -21,7 +21,6 @@
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
-#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 #include "config.h"
 #include "decay_amplitudes.hpp"
@@ -35,12 +34,34 @@
 
 namespace flexiblesusy {
 
+#define CLASSNAME @ModelName@_decays
+
+#define PHYSICAL(parameter) model.get_physical().parameter
+
 using namespace cxx_qft;
 using namespace cxx_qft::fields;
 using effective_couplings::two_body_phase_space_function;
 
-#define CLASSNAME @ModelName@_decays
+CLASSNAME::@ModelName@_decays(const @ModelName@_mass_eigenstates& model_)
+   : model(model_)
+{
+}
 
+CLASSNAME::@ModelName@_decays(const @ModelName@_mass_eigenstates& model_, bool corrections)
+   : model(model_)
+   , include_higher_order_corrections(corrections)
+{
+}
+
+void CLASSNAME::set_include_higher_order_corrections(bool flag)
+{
+   include_higher_order_corrections = flag;
+}
+
+void CLASSNAME::set_model(const @ModelName@_mass_eigenstates& model_)
+{
+   model = model_;
+}
 
 const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
 {
@@ -81,7 +102,7 @@ template <typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_fermion<Field2>::value &&
                            is_fermion<Field3>::value,
                         double>::type
-amplitude_squared(EvaluationContext const& context_,
+amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field1>::type const& indexIn,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
@@ -102,12 +123,12 @@ amplitude_squared(EvaluationContext const& context_,
    //         2. * muB * muC * 2. * std::real(std::conj(L) * R) );
 
    Decay_amplitude_SFF amplitude;
-   amplitude.m_decay = context_.mass<Field1>(indexIn);
-   amplitude.m_out_1 = context_.mass<Field2>(indexOut1);
-   amplitude.m_out_2 = context_.mass<Field3>(indexOut2);
+   amplitude.m_decay = context.mass<Field1>(indexIn);
+   amplitude.m_out_1 = context.mass<Field2>(indexOut1);
+   amplitude.m_out_2 = context.mass<Field3>(indexOut2);
 
    const auto indices = concatenate(indexIn, indexOut1, indexOut2);
-   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
 
    // @todo correct assignments
    amplitude.matrix_element_left = vertex.left();
@@ -119,7 +140,7 @@ amplitude_squared(EvaluationContext const& context_,
 // S -> VV
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_vector<Field2>::value && is_vector<Field3>::value, double>::type
-amplitude_squared(EvaluationContext const& context_,
+amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field1>::type const& indexIn,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
@@ -143,7 +164,7 @@ amplitude_squared(EvaluationContext const& context_,
    // return res * std::norm(vertex.value());
 
    const auto indices = concatenate(indexIn, indexOut1, indexOut2);
-   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
 
    if (Field2::massless && Field3::massless) {
       return 4. * AbsSqr(vertex.value());
@@ -153,9 +174,9 @@ amplitude_squared(EvaluationContext const& context_,
    }
 
    Decay_amplitude_SVV amplitude;
-   amplitude.m_decay = context_.mass<Field1>(indexIn);
-   amplitude.m_out_1 = context_.mass<Field2>(indexOut1);
-   amplitude.m_out_2 = context_.mass<Field3>(indexOut2);
+   amplitude.m_decay = context.mass<Field1>(indexIn);
+   amplitude.m_out_1 = context.mass<Field2>(indexOut1);
+   amplitude.m_out_2 = context.mass<Field3>(indexOut2);
 
    amplitude.M1 = vertex.value();
    amplitude.M2 = std::complex<double>(0., 0.);
@@ -167,7 +188,7 @@ template <typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value &&
                            is_vector<Field3>::value,
                         double>::type
-amplitude_squared(EvaluationContext const& context_,
+amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field1>::type const& indexIn,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
@@ -188,19 +209,19 @@ amplitude_squared(EvaluationContext const& context_,
    // return result * std::norm(vertex.value(1,2));
 
    const auto indices = concatenate(indexIn, indexOut1, indexOut2);
-   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+   const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
 
    if (Field3::massless) {
-      const auto mA2 = Sqr(context_.mass<Field1>(indexIn));
-      const auto muB2 = Sqr(context_.mass<Field2>(indexOut2)) / mA2;
+      const auto mA2 = Sqr(context.mass<Field1>(indexIn));
+      const auto muB2 = Sqr(context.mass<Field2>(indexOut2)) / mA2;
 
       return -2. * mA2 * (1. + muB2) * AbsSqr(vertex.value(1, 2));
    }
 
    Decay_amplitude_SSV amplitude;
-   amplitude.m_decay = context_.mass<Field1>(indexIn);
-   amplitude.m_scalar = context_.mass<Field2>(indexOut1);
-   amplitude.m_vector = context_.mass<Field3>(indexOut2);
+   amplitude.m_decay = context.mass<Field1>(indexIn);
+   amplitude.m_scalar = context.mass<Field2>(indexOut1);
+   amplitude.m_vector = context.mass<Field3>(indexOut2);
 
    amplitude.matrix_element = vertex.value(1, 2);
 
@@ -209,18 +230,18 @@ amplitude_squared(EvaluationContext const& context_,
 // S -> V S
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field3>::value && is_vector<Field2>::value, double>::type
-amplitude_squared(EvaluationContext const& context_,
+amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field1>::type const& indexIn,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
 {
-      return amplitude_squared<Field1, Field3, Field2>(context_, indexIn, indexOut2, indexOut1);
+      return amplitude_squared<Field1, Field3, Field2>(context, indexIn, indexOut2, indexOut1);
 }
 
 // S -> SS
 template<typename Field1, typename Field2, typename Field3>
 typename std::enable_if<is_scalar<Field1>::value && is_scalar<Field2>::value && is_scalar<Field3>::value, double>::type
-amplitude_squared(EvaluationContext const& context_,
+amplitude_squared(EvaluationContext const& context,
                   typename field_indices<Field1>::type const& indexIn,
                   typename field_indices<Field2>::type const& indexOut1,
                   typename field_indices<Field3>::type const& indexOut2)
@@ -231,7 +252,7 @@ amplitude_squared(EvaluationContext const& context_,
       // return std::norm(vertex.value());
 
       const auto indices = concatenate(indexIn, indexOut1, indexOut2);
-      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+      const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context);
 
       Decay_amplitude_SSS amplitude;
       amplitude.matrix_element = vertex.value();
@@ -242,6 +263,7 @@ amplitude_squared(EvaluationContext const& context_,
 // generic decay of FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double CLASSNAME::get_partial_width(
+   const EvaluationContext& context,
    typename field_indices<FieldIn>::type const& indexIn,
    typename field_indices<FieldOut1>::type const& indexOut1,
    typename field_indices<FieldOut2>::type const& indexOut2
@@ -249,11 +271,11 @@ double CLASSNAME::get_partial_width(
 {
 
    // phase space without symmetry factor
-   const double mIn = context_.mass<FieldIn>(indexIn);
-   const double mOut1 = context_.mass<FieldOut1>(indexOut1);
-   const double mOut2 = context_.mass<FieldOut2>(indexOut2);
+   const double mIn = context.mass<FieldIn>(indexIn);
+   const double mOut1 = context.mass<FieldOut1>(indexOut1);
+   const double mOut2 = context.mass<FieldOut2>(indexOut2);
 
-   const double ps = Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2)) / (16*Pi);
+   const double ps = oneOver16Pi * Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2));
 
    // phase space symmetry factor
    double ps_symmetry = 1;
@@ -265,7 +287,7 @@ double CLASSNAME::get_partial_width(
    }
 
    // matrix element squared
-   const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context_, indexIn, indexOut1, indexOut2);
+   const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indexIn, indexOut1, indexOut2);
 
    // flux * phase space factor * symmetry factor * matrix element^2
    return 1./(2*mIn) * ps * ps_symmetry * mat2;
@@ -285,13 +307,15 @@ using uq = @UpQuarkName@;
 // TODO: implement higher order corrections
 template<>
 double CLASSNAME::get_partial_width<H,Z,Z>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<Z>::type const& indexOut1,
    typename field_indices<Z>::type const& indexOut2
-   ) const {
+   ) const
+{
 
-   const double mass = context_.mass<H>(indexIn);
-   const double MV = context_.mass<Z>(indexOut1);
+   const double mass = context.mass<H>(indexIn);
+   const double MV = context.mass<Z>(indexOut1);
    const double x = Sqr(MV/mass);
    double res;
    // three-body-decays if below threshold
@@ -300,7 +324,7 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
       // const auto vu = MODELPARAMETER(vu);
       // TODO: specify the vev correctly
       const auto vev = 246.0; //sqrt(Sqr(vd) + Sqr(vu));
-      const double sw2 = Sqr(Sin(model_.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
+      const double sw2 = Sqr(Sin(model.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
 
       const double deltaV = 7.0/12.0 - 10.0/9.0 * sw2 + 40.0/27.0 * Sqr(sw2);
       const double RT = 3*(1 - 8*x + 20*Sqr(x))/sqrt(4*x - 1) * acos(0.5*(3*x - 1)/pow(x, 3.0/2.0))
@@ -312,20 +336,21 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
       res = 1.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    }
    const auto indices = concatenate(indexOut1, indexOut2, indexIn);
-   return res * std::norm(Vertex<Z,Z,H>::evaluate(indices, context_).value());
+   return res * std::norm(Vertex<Z,Z,H>::evaluate(indices, context).value());
 }
 
 // special case for H -> W+ W-
 // TODO: implement higher order corrections
 template <>
 double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<conj<W>::type>::type const& indexOut1,
    typename field_indices<W>::type const& indexOut2) const
 {
 
-   const double mh = context_.mass<H>(indexIn);
-   const double mW = context_.mass<W>(indexOut1);
+   const double mh = context.mass<H>(indexIn);
+   const double mW = context.mass<W>(indexOut1);
    const double x = Sqr(mW / mh);
    double res;
    // three-body-decays if below threshold
@@ -335,7 +360,7 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
       // TODO: specify the vev correctly
       const auto vev = 246.0; // sqrt(Sqr(vd) + Sqr(vu));
       const double sw2 =
-         Sqr(Sin(model_.ThetaW())); // 1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
+         Sqr(Sin(model.ThetaW())); // 1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
 
       // deltaV is 1 for W-bosons
       const double RT = 3 * (1 - 8 * x + 20 * Sqr(x)) / sqrt(4 * x - 1) *
@@ -350,81 +375,89 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
    }
    const auto indices = concatenate(indexOut2, indexOut1, indexIn);
    const auto ghWW =
-      Vertex<conj<W>::type, W, H>::evaluate(indices, context_).value();
+      Vertex<conj<W>::type, W, H>::evaluate(indices, context).value();
    return res * std::norm(ghWW);
 }
 
 // special case for H -> gluon gluon
 template<>
 double CLASSNAME::get_partial_width<H,G,G>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<G>::type const& indexOut1,
    typename field_indices<G>::type const& indexOut2
    ) const
 {
 
-   const double mass = context_.mass<H>(indexIn);
+   const double mass = context.mass<H>(indexIn);
    return 0.039788735772973836 * pow(mass, 3.0)
-      * AbsSqr(effective_coupling<G,G,H>(model_, indexOut1, indexOut2, indexIn));
+      * AbsSqr(effective_coupling<G,G,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> photon photon
 template<>
 double CLASSNAME::get_partial_width<H,A,A>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<A>::type const& indexOut1,
    typename field_indices<A>::type const& indexOut2
    ) const
 {
-   const double mass = context_.mass<H>(indexIn);
+   const double mass = context.mass<H>(indexIn);
    return 0.0049735919716217296 * pow(mass, 3.0)
-      * AbsSqr(effective_coupling<A,A,H>(model_, indexOut1, indexOut2, indexIn));
+      * AbsSqr(effective_coupling<A,A,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> photon Z
 template <>
 double CLASSNAME::get_partial_width<H, A, Z>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<A>::type const& indexOut1,
    typename field_indices<Z>::type const& indexOut2) const
 {
 
-   const double mass = context_.mass<H>(indexIn);
-   const double MVZ = context_.mass<Z>(indexOut2);
+   const double mass = context.mass<H>(indexIn);
+   const double MVZ = context.mass<Z>(indexOut2);
    if(MVZ/mass >= 1.0)
       return 0.0;
    return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3)
-    * AbsSqr(effective_coupling<A,Z,H>(model_, indexOut1, indexOut2, indexIn));
+    * AbsSqr(effective_coupling<A,Z,H>(model, indexOut1, indexOut2, indexIn));
 }
+
 template<>
 double CLASSNAME::get_partial_width<H,Z,A>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<Z>::type const& indexOut1,
    typename field_indices<A>::type const& indexOut2
-   ) const {
-      return get_partial_width<H,A,Z>(indexIn, indexOut2, indexOut1);
-   }
+   ) const
+{
+   return get_partial_width<H,A,Z>(context, indexIn, indexOut2, indexOut1);
+}
 
 // special case for H -> H H
 template<>
 double CLASSNAME::get_partial_width<H,H,H>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<H>::type const& indexOut1,
    typename field_indices<H>::type const& indexOut2
    ) const
 {
-   const double mass = context_.mass<H>(indexIn);
-   const double MS1 = context_.mass<H>(indexOut1);
-   const double MS2 = context_.mass<H>(indexOut2);
+   const double mass = context.mass<H>(indexIn);
+   const double MS1 = context.mass<H>(indexOut1);
+   const double MS2 = context.mass<H>(indexOut2);
    const auto factor = 1.; //(gI1 == gI2) ? 1 : 2;
 
    return factor/(32*Pi * mass) * sqrt(two_body_phase_space_function(mass, MS1, MS2))
-      * AbsSqr(effective_coupling<H,H,H>(model_, indexOut1, indexOut2, indexIn));
+      * AbsSqr(effective_coupling<H,H,H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> Fd Fd
 template<>
 double CLASSNAME::get_partial_width<H,conj<dq>::type,dq>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<dq>::type const& indexOut1,
    typename field_indices<dq>::type const& indexOut2
@@ -436,6 +469,7 @@ double CLASSNAME::get_partial_width<H,conj<dq>::type,dq>(
 // special case for H -> Fu Fu
 template<>
 double CLASSNAME::get_partial_width<H,conj<uq>::type,uq>(
+   const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<uq>::type const& indexOut1,
    typename field_indices<uq>::type const& indexOut2

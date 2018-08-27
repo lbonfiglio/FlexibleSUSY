@@ -29,10 +29,10 @@
 #define @ModelName@_DECAYS_H
 
 #include "@ModelName@_decay_table.hpp"
+#include "@ModelName@_mass_eigenstates.hpp"
 #include "cxx_qft/@ModelName@_qft.hpp"
 
 #include "decays_problems.hpp"
-#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 namespace flexiblesusy {
 
@@ -40,10 +40,17 @@ class @ModelName@_mass_eigenstates;
 
 class @ModelName@_decays {
 public:
-   @ModelName@_decays(@ModelName@_mass_eigenstates const& model, bool include_higher_order_corrections) : 
-      model_{model}, 
-      context_{model}, 
-      include_higher_order_corrections_{include_higher_order_corrections} {}
+   @ModelName@_decays() = default;
+   explicit @ModelName@_decays(const @ModelName@_mass_eigenstates&);
+   @ModelName@_decays(@ModelName@_mass_eigenstates const& model, bool);
+   @ModelName@_decays(const @ModelName@_decays&) = default;
+   @ModelName@_decays(@ModelName@_decays&&) = default;
+   ~@ModelName@_decays() = default;
+   @ModelName@_decays& operator=(const @ModelName@_decays&) = default;
+   @ModelName@_decays& operator=(@ModelName@_decays&&) = default;
+
+   void set_include_higher_order_corrections(bool);
+   void set_model(const @ModelName@_mass_eigenstates&);
    const @ModelName@_decay_table& get_decay_table() const;
    const Decays_problems& get_problems() const;
 
@@ -57,17 +64,24 @@ public:
 @partialWidthCalculationPrototypes@
 
 private:
-   @ModelName@_mass_eigenstates const model_;
-   cxx_qft::EvaluationContext const context_;
-
-   const bool include_higher_order_corrections_;
-
+   @ModelName@_mass_eigenstates model{};
+   bool include_higher_order_corrections{true};
+   bool run_to_decay_particle_scale{true};
    @ModelName@_decay_table decay_table{};
    Decays_problems problems{};
-   bool run_to_decay_particle_scale{true};
+
+   template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+   std::complex<double> effective_coupling(
+      const @ModelName@_mass_eigenstates& model,
+      const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
+      const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
+      const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) const {
+      return 0.;
+   }
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
+      const cxx_qft::EvaluationContext&,
       typename cxx_qft::field_indices<FieldIn>::type const&,
       typename cxx_qft::field_indices<FieldOut1>::type const&,
       typename cxx_qft::field_indices<FieldOut2>::type const&) const;
