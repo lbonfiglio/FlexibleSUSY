@@ -384,11 +384,12 @@ CreatePartialWidthCalculationPrototype[decay_FSParticleDecay] :=
             initialStateDim, finalStateDims},
            initialStateDim = TreeMasses`GetDimension[GetInitialState[decay]];
            finalStateDims = TreeMasses`GetDimension /@ GetFinalState[decay];
-           functionArgs = If[initialStateDim > 1, "int,", ""] <>
-                          StringJoin @ Riffle[DeleteCases[If[# > 1, " int", ""]& /@ finalStateDims, ""], ", "];
+           functionArgs = "const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates&" <>
+                          If[initialStateDim > 1, ", int", ""] <>
+                          StringJoin[If[# > 1, ", int", ""]& /@ finalStateDims];
            functionName = CreatePartialWidthCalculationName[decay];
            returnType = CConversion`CreateCType[CConversion`ScalarType[CConversion`realScalarCType]];
-           returnType <> " " <> functionName <> "(" <> functionArgs <> ") const;" 
+           returnType <> " " <> functionName <> "(" <> functionArgs <> ") const;"
           ];
 
 CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
@@ -397,8 +398,9 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
             finalState = GetFinalState[decay], finalStateDims, setFieldIndices, body = ""},
            initialStateDim = TreeMasses`GetDimension[GetInitialState[decay]];
            finalStateDims = TreeMasses`GetDimension /@ GetFinalState[decay];
-           functionArgs = If[initialStateDim > 1, "int gI1", ""] <>
-                          StringJoin@Riffle[DeleteCases[MapIndexed[If[#1 > 1, "int gO" <> ToString[First[#2]], ""]&, finalStateDims], ""], ", "];
+           functionArgs = "const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates& model" <>
+                          If[initialStateDim > 1, ", int gI1", ""] <>
+                          StringJoin[MapIndexed[If[#1 > 1, ", int gO" <> ToString[First[#2]], ""]&, finalStateDims]];
            functionName = CreatePartialWidthCalculationName[decay, "CLASSNAME"];
            returnType = CConversion`CreateCType[CConversion`ScalarType[CConversion`realScalarCType]];
            setFieldIndices[field_, indicesName_, indexVal_] :=
@@ -413,12 +415,13 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
                         ];
                       result
                      ];
-           body = StringJoin[setFieldIndices[#[[1]], #[[2]], #[[3]]]& /@
+           body = "EvaluationContext context{model};\n" <>
+                  StringJoin[setFieldIndices[#[[1]], #[[2]], #[[3]]]& /@
                                  Join[{{initialState, "in_indices", If[initialStateDim > 1, "gI1", ""]}},
                                       MapIndexed[{#1, "out_" <> ToString[First[#2]] <> "_indices",
                                                   If[finalStateDims[[First[#2]]] > 1, "gO" <> ToString[First[#2]], ""]}&, finalState]]];
            body = body <> "\nreturn " <> CreateGenericPartialWidthCalculationName[initialState, finalState] <>
-                  "(in_indices" <> StringJoin[Table[", out_" <> ToString[i] <> "_indices", {i, 1, Length[finalState]}]] <> ");\n";
+                  "(context, in_indices" <> StringJoin[Table[", out_" <> ToString[i] <> "_indices", {i, 1, Length[finalState]}]] <> ");\n";
            returnType <> " " <> functionName <> "(" <> functionArgs <> ") const\n{\n" <>
            TextFormatting`IndentText[body] <> "}\n"
           ];
@@ -459,8 +462,8 @@ CallPartialWidthCalculation[decay_FSParticleDecay] :=
            initialStateDim = TreeMasses`GetDimension[initialState];
            finalStateDims = TreeMasses`GetDimension /@ finalState;
            finalStateStarts = TreeMasses`GetDimensionStartSkippingGoldstones /@ finalState;
-           functionArgs = If[initialStateDim > 1, "gI1,", ""] <>
-                          Riffle[DeleteCases[MapIndexed[If[#1 > 1, " gO" <> ToString[First[#2]], ""]&, finalStateDims], ""], ", "];
+           functionArgs = "model_" <> If[initialStateDim > 1, ", gI1", ""] <>
+                          MapIndexed[If[#1 > 1, ", gO" <> ToString[First[#2]], ""]&, finalStateDims];
            pdgsList = MapIndexed[With[{idx = First[#2]},
                                       CallPDGCodeGetter[#1, If[finalStateDims[[idx]] > 1, "gO" <> ToString[idx], ""], FlexibleSUSY`FSModelName <> "_info"]]&,
                                  finalState];
@@ -495,15 +498,13 @@ CreateDecaysCalculationFunction[decaysList_] :=
             runToScale = "", body = ""},
            particleDim = TreeMasses`GetDimension[particle];
            particleStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
-           runToScale =
-              ("const auto& decay_mass = context_.mass<" <> # <>
-                 ">(field_indices<" <> # <> ">::type " <> If[particleDim > 1, "{gI1}", "{}"] <> ");\n" <>
-               "//model.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n"
-              )& @ TreeMasses`CreateFieldClassName[TreeMasses`GetHiggsBoson[]];
+           runToScale = "const auto& decay_mass = PHYSICAL(" <>
+                        CConversion`ToValidCSymbolString[TreeMasses`GetMass[particle]] <>
+                        ");\nmodel_.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = "auto& decays = decay_table.get_" <> CConversion`ToValidCSymbolString[particle] <>
                   "_decays(" <> If[particleDim > 1, "gI1", ""] <> ");\n\n" <> body;
-           body = "if (run_to_decay_particle_scale) {\n" <>
+           body = "auto model_ = model;\n\nif (run_to_decay_particle_scale) {\n" <>
                   TextFormatting`IndentText[runToScale] <> "}\n\n" <> body;
            If[particleDim > 1,
               body = LoopOverIndexCollection[body, {{"gI1", particleStart - 1, particleDim}}] <> "\n";
