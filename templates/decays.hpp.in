@@ -40,8 +40,10 @@ class @ModelName@_mass_eigenstates;
 
 class @ModelName@_decays {
 public:
-   @ModelName@_decays(@ModelName@_mass_eigenstates const& model) : 
-      model_{model}, context_{model} {}
+   @ModelName@_decays(@ModelName@_mass_eigenstates const& model, bool include_higher_order_corrections) : 
+      model_{model}, 
+      context_{model}, 
+      include_higher_order_corrections_{include_higher_order_corrections} {}
    const @ModelName@_decay_table& get_decay_table() const;
    const Decays_problems& get_problems() const;
 
@@ -56,10 +58,13 @@ public:
 
 private:
    @ModelName@_mass_eigenstates const model_;
+   cxx_qft::EvaluationContext const context_;
+
+   const bool include_higher_order_corrections_;
+
    @ModelName@_decay_table decay_table{};
    Decays_problems problems{};
    bool run_to_decay_particle_scale{true};
-   cxx_qft::EvaluationContext const context_;
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
