@@ -33,7 +33,6 @@
 #include "cxx_qft/@ModelName@_qft.hpp"
 
 #include "decays_problems.hpp"
-#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 namespace flexiblesusy {
 
@@ -70,6 +69,15 @@ private:
    bool run_to_decay_particle_scale{true};
    @ModelName@_decay_table decay_table{};
    Decays_problems problems{};
+
+   template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+   std::complex<double> effective_coupling(
+      const @ModelName@_mass_eigenstates& model,
+      const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
+      const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
+      const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) const {
+      return 0.;
+   }
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(

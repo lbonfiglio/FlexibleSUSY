@@ -21,7 +21,6 @@
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
-#include "@ModelName@_effective_couplings_for_decays.hpp"
 
 #include "config.h"
 #include "decay_amplitudes.hpp"
@@ -312,7 +311,8 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
    typename field_indices<H>::type const& indexIn,
    typename field_indices<Z>::type const& indexOut1,
    typename field_indices<Z>::type const& indexOut2
-   ) const {
+   ) const
+{
 
    const double mass = context.mass<H>(indexIn);
    const double MV = context.mass<Z>(indexOut1);
