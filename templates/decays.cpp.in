@@ -109,6 +109,23 @@ void CLASSNAME::calculate_decays()
 #endif
 }
 
+template <typename Field1, typename Field2>
+double
+final_state_symmetry_factor(typename field_indices<Field1>::type const& idx1,
+                            typename field_indices<Field2>::type const& idx2)
+{
+   if (std::is_same<Field1, Field2>::value) {
+      std::cout << std::is_same<Field1, Field2>::value << '\n';
+      // TODO: we also compare if (potential) color indices are the same,
+      //       this might cause problems if someone accidentaly initializes them
+      //       differently
+      if (boost::range::equal(idx1, idx2)) {
+         return 0.5;
+      }
+   }
+   return 1.;
+}
+
 // returns an amplitude squared
 // we need to distinquish between different combinations of scalars, fermions and vectors
 // as, for examples, for S -> SS we take |A|^2 while for S - > FF we take (|A_L|^2 + |A_R|^2)
@@ -276,7 +293,7 @@ amplitude_squared(EvaluationContext const& context,
       return amplitude.square();
 }
 
-// generic decay of FieldIn -> FieldOut1 FieldOut2
+// generic decay of FieldIn -> FieldOut1, FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double CLASSNAME::get_partial_width(
    const EvaluationContext& context,
@@ -294,13 +311,8 @@ double CLASSNAME::get_partial_width(
    const double ps = oneOver16Pi * Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2));
 
    // phase space symmetry factor
-   double ps_symmetry = 1;
-   if(std::is_same<FieldOut1, FieldOut2>::value) {
-      std::cout << std::is_same<FieldOut1, FieldOut2>::value << '\n';
-      if (boost::range::equal(indexOut1, indexOut2)) {
-         ps_symmetry = 0.5;
-      }
-   }
+   double ps_symmetry = 
+      final_state_symmetry_factor<FieldOut1, FieldOut2>(indexOut1, indexOut2);
 
    // matrix element squared
    const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indexIn, indexOut1, indexOut2);
