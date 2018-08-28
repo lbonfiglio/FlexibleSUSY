@@ -302,6 +302,79 @@ double @ModelName@_decays::get_partial_width(
    return 0.5 * ps * ps_symmetry * mat2 / mIn;
 }
 
+// explicit specializations
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@ZBosonName@, cxx_qft::fields::@ZBosonName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::@ZBosonName@>::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@ZBosonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@WBosonName@, cxx_qft::fields::conj<cxx_qft::fields::@WBosonName@>::type>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::conj<cxx_qft::fields::@WBosonName@> >::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@WBosonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@GluonName@, cxx_qft::fields::@GluonName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::@GluonName@>::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@GluonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@PhotonName@, cxx_qft::fields::@PhotonName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::@PhotonName@>::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@PhotonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@PhotonName@, cxx_qft::fields::@ZBosonName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::@PhotonName@>::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@ZBosonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@ZBosonName@, cxx_qft::fields::@PhotonName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::@ZBosonName@>::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@PhotonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::@HiggsBosonName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::conj<cxx_qft::fields::@DownQuarkName@>::type, cxx_qft::fields::@DownQuarkName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::conj<cxx_qft::fields::@DownQuarkName@> >::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@DownQuarkName@>::type const& indexOut2
+   ) const;
+
+template<>
+double @ModelName@_decays::get_partial_width<cxx_qft::fields::@HiggsBosonName@, cxx_qft::fields::conj<cxx_qft::fields::@UpQuarkName@>::type, cxx_qft::fields::@UpQuarkName@>(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<cxx_qft::fields::@HiggsBosonName@>::type const& indexIn,
+   typename cxx_qft::field_indices<cxx_qft::fields::conj<cxx_qft::fields::@UpQuarkName@> >::type const& indexOut1,
+   typename cxx_qft::field_indices<cxx_qft::fields::@UpQuarkName@>::type const& indexOut2
+   ) const;
+
 } // namespace flexiblesusy
 
 #endif
