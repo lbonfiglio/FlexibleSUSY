@@ -304,14 +304,15 @@ double @ModelName@_decays::get_partial_width(
    const double ps = oneOver16Pi * Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2));
 
    // phase space symmetry factor
-   double ps_symmetry = 
+   const double ps_symmetry = 
       final_state_symmetry_factor<FieldOut1, FieldOut2>(indexOut1, indexOut2);
 
    // matrix element squared
-   const double mat2 = amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indexIn, indexOut1, indexOut2);
+   const double mat2 = 
+      amplitude_squared<FieldIn,FieldOut1,FieldOut2>(context, indexIn, indexOut1, indexOut2);
 
    // flux * phase space factor * symmetry factor * matrix element^2
-   return 0.5 * ps * ps_symmetry * mat2 / mIn;
+   return 0.5/mIn * ps * ps_symmetry * mat2;
 }
 
 // explicit specializations

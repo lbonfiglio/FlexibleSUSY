@@ -271,26 +271,40 @@ double CLASSNAME::get_partial_width<H,H,H>(
 
 // special case for H -> Fd Fd
 template<>
-double CLASSNAME::get_partial_width<H,conj<dq>::type,dq>(
+double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
    const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<dq>::type const& indexOut1,
    typename field_indices<dq>::type const& indexOut2
    ) const
 {
+   const double mh = context.mass<H>(indexIn);
+   const double mdq = context.mass<dq>(indexOut1);
+   const double mdqbar = context.mass<bar<dq>::type>(indexOut2);
+
+   if (mh < mdq + mdqbar) {return 0.;}
+
    // SM expression + pure BSM 1L corrections
+   return amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2);
 }
 
 // special case for H -> Fu Fu
 template<>
-double CLASSNAME::get_partial_width<H,conj<uq>::type,uq>(
+double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
    const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<uq>::type const& indexOut1,
    typename field_indices<uq>::type const& indexOut2
    ) const
 {
+   const double mh = context.mass<H>(indexIn);
+   const double muq = context.mass<uq>(indexOut1);
+   const double muqbar = context.mass<bar<uq>::type>(indexOut2);
+
+   if (mh < muq + muqbar) {return 0.;}
+
    // SM expression + pure BSM 1L corrections
+   return amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2);
 }
 
 @decaysCalculationFunctions@
