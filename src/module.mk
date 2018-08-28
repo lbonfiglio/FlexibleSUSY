@@ -58,6 +58,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/database.hpp \
 		$(DIR)/decay.hpp \
 		$(DIR)/decay_amplitudes.hpp \
+		$(DIR)/decays_loop_corrections.hpp \
 		$(DIR)/derivative.hpp \
 		$(DIR)/dilog.hpp \
 		$(DIR)/effective_couplings.hpp \
