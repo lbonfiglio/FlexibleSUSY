@@ -21,6 +21,8 @@
 /**
  * @file @ModelName@_decays.hpp
  *
+ * @brief contains class for calculating particle decays
+ *
  * This file was generated at @DateAndTime@ with FlexibleSUSY
  * @FlexibleSUSYVersion@ (git commit: @FlexibleSUSYGitCommit@) and SARAH @SARAHVersion@ .
  */

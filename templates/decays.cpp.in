@@ -18,6 +18,17 @@
 
 // File generated at @DateAndTime@
 
+/**
+ * @file @ModelName@_decays.cpp
+ * @brief implementation of particle decays in the @ModelName@
+ *
+ * Contains the definition of @ModelName@ decays class methods,
+ * which calculate the decay rates for particles in the model.
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ (git commit: @FlexibleSUSYGitCommit@) and SARAH @SARAHVersion@ .
+ */
+
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
