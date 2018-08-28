@@ -58,11 +58,6 @@ void CLASSNAME::set_include_higher_order_corrections(bool flag)
    include_higher_order_corrections = flag;
 }
 
-void CLASSNAME::set_model(const @ModelName@_mass_eigenstates& model_)
-{
-   model = model_;
-}
-
 const @ModelName@_decay_table& CLASSNAME::get_decay_table() const
 {
    return decay_table;

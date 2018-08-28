@@ -40,7 +40,6 @@ class @ModelName@_mass_eigenstates;
 
 class @ModelName@_decays {
 public:
-   @ModelName@_decays() = default;
    explicit @ModelName@_decays(const @ModelName@_mass_eigenstates&);
    @ModelName@_decays(@ModelName@_mass_eigenstates const& model, bool);
    @ModelName@_decays(const @ModelName@_decays&) = default;
@@ -50,7 +49,6 @@ public:
    @ModelName@_decays& operator=(@ModelName@_decays&&) = default;
 
    void set_include_higher_order_corrections(bool);
-   void set_model(const @ModelName@_mass_eigenstates&);
    const @ModelName@_decay_table& get_decay_table() const;
    const Decays_problems& get_problems() const;
 
