@@ -1780,13 +1780,14 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
            partialWidthCalculationPrototypes = Decays`CreatePartialWidthCalculationPrototypes[decaysLists];
            partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists];
+           decaysGetters = Decays`CreateDecaysGetterFunctions[decayParticles];
            decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
            decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
            initDecayTable = Decays`CreateDecayTableInitialization[decayParticles];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
-                            "@decaysGetters@" -> IndentText[decaysGetters],
+                            "@decaysGetters@" -> IndentText[WrapLines[decaysGetters]],
                             "@decaysCalculationPrototypes@" -> IndentText[decaysCalculationPrototypes],
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],

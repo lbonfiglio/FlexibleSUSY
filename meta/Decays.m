@@ -22,6 +22,11 @@
 
 BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`", "TextFormatting`", "Utils`", "Vertices`"}];
 
+FSParticleDecay::usage="head used for storing details of an particle decay,
+in the format
+   FSParticleDecay[particle, {final state particle}, {diagram 1, diagram 2, ...}]
+";
+
 CreateCompleteParticleList::usage="";
 GetDecaysForParticle::usage="";
 GetVerticesForDecays::usage="gets required vertices for a list of decays";
@@ -36,11 +41,7 @@ CreatePartialWidthCalculationPrototypes::usage="create prototypes for
 functions computing partial widths of all decays.";
 CreatePartialWidthCalculationFunctions::usage="creates definitions for
 functions computing partial widths of all decays.";
-FSParticleDecay::usage="head used for storing details of an particle decay,
-in the format
-   FSParticleDecay[particle, {final state particle}, {diagram 1, diagram 2, ...}]
-";
-
+CreateDecaysGetterFunctions::usage="create getters for specific particle decays";
 CreateDecayTableGetterPrototypes::usage="create getter prototypes for C++ decay table";
 CreateDecayTableGetterFunctions::usage="create getter definitions for C++ decay table";
 CreateDecayTableInitialization::usage="create C++ initializer for decay table."
@@ -536,6 +537,21 @@ CallDecaysCalculationFunctions[particles_List, enableDecaysThreads_] :=
              ];
            result
           ];
+
+CreateDecaysGetterFunctionName[particle_] :=
+    "get_" <> CConversion`ToValidCSymbolString[particle] <> "_decays";
+
+CreateDecaysGetterFunction[particle_] :=
+    Module[{dim, body = ""},
+           dim = TreeMasses`GetDimension[particle];
+           body = "return decay_table." <> CreateDecayTableEntryGetterName[particle] <>
+                  "(" <> If[dim > 1, "i", ""] <> ");";
+           "const Decays_list& " <> CreateDecaysGetterFunctionName[particle] <> "(" <>
+           If[dim > 1, "int i", ""] <> ") const { " <> body <> " }"
+          ];
+
+CreateDecaysGetterFunctions[particles_List] :=
+    Utils`StringJoinWithSeparator[CreateDecaysGetterFunction /@ particles, "\n"];
 
 CreateDecayTableEntryGetterName[particle_] :=
     "get_" <> CConversion`ToValidCSymbolString[particle] <> "_decays";
