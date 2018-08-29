@@ -129,9 +129,9 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
    ) const
 {
 
-   const double mass = context.mass<H>(indexIn);
-   const double MV = context.mass<Z>(indexOut1);
-   const double x = Sqr(MV/mass);
+   const double mH = context.mass<H>(indexIn);
+   const double mZ = context.mass<Z>(indexOut1);
+   const double x = Sqr(mZ/mH);
    double res;
    // three-body-decays if below threshold
    if(4*x > 1.0) {
@@ -146,9 +146,9 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
                      - 0.5*(1 - x)/x * (2 - 13*x + 47*Sqr(x))
                      - 3.0/2.0 * (1 - 6*x + 4*Sqr(x))*Log(x);
 
-      res = 3.0/(128*pow(Pi,3)) * mass/Sqr(vev) * deltaV * RT;
+      res = 3.0/(128*pow(Pi,3)) * mH/Sqr(vev) * deltaV * RT;
    } else {
-      res = 1.0/(128*Pi * mass * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
+      res = 1.0/(128*Pi * mH * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
    }
    const auto indices = concatenate(indexOut1, indexOut2, indexIn);
    return res * std::norm(Vertex<Z,Z,H>::evaluate(indices, context).value());
@@ -164,9 +164,9 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
    typename field_indices<W>::type const& indexOut2) const
 {
 
-   const double mh = context.mass<H>(indexIn);
+   const double mH = context.mass<H>(indexIn);
    const double mW = context.mass<W>(indexOut1);
-   const double x = Sqr(mW / mh);
+   const double x = Sqr(mW / mH);
    double res;
    // three-body-decays if below threshold
    if (4 * x > 1.0) {
@@ -183,9 +183,9 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
                         0.5 * (1 - x) / x * (2 - 13 * x + 47 * Sqr(x)) -
                         3.0 / 2.0 * (1 - 6 * x + 4 * Sqr(x)) * Log(x);
 
-      res = 3.0 / (128 * pow(Pi, 3)) * mh / Sqr(vev) * RT;
+      res = 3.0 / (128 * pow(Pi, 3)) * mH / Sqr(vev) * RT;
    } else {
-      res = 2.0 / (128 * Pi * mh * Sqr(x)) * sqrt(1 - 4 * x) *
+      res = 2.0 / (128 * Pi * mH * Sqr(x)) * sqrt(1 - 4 * x) *
             (1 - 4 * x + 12 * Sqr(x));
    }
    const auto indices = concatenate(indexOut2, indexOut1, indexIn);
@@ -285,11 +285,14 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
    typename field_indices<dq>::type const& indexOut2
    ) const
 {
-   const double mh = context.mass<H>(indexIn);
+   const double mH = context.mass<H>(indexIn);
    const double mdq = context.mass<dq>(indexOut1);
    const double mdqbar = context.mass<bar<dq>::type>(indexOut2);
 
-   if (mh < mdq + mdqbar) {return 0.;}
+   // TODO: add off-shell decays?
+   if (mH < mdq + mdqbar) {
+      return 0.;
+   }
 
    // SM expression + pure BSM 1L corrections
    return amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2);
@@ -304,11 +307,14 @@ double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
    typename field_indices<uq>::type const& indexOut2
    ) const
 {
-   const double mh = context.mass<H>(indexIn);
+   const double mH = context.mass<H>(indexIn);
    const double muq = context.mass<uq>(indexOut1);
    const double muqbar = context.mass<bar<uq>::type>(indexOut2);
 
-   if (mh < muq + muqbar) {return 0.;}
+   // TODO: add off-shell decays?
+   if (mH < muq + muqbar) {
+      return 0.;
+   }
 
    // SM expression + pure BSM 1L corrections
    return amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2);
