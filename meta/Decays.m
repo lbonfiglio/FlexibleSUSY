@@ -194,11 +194,11 @@ IsColorInvariantDecay[initialParticle_, finalState_List] :=
            result
           ];
 
-IsPossibleNonZeroDiagram[diagram_] :=
+IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
     Module[{vertices, vertexVals, isPossibleNonZeroVertex},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
            isPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
-           vertexVals = SARAH`Vertex /@ vertices;
+           vertexVals = SARAH`Vertex[#, UseDependences -> useDependences]& /@ vertices;
            And @@ (isPossibleNonZeroVertex /@ vertexVals)
           ];
 
