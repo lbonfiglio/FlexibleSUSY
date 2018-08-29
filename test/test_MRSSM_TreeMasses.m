@@ -48,5 +48,11 @@ TestEquality[TreeMasses`IsMassless[VWp], False];
 
 TestEquality[TreeMasses`GetColoredParticles[], {VG, gG, Glu, sigmaO, phiO, Sd, Su, Fd, Fu}];
 
+TestEquality[TreeMasses`GetPhoton[], VP];
+TestEquality[TreeMasses`GetGluon[], VG];
+TestEquality[TreeMasses`GetZBoson[], VZ];
+TestEquality[TreeMasses`GetWBoson[], VWm];
+TestEquality[TreeMasses`GetHiggsBoson[], hh];
+TestEquality[TreeMasses`GetPseudoscalarHiggsBoson[], Ah];
 
 PrintTestSummary[];
