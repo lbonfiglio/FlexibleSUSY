@@ -29,15 +29,8 @@ BeginPackage["Vertices`", {
     "LatticeUtils`"}]
 
 FSVertexTypes = { ScalarVertex, ChiralVertex, MomentumDifferenceVertex, InverseMetricVertex };
-
 VertexTypes::usage="";
 VertexTypeForFields::usage="Returns the vertex type for a vertex with a given list of fields.";
-
-LoadVerticesIfNecessary::usage="";
-
-CreateVertexData::usage="";
-CreateVertices::usage="";
-VertexFunctionBodyForFields::usage="";
 
 VertexRules::usage;
 ToCpPattern::usage="ToCpPattern[cp] converts field indices inside cp to patterns, e.g. ToCpPattern[Cp[bar[UFd[{gO1}]], Sd[{gI1}], Glu[{1}]][PL]] === Cp[bar[UFd[{gO1_}]], Sd[{gI1_}], Glu[{1}]][PL].";
@@ -55,6 +48,10 @@ ToRotatedField::usage;
 ReplaceUnrotatedFields::usage;
 StripGroupStructure::usage="Removes group generators and Kronecker deltas.";
 StripFieldIndices::usage;
+
+CreateVertexData::usage="";
+CreateVertices::usage="";
+VertexFunctionBodyForFields::usage="";
 
 Begin["`Private`"]
 
@@ -970,7 +967,6 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
     Module[{sortedFields,
             vertex, vertexType = VertexTypeForFields[fields],
             stripGroupStructure = {SARAH`Lam[__] -> 2, SARAH`fSU3[__] -> 1}},
-
            sortedFields = SortFieldsInCp[fields];
 
            vertex = Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1];
