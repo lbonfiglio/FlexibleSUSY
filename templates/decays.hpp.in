@@ -294,14 +294,14 @@ double @ModelName@_decays::get_partial_width(
    typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2
    ) const
 {
-   using effective_couplings::two_body_phase_space_function;
+   using effective_couplings::beta;
 
    // phase space without symmetry factor
    const double mIn = context.mass<FieldIn>(indexIn);
    const double mOut1 = context.mass<FieldOut1>(indexOut1);
    const double mOut2 = context.mass<FieldOut2>(indexOut2);
 
-   const double ps = oneOver16Pi * Sqrt(two_body_phase_space_function(mIn, mOut1, mOut2));
+   const double ps = oneOver16Pi * beta(mIn, mOut1, mOut2);
 
    // phase space symmetry factor
    const double ps_symmetry = 

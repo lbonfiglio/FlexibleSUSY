@@ -49,7 +49,7 @@ namespace flexiblesusy {
 
 using namespace cxx_qft;
 using namespace cxx_qft::fields;
-using effective_couplings::two_body_phase_space_function;
+using effective_couplings::beta;
 
 CLASSNAME::@ModelName@_decays(const @ModelName@_mass_eigenstates& model_)
    : model(model_)
@@ -252,21 +252,28 @@ double CLASSNAME::get_partial_width<H,Z,A>(
 }
 
 // special case for H -> H H
-template<>
-double CLASSNAME::get_partial_width<H,H,H>(
+template <>
+double CLASSNAME::get_partial_width<H, H, H>(
    const EvaluationContext& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<H>::type const& indexOut1,
-   typename field_indices<H>::type const& indexOut2
-   ) const
+   typename field_indices<H>::type const& indexOut2) const
 {
-   const double mass = context.mass<H>(indexIn);
-   const double MS1 = context.mass<H>(indexOut1);
-   const double MS2 = context.mass<H>(indexOut2);
-   const auto factor = 1.; //(gI1 == gI2) ? 1 : 2;
+   const double mHIn = context.mass<H>(indexIn);
+   const double mH1 = context.mass<H>(indexOut1);
+   const double mH2 = context.mass<H>(indexOut2);
 
-   return factor/(32*Pi * mass) * sqrt(two_body_phase_space_function(mass, MS1, MS2))
-      * AbsSqr(effective_coupling<H,H,H>(model, indexOut1, indexOut2, indexIn));
+   if (mHIn < mH1 + mH2) {
+         return 0.;
+   }
+
+   const double flux = 1. / (2. * mHIn);
+   const double ps = beta(mHIn, mH1, mH2) / (8. * Pi);
+   const auto ps_symmetry =
+      final_state_symmetry_factor<H, H>(indexOut1, indexOut2);
+
+   return flux * ps * ps_symmetry *
+          AbsSqr(effective_coupling<H, H, H>(model, indexOut1, indexOut2, indexIn));
 }
 
 // special case for H -> Fd Fd
