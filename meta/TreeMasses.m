@@ -193,6 +193,7 @@ GetSMUpQuarks::usage="";
 GetSMDownQuarks::usage="";
 GetSMQuarks::usage="";
 GetColoredParticles::usage="";
+GetColorRepresentation::usage="";
 
 GetUpQuark::usage="";
 GetDownQuark::usage="";
@@ -424,6 +425,25 @@ ColorChargedQ[field_] :=
 
 GetColoredParticles[] :=
     Select[GetParticles[], ColorChargedQ];
+
+GetColorRepresentation[SARAH`bar[particle_]] :=
+    Module[{rep = GetColorRepresentation[particle]},
+           If[rep =!= S && rep =!= O,
+              rep = -rep;
+             ];
+           rep
+          ];
+
+GetColorRepresentation[Susyno`LieGroups`conj[particle_]] :=
+    Module[{rep = GetColorRepresentation[particle]},
+           If[rep =!= S && rep =!= O,
+              rep = -rep;
+             ];
+           rep
+          ];
+
+GetColorRepresentation[particle_] :=
+    SARAH`getColorRep[particle];
 
 IsQuark[Susyno`LieGroups`conj[sym_]] := IsQuark[sym];
 IsQuark[SARAH`bar[sym_]] := IsQuark[sym];

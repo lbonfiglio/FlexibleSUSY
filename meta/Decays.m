@@ -170,12 +170,11 @@ IsElectricChargeConservingDecay[initialParticle_, finalState_List] :=
           ];
 
 (* @todo handle more than 2 particles in final state and non-SM color representations *)
-(* @todo properly handle bar, conj heads *)
 IsColorInvariantDecay[initialParticle_, finalState_List] :=
     Module[{initialStateRep, finalStateReps, result = True},
            If[Length[finalState] == 2,
-              initialStateRep = SARAH`getColorRep[initialParticle];
-              finalStateReps = Sort[SARAH`getColorRep /@ finalState];
+              initialStateRep = TreeMasses`GetColorRepresentation[initialParticle];
+              finalStateReps = Sort[TreeMasses`GetColorRepresentation /@ finalState];
               Switch[initialStateRep,
                      S, result = ((finalStateReps === {S, S}) ||
                                   (finalStateReps === {T, T}) ||
