@@ -233,6 +233,14 @@ GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
            Select[diagrams, IsSupportedDiagram]
           ];
 
+(* defines a fixed ordering for final state particles  *)
+(* @todo decide on what this ordering actually will be *)
+OrderFinalState[initialParticle_, finalParticles_List] :=
+    Module[{orderedFinalState},
+           orderedFinalState = First[Vertices`SortCp[SARAH`Cp[Join[{initialParticle}, finalParticles]]]];
+           Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]]
+          ];
+
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
     Module[{genericFinalStates, finalStateParticlesClassified,
             isPossibleDecay, concreteFinalStates, decays},
@@ -247,6 +255,7 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
                                             IsElectricChargeConservingDecay[particle, finalState] &&
                                             IsColorInvariantDecay[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
+           concreteFinalStates = OrderFinalState[particle, #] & /@ concreteFinalStates;
            decays = FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates;
            Select[decays, (GetDecayDiagrams[#] =!= {})&]
           ];
