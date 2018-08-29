@@ -216,6 +216,7 @@ GetGluon::usage            = "returns the gluon";
 GetZBoson::usage           = "returns the Z boson";
 GetWBoson::usage           = "returns the W boson";
 GetHiggsBoson::usage       = "return Higgs boson(s)";
+GetPseudoscalarHiggsBoson::usage = "";
 
 GetSMTopQuarkMultiplet::usage    = "Returns multiplet containing the top quark, Fu or Ft";
 GetSMBottomQuarkMultiplet::usage = "Returns multiplet containing the bottom quark, Fd or Fb";
@@ -2170,6 +2171,9 @@ GetWBoson[] :=
       ]
    ];
 GetHiggsBoson[] := SARAH`HiggsBoson;
+GetPseudoscalarHiggsBoson[] := Module[{},
+   If[ValueQ[SARAH`PseudoScalarBoson], SARAH`PseudoScalarBoson]
+];
 
 End[];
 
