@@ -1995,9 +1995,11 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
 
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,files_List] :=
-  Module[{fields, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
+  Module[{fields, fieldsDefinitions, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
           strongCoupling},
-    fields = CXXDiagrams`CreateFields[];
+    fields = TreeMasses`GetParticles[];
+    fieldsDefinitions = CXXDiagrams`CreateFields[];
+    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields];
     vertexData = StringJoin @ Riffle[Vertices`CreateVertexData /@
                                        DeleteDuplicates[vertices], "\n\n"];
     cxxVertices = Vertices`CreateVertices[vertices];
@@ -2006,7 +2008,8 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
     strongCoupling = CXXDiagrams`CreateStrongCoupling[];
 
     WriteOut`ReplaceInFiles[files,
-                            {"@CXXDiagrams_Fields@"          -> fields,
+                            {"@CXXDiagrams_Fields@"          -> fieldsDefinitions,
+                             "@defineFieldTraits@"           -> defineFieldTraits,
                              "@CXXDiagrams_VertexData@"      -> vertexData,
                              "@CXXDiagrams_Vertices@"        -> cxxVertices,
                              "@CXXDiagrams_MassFunctions@"   -> massFunctions,

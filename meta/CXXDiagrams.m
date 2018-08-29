@@ -32,6 +32,7 @@ LorentzConjugateOperation::usage="";
 LorentzConjugate::usage="";
 RemoveLorentzConjugation::usage="";
 CreateFields::usage="";
+CreateFieldTraitsDefinitions::usage="";
 CreateMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
@@ -134,6 +135,24 @@ CreateFields[] :=
        "using ghosts = boost::mpl::vector<" <>
          StringJoin[Riffle[TreeMasses`CreateFieldClassName /@ ghosts, ", "]] <> ">;"
   ]
+
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsScalar, namespacePrefix_] :=
+    "template<>\nstruct is_scalar<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsFermion, namespacePrefix_] :=
+    "template<>\nstruct is_fermion<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsVector, namespacePrefix_] :=
+    "template<>\nstruct is_vector<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsGhost, namespacePrefix_] :=
+    "template<>\nstruct is_ghost<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+
+CreateFieldTraitsDefinition[field_, namespacePrefix_] :=
+    Module[{fieldTypeTraitDefinition = ""},
+           fieldTypeTraitDefinition = CreateFieldTypeTraitDefinition[field, namespacePrefix];
+           fieldTypeTraitDefinition <> "\n"
+          ];
+
+CreateFieldTraitsDefinitions[fields_, namespacePrefix_:"cxx_qft::fields"] :=
+    StringJoin[CreateFieldTraitsDefinition[#, namespacePrefix]& /@ fields];
 
 (* adjacencyMatrix must be undirected (i.e symmetric) *)
 FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=

@@ -21,6 +21,7 @@
 #ifndef @ModelName@_CXX_FIELDS_H
 #define @ModelName@_CXX_FIELDS_H
 
+#include "field_traits.hpp"
 #include "multiindex.hpp"
 
 #include <array>
@@ -56,20 +57,20 @@ enum class ParticleType {
    ghost
 };
 
-template<typename Field>
-struct is_fermion {
-   static constexpr bool value = Field::particle_type == ParticleType::fermion;
-};
+// template<typename Field>
+// struct is_fermion {
+//    static constexpr bool value = Field::particle_type == ParticleType::fermion;
+// };
 
-template<typename Field>
-struct is_vector {
-   static constexpr bool value = Field::particle_type == ParticleType::vector;
-};
+// template<typename Field>
+// struct is_vector {
+//    static constexpr bool value = Field::particle_type == ParticleType::vector;
+// };
 
-template<typename Field>
-struct is_scalar {
-   static constexpr bool value = Field::particle_type == ParticleType::scalar;
-};
+// template<typename Field>
+// struct is_scalar {
+//    static constexpr bool value = Field::particle_type == ParticleType::scalar;
+// };
 
 template<typename Field>
 struct is_massless {
@@ -168,6 +169,8 @@ struct remove_lorentz_conjugation<conj<Field>> {
 };
 
 @CXXDiagrams_Fields@
+
+@defineFieldTraits@
 
 } // namespace fields
 
