@@ -95,7 +95,7 @@ private:
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    std::complex<double> effective_coupling(
-      const @ModelName@_mass_eigenstates&,
+      const cxx_qft::EvaluationContext&,
       const typename cxx_qft::field_indices<FieldIn>::type&,
       const typename cxx_qft::field_indices<FieldOut1>::type&,
       const typename cxx_qft::field_indices<FieldOut2>::type&) const;
@@ -285,7 +285,7 @@ amplitude_squared(cxx_qft::EvaluationContext const& context,
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 std::complex<double> @ModelName@_decays::effective_coupling(
-   const @ModelName@_mass_eigenstates& model,
+   const cxx_qft::EvaluationContext& context,
    const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
    const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
    const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) const
