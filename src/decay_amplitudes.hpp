@@ -16,6 +16,9 @@
 // <http://www.gnu.org/licenses/>.
 // ====================================================================
 
+#ifndef DECAY_AMPLITUDES_H
+#define DECAY_AMPLITUDES_H
+
 #include <complex>
 
 namespace flexiblesusy {
@@ -111,3 +114,5 @@ double square_amplitude(const Amplitude& a)
 }
 
 } // namespace flexiblesusy
+
+#endif
