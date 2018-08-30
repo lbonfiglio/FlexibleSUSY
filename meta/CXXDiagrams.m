@@ -20,7 +20,7 @@
 
 *)
 
-BeginPackage["CXXDiagrams`", {"SARAH`", "TextFormatting`", "TreeMasses`", "Vertices`", "Parameters`","CConversion`", "SelfEnergies`"}];
+BeginPackage["CXXDiagrams`", {"SARAH`", "TextFormatting`", "TreeMasses`", "Vertices`", "Parameters`","CConversion`", "SelfEnergies`", "Utils`"}];
 
 (* This module generates c++ code intended to be used similarly to SARAH's fields and Vertex[] function *)
 
@@ -76,65 +76,99 @@ ParticleColorRepAsString[part_] :=
       ]
    ];
 
-CreateFields[] :=
-  Module[{fields, scalars, fermions, vectors, ghosts},
-       fields = TreeMasses`GetParticles[];
-       scalars = Select[fields, TreeMasses`IsScalar];
-       fermions = Select[fields, TreeMasses`IsFermion];
-       vectors = Select[fields, TreeMasses`IsVector];
-       ghosts = Select[fields, TreeMasses`IsGhost];
-
-       StringJoin @ Riffle[
-         ("struct " <> TreeMasses`CreateFieldClassName[#] <> " {\n" <>
-            TextFormatting`IndentText[
-              "static constexpr auto particle_type = ParticleType::" <> ParticleTypeAsString[#] <> ";\n" <>
-              "static constexpr auto color_rep = ParticleColorRep::" <> ParticleColorRepAsString[#] <> ";\n" <>
-              "static constexpr auto massless = " <> If[TreeMasses`IsMassless[#], "true", "false"] <> ";\n" <>
-              "using index_bounds = boost::mpl::pair<\n" <>
+CreateFieldIndexBoundsDefinition[field_] :=
+    Module[{indexBounds},
+           indexBounds = IndexBoundsForField[field];
+           "using index_bounds = boost::mpl::pair<\n" <>
               "  boost::mpl::vector_c<int" <>
                    StringJoin[", " <> ToString[#] & /@
-                     (IndexBoundsForField[#][[1]] - 1)] <> ">,\n" <>
+                     (indexBounds[[1]] - 1)] <> ">,\n" <>
               "  boost::mpl::vector_c<int" <>
                    StringJoin[", " <> ToString[#] & /@
-                     IndexBoundsForField[#][[2]]] <> ">\n" <>
-              ">;\n" <>
-              "static constexpr int numberOfGenerations = " <>
-                   ToString @ TreeMasses`GetDimension[#] <> ";\n" <>
-                     "using sm_flags = boost::mpl::vector_c<bool, " <>
-                        If[TreeMasses`GetDimension[#] === 1,
-                           CConversion`CreateCBoolValue @ TreeMasses`IsSMParticle[#],
-                           StringJoin @ Riffle[CConversion`CreateCBoolValue /@
-                             (TreeMasses`IsSMParticle[#] & /@ Table[#[{k}],{k,TreeMasses`GetDimension[#]}]),
-                                               ", "]] <>
-                        ">;\n" <>
-                "static constexpr int numberOfFieldIndices = " <>
-                   ToString @ NumberOfFieldIndices[#] <> ";\n" <>
-                "static constexpr double electric_charge = " <>
-                   CConversion`RValueToCFormString[TreeMasses`GetElectricCharge[#]] <> ";\n" <>
-                "using lorentz_conjugate = " <>
-                   TreeMasses`CreateFieldClassName[LorentzConjugate[#]] <> ";\n"] <>
-              "};" &) /@ fields, "\n\n"] <> "\n\n" <>
+                     indexBounds[[2]]] <> ">\n" <>
+              ">;\n"
+          ];
 
+CreateFieldSMFlags[field_] :=
+    Module[{dim = TreeMasses`GetDimension[field], flags = ""},
+           flags = If[dim == 1,
+                      CConversion`CreateCBoolValue @ TreeMasses`IsSMParticle[field],
+                      StringJoin @ Riffle[CConversion`CreateCBoolValue /@
+                                          (TreeMasses`IsSMParticle[#] & /@ Table[field[{k}], {k, dim}]),
+                                          ", "]
+                     ];
+           "using sm_flags = boost::mpl::vector_c<bool, " <> flags <> ">;"
+          ];
+
+CreateFieldStruct[field_] :=
+    Module[{fieldName = TreeMasses`CreateFieldClassName[field],
+            particleType = "", particleColorRep = "", particleMassless = "",
+            indexBounds = "", numGenerations = "", smFlags = "", numIndices = "",
+            electricCharge = "", conjugateField = "", body = ""},
+           particleType = "static constexpr auto particle_type = ParticleType::" <> ParticleTypeAsString[field] <> ";";
+           particleColorRep = "static constexpr auto color_rep = ParticleColorRep::" <> ParticleColorRepAsString[field] <> ";";
+           particleMassless = "static constexpr auto massless = " <> If[TreeMasses`IsMassless[field], "true", "false"] <> ";";
+           indexBounds = CreateFieldIndexBoundsDefinition[field];
+           numGenerations = "static constexpr int numberOfGenerations = " <> ToString @ TreeMasses`GetDimension[field] <> ";";
+           smFlags = CreateFieldSMFlags[field];
+           numIndices = "static constexpr int numberOfFieldIndices = " <> ToString @ NumberOfFieldIndices[field] <> ";";
+           electricCharge = "static constexpr double electric_charge = " <>
+                            CConversion`RValueToCFormString[TreeMasses`GetElectricCharge[field]] <> ";";
+           conjugateField = "using lorentz_conjugate = " <> TreeMasses`CreateFieldClassName[LorentzConjugate[field]] <> ";";
+
+           body = particleType <> "\n" <>
+                  particleColorRep <> "\n" <>
+                  particleMassless <> "\n" <>
+                  indexBounds <> "\n" <>
+                  numGenerations <> "\n" <>
+                  smFlags <> "\n" <>
+                  numIndices <> "\n" <>
+                  electricCharge <> "\n" <>
+                  conjugateField <> "\n";
+
+           "struct " <> fieldName <> " {\n" <> TextFormatting`IndentText[body] <> "};\n"
+          ];
+
+CreateFieldStructs[fields_List] :=
+    Utils`StringJoinWithSeparator[CreateFieldStruct /@ fields, "\n"];
+
+CreateNamedFieldAliases[] :=
        "// Named fields\n" <>
        "using Photon = " <> TreeMasses`CreateFieldClassName[SARAH`Photon] <> ";\n" <>
-       "using Electron = " <> TreeMasses`CreateFieldClassName[AtomHead @ TreeMasses`GetSMElectronLepton[]] <> ";\n\n" <>
+       "using Electron = " <> TreeMasses`CreateFieldClassName[AtomHead @ TreeMasses`GetSMElectronLepton[]] <> ";\n";
 
-       "// Fields that are their own Lorentz conjugates.\n" <>
-       StringJoin @ Riffle[
-         ("template<> struct " <> LorentzConjugateOperation[#] <> "<" <> TreeMasses`CreateFieldClassName[#] <> ">" <>
-            " { using type = " <> TreeMasses`CreateFieldClassName[#] <> "; };"
-            &) /@ Select[fields, (# == LorentzConjugate[#] &)],
-          "\n"] <> "\n\n" <>
+IsLorentzSelfConjugate[field_] := field === LorentzConjugate[field];
 
-       "using scalars = boost::mpl::vector<" <>
-         StringJoin[Riffle[TreeMasses`CreateFieldClassName /@ scalars, ", "]] <> ">;\n" <>
-       "using fermions = boost::mpl::vector<" <>
-         StringJoin[Riffle[TreeMasses`CreateFieldClassName /@ fermions, ", "]] <> ">;\n" <>
-       "using vectors = boost::mpl::vector<" <>
-         StringJoin[Riffle[TreeMasses`CreateFieldClassName /@ vectors, ", "]] <> ">;\n" <>
-       "using ghosts = boost::mpl::vector<" <>
-         StringJoin[Riffle[TreeMasses`CreateFieldClassName /@ ghosts, ", "]] <> ">;"
-  ]
+CreateSelfConjugateFieldDefinition[field_] := "";
+CreateSelfConjugateFieldDefinition[field_?IsLorentzSelfConjugate] :=
+    "template<> struct " <> LorentzConjugateOperation[field] <> "<" <> TreeMasses`CreateFieldClassName[field] <> ">" <>
+    " { using type = " <> TreeMasses`CreateFieldClassName[field] <> "; };";
+
+CreateSelfConjugateFieldsDefinitions[fields_List] :=
+    Utils`StringJoinWithSeparator[CreateSelfConjugateFieldDefinition /@ Select[fields, IsLorentzSelfConjugate   ], "\n"];
+
+CreateFieldTypeLists[fields_] :=
+    Module[{scalars, fermions, vectors, ghosts},
+           scalars = Select[fields, TreeMasses`IsScalar];
+           fermions = Select[fields, TreeMasses`IsFermion];
+           vectors = Select[fields, TreeMasses`IsVector];
+           ghosts = Select[fields, TreeMasses`IsGhost];
+
+           "using scalars = boost::mpl::vector<" <>
+           Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ scalars, ", "] <> ">;\n" <>
+           "using fermions = boost::mpl::vector<" <>
+           Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ fermions, ", "] <> ">;\n" <>
+           "using vectors = boost::mpl::vector<" <>
+           Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ vectors, ", "] <> ">;\n" <>
+           "using ghosts = boost::mpl::vector<" <>
+           Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ ghosts, ", "] <> ">;"
+          ];
+
+CreateFields[fields_List] :=
+    CreateFieldStructs[fields] <> "\n" <>
+    CreateNamedFieldAliases[] <> "\n" <>
+    CreateSelfConjugateFieldsDefinitions[fields] <> "\n\n" <>
+    CreateFieldTypeLists[fields];
 
 CreateFieldTypeTraitDefinition[field_?TreeMasses`IsScalar, namespacePrefix_] :=
     "template<>\nstruct is_scalar<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";

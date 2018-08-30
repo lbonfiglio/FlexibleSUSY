@@ -1998,7 +1998,7 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
   Module[{fields, fieldsDefinitions, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
           strongCoupling},
     fields = TreeMasses`GetParticles[];
-    fieldsDefinitions = CXXDiagrams`CreateFields[];
+    fieldsDefinitions = CXXDiagrams`CreateFields[fields];
     defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields];
     vertexData = StringJoin @ Riffle[Vertices`CreateVertexData /@
                                        DeleteDuplicates[vertices], "\n\n"];
