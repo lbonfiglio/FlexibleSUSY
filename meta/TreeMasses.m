@@ -217,6 +217,7 @@ GetZBoson::usage           = "returns the Z boson";
 GetWBoson::usage           = "returns the W boson";
 GetHiggsBoson::usage       = "return Higgs boson(s)";
 GetPseudoscalarHiggsBoson::usage = "";
+GetChargedHiggsBoson::usage = "";
 
 GetSMTopQuarkMultiplet::usage    = "Returns multiplet containing the top quark, Fu or Ft";
 GetSMBottomQuarkMultiplet::usage = "Returns multiplet containing the bottom quark, Fd or Fb";
@@ -2160,9 +2161,21 @@ CreateMixingArraySetter[masses_List, array_String] :=
    This might be non-trivial in some models.
    For now, we just have wrappers that return SM particles using SARAH symbols *)
 
-GetPhoton[] := SARAH`Photon;
-GetGluon[] := SARAH`Gluon;
-GetZBoson[] := SARAH`Zboson;
+GetPhoton[] :=
+   If[ValueQ[SARAH`Photon],
+      SARAH`Photon,
+      Print["Could not identify the name given to the photon"]; Quit[1]
+   ];
+GetGluon[] :=
+   If[ValueQ[SARAH`Gluon],
+      SARAH`Gluon,
+      Print["Could not identify the name given to the gluon"]; Quit[1]
+   ];
+GetZBoson[] :=
+   If[ValueQ[SARAH`Zboson],
+      SARAH`Zboson,
+      Print["Could not identify the name given to the Z-boson"]; Quit[1]
+   ];
 GetWBoson[] :=
    Module[{temp = Select[Unevaluated[{SARAH`Wboson, SARAH`VectorW}], ValueQ]},
       If[Length @ DeleteDuplicates[temp] === 1,
@@ -2170,10 +2183,24 @@ GetWBoson[] :=
          Print["Could not identify the name given to the W-boson"]; Quit[1]
       ]
    ];
-GetHiggsBoson[] := SARAH`HiggsBoson;
-GetPseudoscalarHiggsBoson[] := Module[{},
-   If[ValueQ[SARAH`PseudoScalarBoson], SARAH`PseudoScalarBoson]
-];
+GetHiggsBoson[] :=
+   If[ValueQ[SARAH`HiggsBoson],
+      SARAH`HiggsBoson,
+      Print["Could not identify the name given to the Higgs boson"]; Quit[1]
+   ];
+
+GetChargedHiggsBoson[] :=
+   If[ValueQ[SARAH`ChargedHiggs],
+      SARAH`ChargedHiggs,
+      Print["Could not identify the name given to the charged Higgs boson"]; Quit[1]
+   ];
+
+(* Not all models have a pseudoscalar Higgs boson, one example being CPV MSSM,
+   so we don't quit if we don't find one.
+   Rather, we return Null to let the caller handle this case *)
+GetPseudoscalarHiggsBoson[] :=
+   If[ValueQ[SARAH`PseudoScalarBoson], SARAH`PseudoScalarBoson];
+
 
 End[];
 
