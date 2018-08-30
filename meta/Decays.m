@@ -424,7 +424,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay, fieldsNamespace_] :
                         ];
                       result
                      ];
-           body = "EvaluationContext context{model};\n" <>
+           body = FlexibleSUSY`FSModelName <> "_evaluation_context context{model};\n" <>
                   StringJoin[setFieldIndices[#[[1]], #[[2]], #[[3]]]& /@
                                  Join[{{initialState, "in_indices", If[initialStateDim > 1, "gI1", ""]}},
                                       MapIndexed[{#1, "out_" <> ToString[First[#2]] <> "_indices",

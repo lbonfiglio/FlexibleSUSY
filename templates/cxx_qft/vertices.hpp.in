@@ -244,13 +244,13 @@ namespace detail {
 @CXXDiagrams_StrongCoupling@
 } // namespace detail
 
-static double unit_charge(const EvaluationContext& context)
+static double unit_charge(const @ModelName@_evaluation_context& context)
 {
    return -(detail::unit_charge(context).left().real() /
             @ModelName@_fields::Electron::electric_charge);
 }
 
-static double strong_coupling(const EvaluationContext& context)
+static double strong_coupling(const @ModelName@_evaluation_context& context)
 {
    return detail::strong_coupling(context).left().real();
 }

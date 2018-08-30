@@ -119,7 +119,7 @@ using uq = @ModelName@_fields::@UpQuarkName@;
 
 template<>
 Decay_amplitude<H,G,G> CLASSNAME::effective_coupling(
-   const cxx_qft::EvaluationContext& context,
+   const cxx_qft::@ModelName@_evaluation_context& context,
    typename cxx_qft::field_indices<H>::type const& indexIn,
    typename cxx_qft::field_indices<G>::type const& indexOut1,
    typename cxx_qft::field_indices<G>::type const& indexOut2
@@ -131,7 +131,7 @@ Decay_amplitude<H,G,G> CLASSNAME::effective_coupling(
 
 template<>
 Decay_amplitude<H,A,A> CLASSNAME::effective_coupling(
-   const cxx_qft::EvaluationContext& context,
+   const cxx_qft::@ModelName@_evaluation_context& context,
    typename cxx_qft::field_indices<H>::type const& indexIn,
    typename cxx_qft::field_indices<A>::type const& indexOut1,
    typename cxx_qft::field_indices<A>::type const& indexOut2
@@ -143,7 +143,7 @@ Decay_amplitude<H,A,A> CLASSNAME::effective_coupling(
 
 template<>
 Decay_amplitude<H,A,Z> CLASSNAME::effective_coupling(
-   const cxx_qft::EvaluationContext& context,
+   const cxx_qft::@ModelName@_evaluation_context& context,
    typename cxx_qft::field_indices<H>::type const& indexIn,
    typename cxx_qft::field_indices<A>::type const& indexOut1,
    typename cxx_qft::field_indices<Z>::type const& indexOut2
@@ -157,7 +157,7 @@ Decay_amplitude<H,A,Z> CLASSNAME::effective_coupling(
 // TODO: implement higher order corrections
 template<>
 double CLASSNAME::get_partial_width<H,Z,Z>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<Z>::type const& indexOut1,
    typename field_indices<Z>::type const& indexOut2
@@ -193,7 +193,7 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
 // TODO: implement higher order corrections
 template <>
 double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<conj<W>::type>::type const& indexOut1,
    typename field_indices<W>::type const& indexOut2) const
@@ -232,7 +232,7 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
 // special case for H -> gluon gluon
 template<>
 double CLASSNAME::get_partial_width<H,G,G>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<G>::type const& indexOut1,
    typename field_indices<G>::type const& indexOut2
@@ -247,7 +247,7 @@ double CLASSNAME::get_partial_width<H,G,G>(
 // special case for H -> photon photon
 template<>
 double CLASSNAME::get_partial_width<H,A,A>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<A>::type const& indexOut1,
    typename field_indices<A>::type const& indexOut2
@@ -261,7 +261,7 @@ double CLASSNAME::get_partial_width<H,A,A>(
 // special case for H -> photon Z
 template <>
 double CLASSNAME::get_partial_width<H, A, Z>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<A>::type const& indexOut1,
    typename field_indices<Z>::type const& indexOut2) const
@@ -277,7 +277,7 @@ double CLASSNAME::get_partial_width<H, A, Z>(
 
 template<>
 double CLASSNAME::get_partial_width<H,Z,A>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<Z>::type const& indexOut1,
    typename field_indices<A>::type const& indexOut2
@@ -289,7 +289,7 @@ double CLASSNAME::get_partial_width<H,Z,A>(
 // special case for H -> H H
 template <>
 double CLASSNAME::get_partial_width<H, H, H>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<H>::type const& indexOut1,
    typename field_indices<H>::type const& indexOut2) const
@@ -314,7 +314,7 @@ double CLASSNAME::get_partial_width<H, H, H>(
 // special case for H -> Fd Fd
 template<>
 double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<dq>::type const& indexOut1,
    typename field_indices<dq>::type const& indexOut2
@@ -336,7 +336,7 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
 // special case for H -> Fu Fu
 template<>
 double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
-   const EvaluationContext& context,
+   const @ModelName@_evaluation_context& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<uq>::type const& indexOut1,
    typename field_indices<uq>::type const& indexOut2

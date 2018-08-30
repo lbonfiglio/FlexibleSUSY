@@ -251,7 +251,7 @@ CreateMassFunctions[fieldsNamespace_:""] :=
              numberOfIndices = Length @ fieldInfo[[5]];
 
              "template<> inline\n" <>
-             "double EvaluationContext::mass_impl<" <>
+             "double " <> FlexibleSUSY`FSModelName <> "_evaluation_context::mass_impl<" <>
                TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] <>
              ">(const std::array<int, " <> ToString @ numberOfIndices <>
              ">& indices) const\n" <>
@@ -270,7 +270,7 @@ CreateUnitCharge[] :=
          numberOfElectronIndices = NumberOfFieldIndices[electron];
          numberOfPhotonIndices = NumberOfFieldIndices[photon];
 
-         "static ChiralVertex unit_charge(const EvaluationContext& context)\n" <>
+         "static ChiralVertex unit_charge(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
          "{\n" <>
          TextFormatting`IndentText["using vertex_type = ChiralVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @
@@ -317,7 +317,7 @@ CreateStrongCoupling[] :=
          numberOfdownquarkIndices = NumberOfFieldIndices[downquark];
          numberOfgluonIndices = NumberOfFieldIndices[gluon];
 
-         "static ChiralVertex strong_coupling(const EvaluationContext& context)\n" <>
+         "static ChiralVertex strong_coupling(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
          "{\n" <>
          TextFormatting`IndentText["using vertex_type = ChiralVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @

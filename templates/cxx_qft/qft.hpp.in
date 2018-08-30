@@ -29,11 +29,10 @@ namespace flexiblesusy {
 
 namespace cxx_qft {
 
-struct EvaluationContext {
-   using mass_eigenstates = @ModelName@_mass_eigenstates;
-   const mass_eigenstates& model;
+struct @ModelName@_evaluation_context {
+   const @ModelName@_mass_eigenstates& model;
 
-   EvaluationContext( const mass_eigenstates &m )
+   @ModelName@_evaluation_context( const @ModelName@_mass_eigenstates &m )
       : model( m ) {}
 
    template<class Field>
