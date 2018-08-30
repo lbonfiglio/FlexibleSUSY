@@ -355,6 +355,20 @@ double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
    return amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2);
 }
 
+@define_pseudoscalar_Higgs@
+#ifdef HAS_AH
+using AH = @ModelName@_fields::@PseudoscalarHiggsBosonName@;
+template<>
+double CLASSNAME::get_partial_width<H,AH,AH>(
+   const @ModelName@_evaluation_context& context,
+   typename field_indices<AH>::type const& indexIn,
+   typename field_indices<AH>::type const& indexOut1,
+   typename field_indices<AH>::type const& indexOut2
+   ) const
+{
+}
+#endif
+
 @decaysCalculationFunctions@
 @partialWidthCalculationFunctions@
 

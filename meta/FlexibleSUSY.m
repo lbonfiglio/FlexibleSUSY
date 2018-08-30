@@ -1796,8 +1796,15 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                             "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
-                             (* todo: what about pseudoscalar higgs *)
                             "@HiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetHiggsBoson[]],
+                             ReleaseHold@If[TreeMasses`GetPseudoscalarHiggsBoson[] =!= Null,
+                                Hold@Sequence[
+                                   "@define_pseudoscalar_Higgs@" -> "#define HAS_AH",
+                                   "@PseudoscalarHiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetPseudoscalarHiggsBoson[]]
+                                ],
+                                "@define_pseudoscalar_Higgs@" -> ""
+                             ],
+                             "@PseudoscalarHiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetPseudoscalarHiggsBoson[]],
                             "@WBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetWBoson[]],
                             "@ZBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetZBoson[]],
                             "@GluonName@"      -> TreeMasses`CreateFieldClassName[TreeMasses`GetGluon[]],
