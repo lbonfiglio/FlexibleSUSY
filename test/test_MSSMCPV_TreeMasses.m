@@ -53,6 +53,9 @@ TestEquality[TreeMasses`GetGluon[], VG];
 TestEquality[TreeMasses`GetZBoson[], VZ];
 TestEquality[TreeMasses`GetWBoson[], VWm];
 TestEquality[TreeMasses`GetHiggsBoson[], hh];
+TestEquality[TreeMasses`GetChargedHiggsBoson[], Hpm];
 TestEquality[TreeMasses`GetPseudoscalarHiggsBoson[], Null];
+
+TestEquality[TreeMasses`GetVectorBosons[], {VG, VP, VZ, VWm}];
 
 PrintTestSummary[];

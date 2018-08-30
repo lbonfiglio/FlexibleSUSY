@@ -46,13 +46,24 @@ TestEquality[TreeMasses`IsMassless[VZ], False];
 TestEquality[TreeMasses`IsMassless[gWp], False];
 TestEquality[TreeMasses`IsMassless[VWp], False];
 
+Print["testing getters for particle collection..."];
+
+TestEquality[TreeMasses`GetSusyParticles[], {Glu, SRdp, SRum, sigmaO, phiO, Sd, Sv, Su, Se, hh,
+   Ah, Rh, SARAH`Hpm, Chi, Cha1, Cha2}];
 TestEquality[TreeMasses`GetColoredParticles[], {VG, gG, Glu, sigmaO, phiO, Sd, Su, Fd, Fu}];
+TestEquality[TreeMasses`GetVectorBosons[], {VG, VP, VZ, VWm}];
+
+Print["testing getters for specific particles..."];
 
 TestEquality[TreeMasses`GetPhoton[], VP];
 TestEquality[TreeMasses`GetGluon[], VG];
 TestEquality[TreeMasses`GetZBoson[], VZ];
 TestEquality[TreeMasses`GetWBoson[], VWm];
 TestEquality[TreeMasses`GetHiggsBoson[], hh];
+TestEquality[TreeMasses`GetChargedHiggsBoson[], Hpm];
 TestEquality[TreeMasses`GetPseudoscalarHiggsBoson[], Ah];
+
+
+TestEquality[Select[GetParticles[], IsScalar], {SRdp, SRum, sigmaO, phiO, Sd, Sv, Su, Se, hh, Ah, Rh, Hpm}];
 
 PrintTestSummary[];
