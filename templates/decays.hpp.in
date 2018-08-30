@@ -94,7 +94,7 @@ private:
    Decays_problems problems{};
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
-   std::complex<double> effective_coupling(
+   Decay_amplitude<FieldIn, FieldOut1, FieldOut2> effective_coupling(
       const cxx_qft::EvaluationContext&,
       const typename cxx_qft::field_indices<FieldIn>::type&,
       const typename cxx_qft::field_indices<FieldOut1>::type&,
@@ -284,14 +284,44 @@ amplitude_squared(cxx_qft::EvaluationContext const& context,
 }
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
-std::complex<double> @ModelName@_decays::effective_coupling(
+Decay_amplitude<FieldIn, FieldOut1, FieldOut2> @ModelName@_decays::effective_coupling(
    const cxx_qft::EvaluationContext& context,
    const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
    const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
    const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) const
 {
-   return 0.;
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = cxx_qft::Vertex<FieldIn, FieldOut1, FieldOut2>::evaluate(indices, context);
+
+   return tree_level_decay_amplitude<FieldIn, FieldOut1, FieldOut2>(vertex);
 }
+
+template<>
+Decay_amplitude<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@GluonName@, cxx_qft::@ModelName@_fields::@GluonName@>
+@ModelName@_decays::effective_coupling(
+   const cxx_qft::EvaluationContext&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type const&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@GluonName@>::type const&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@GluonName@>::type const&
+   ) const;
+
+template<>
+Decay_amplitude<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@, cxx_qft::@ModelName@_fields::@PhotonName@>
+@ModelName@_decays::effective_coupling(
+   const cxx_qft::EvaluationContext&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type const&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type const&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type const&
+   ) const;
+
+template<>
+Decay_amplitude<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@, cxx_qft::@ModelName@_fields::@ZBosonName@>
+@ModelName@_decays::effective_coupling(
+   const cxx_qft::EvaluationContext&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type const&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type const&,
+   typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@ZBosonName@>::type const&
+   ) const;
 
 // generic decay of FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>

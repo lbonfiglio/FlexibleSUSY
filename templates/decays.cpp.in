@@ -117,6 +117,42 @@ using A = @ModelName@_fields::@PhotonName@;
 using dq = @ModelName@_fields::@DownQuarkName@;
 using uq = @ModelName@_fields::@UpQuarkName@;
 
+template<>
+Decay_amplitude<H,G,G> CLASSNAME::effective_coupling(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<H>::type const& indexIn,
+   typename cxx_qft::field_indices<G>::type const& indexOut1,
+   typename cxx_qft::field_indices<G>::type const& indexOut2
+   ) const
+{
+   Decay_amplitude<H,G,G> result;
+   return result;
+}
+
+template<>
+Decay_amplitude<H,A,A> CLASSNAME::effective_coupling(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<H>::type const& indexIn,
+   typename cxx_qft::field_indices<A>::type const& indexOut1,
+   typename cxx_qft::field_indices<A>::type const& indexOut2
+   ) const
+{
+   Decay_amplitude<H,A,A> result;
+   return result;
+}
+
+template<>
+Decay_amplitude<H,A,Z> CLASSNAME::effective_coupling(
+   const cxx_qft::EvaluationContext& context,
+   typename cxx_qft::field_indices<H>::type const& indexIn,
+   typename cxx_qft::field_indices<A>::type const& indexOut1,
+   typename cxx_qft::field_indices<Z>::type const& indexOut2
+   ) const
+{
+   Decay_amplitude<H,A,Z> result;
+   return result;
+}
+
 // special case for Higgs -> Z Z
 // TODO: implement higher order corrections
 template<>
@@ -204,8 +240,8 @@ double CLASSNAME::get_partial_width<H,G,G>(
 {
 
    const double mass = context.mass<H>(indexIn);
-   return 0.039788735772973836 * pow(mass, 3.0)
-      * AbsSqr(effective_coupling<G,G,H>(model, indexOut1, indexOut2, indexIn));
+   return 0.039788735772973836 * pow(mass, 3.0);
+//      * effective_coupling<H,G,G>(context, indexIn, indexOut1, indexOut2).square();
 }
 
 // special case for H -> photon photon
@@ -218,8 +254,8 @@ double CLASSNAME::get_partial_width<H,A,A>(
    ) const
 {
    const double mass = context.mass<H>(indexIn);
-   return 0.0049735919716217296 * pow(mass, 3.0)
-      * AbsSqr(effective_coupling<A,A,H>(model, indexOut1, indexOut2, indexIn));
+   return 0.0049735919716217296 * pow(mass, 3.0);
+      //* effective_coupling<H,A,A>(context, indexIn, indexOut1, indexOut2).square();
 }
 
 // special case for H -> photon Z
@@ -235,8 +271,8 @@ double CLASSNAME::get_partial_width<H, A, Z>(
    const double MVZ = context.mass<Z>(indexOut2);
    if(MVZ/mass >= 1.0)
       return 0.0;
-   return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3)
-    * AbsSqr(effective_coupling<A,Z,H>(model, indexOut1, indexOut2, indexIn));
+   return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3);
+      //   * effective_coupling<H, A,Z>(context, indexIn, indexOut1, indexOut2).square();
 }
 
 template<>
@@ -272,7 +308,7 @@ double CLASSNAME::get_partial_width<H, H, H>(
       final_state_symmetry_factor<H, H>(indexOut1, indexOut2);
 
    return flux * ps * ps_symmetry *
-          AbsSqr(effective_coupling<H, H, H>(model, indexOut1, indexOut2, indexIn));
+      effective_coupling<H, H, H>(context, indexIn, indexOut1, indexOut2).square();
 }
 
 // special case for H -> Fd Fd
