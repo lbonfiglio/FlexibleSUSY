@@ -1804,7 +1804,6 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                                 ],
                                 "@define_pseudoscalar_Higgs@" -> ""
                              ],
-                             "@PseudoscalarHiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetPseudoscalarHiggsBoson[]],
                             "@WBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetWBoson[]],
                             "@ZBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetZBoson[]],
                             "@GluonName@"      -> TreeMasses`CreateFieldClassName[TreeMasses`GetGluon[]],
