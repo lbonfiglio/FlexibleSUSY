@@ -374,9 +374,9 @@ LoopOverIndex[loopBody_String, index_, start_, stop_, type_:CConversion`ScalarTy
 LoopOverIndexCollection[loopBody_String, indices_List] :=
     Fold[LoopOverIndex[#1, Sequence @@ #2]&, loopBody, indices];
 
-CreateGenericPartialWidthCalculationName[initialState_, finalState_List] :=
-    "get_partial_width<" <> TreeMasses`CreateFieldClassName[initialState] <> "," <>
-    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ finalState, ","] <> " >";
+CreateGenericPartialWidthCalculationName[initialState_, finalState_List, fieldsNamespace_] :=
+    "get_partial_width<" <> TreeMasses`CreateFieldClassName[initialState, prefixNamespace -> fieldsNamespace] <> "," <>
+    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]& /@ finalState, ","] <> " >";
 
 CreatePartialWidthCalculationName[decay_FSParticleDecay, scope_:""] :=
     Module[{initialState, initialStateName,
@@ -401,7 +401,7 @@ CreatePartialWidthCalculationPrototype[decay_FSParticleDecay] :=
            returnType <> " " <> functionName <> "(" <> functionArgs <> ") const;"
           ];
 
-CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
+CreatePartialWidthCalculationFunction[decay_FSParticleDecay, fieldsNamespace_] :=
     Module[{i, returnType = "", functionName = "", functionArgs = "",
             initialState = GetInitialState[decay], initialStateDim,
             finalState = GetFinalState[decay], finalStateDims, setFieldIndices, body = ""},
@@ -416,7 +416,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
                Module[{i, dim, numIndices, result = ""},
                       dim = TreeMasses`GetDimension[field];
                       numIndices = CXXDiagrams`NumberOfFieldIndices[field];
-                      result = "const field_indices<" <> TreeMasses`CreateFieldClassName[field] <> " >::type " <> indicesName;
+                      result = "const field_indices<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> fieldsNamespace] <> " >::type " <> indicesName;
                       If[numIndices == 0 || dim <= 1,
                          result = result <> "{};\n";,
                          result = result <> "{{" <> ToString[indexVal] <>
@@ -429,7 +429,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay] :=
                                  Join[{{initialState, "in_indices", If[initialStateDim > 1, "gI1", ""]}},
                                       MapIndexed[{#1, "out_" <> ToString[First[#2]] <> "_indices",
                                                   If[finalStateDims[[First[#2]]] > 1, "gO" <> ToString[First[#2]], ""]}&, finalState]]];
-           body = body <> "\nreturn " <> CreateGenericPartialWidthCalculationName[initialState, finalState] <>
+           body = body <> "\nreturn " <> CreateGenericPartialWidthCalculationName[initialState, finalState, fieldsNamespace] <>
                   "(context, in_indices" <> StringJoin[Table[", out_" <> ToString[i] <> "_indices", {i, 1, Length[finalState]}]] <> ");\n";
            returnType <> " " <> functionName <> "(" <> functionArgs <> ") const\n{\n" <>
            TextFormatting`IndentText[body] <> "}\n"
@@ -441,10 +441,10 @@ CreatePartialWidthCalculationPrototypes[particleDecays_List] :=
            Utils`StringJoinWithSeparator[CreatePartialWidthCalculationPrototype /@ allDecays, "\n"]
           ];
 
-CreatePartialWidthCalculationFunctions[particleDecays_List] :=
+CreatePartialWidthCalculationFunctions[particleDecays_List, fieldsNamespace_] :=
     Module[{allDecays},
            allDecays = Flatten[Last /@ particleDecays];
-           Utils`StringJoinWithSeparator[CreatePartialWidthCalculationFunction /@ allDecays, "\n"]
+           Utils`StringJoinWithSeparator[CreatePartialWidthCalculationFunction[#, fieldsNamespace]& /@ allDecays, "\n"]
           ];
 
 CallPDGCodeGetter[SARAH`bar[particle_], args__] :=

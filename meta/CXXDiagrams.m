@@ -31,7 +31,10 @@ AtomHead::usage="";
 LorentzConjugateOperation::usage="";
 LorentzConjugate::usage="";
 RemoveLorentzConjugation::usage="";
-CreateFields::usage="";
+CreateFieldStructs::usage="";
+CreateNamedFieldAliases::usage="";
+CreateSelfConjugateFieldsDefinitions::usage="";
+CreateFieldTypeLists::usage="";
 CreateFieldTraitsDefinitions::usage="";
 CreateMassFunctions::usage="";
 CreateUnitCharge::usage="";
@@ -139,13 +142,16 @@ CreateNamedFieldAliases[] :=
 
 IsLorentzSelfConjugate[field_] := field === LorentzConjugate[field];
 
-CreateSelfConjugateFieldDefinition[field_] := "";
-CreateSelfConjugateFieldDefinition[field_?IsLorentzSelfConjugate] :=
-    "template<> struct " <> LorentzConjugateOperation[field] <> "<" <> TreeMasses`CreateFieldClassName[field] <> ">" <>
-    " { using type = " <> TreeMasses`CreateFieldClassName[field] <> "; };";
+CreateSelfConjugateFieldDefinition[field_, namespacePrefix_] := "";
+CreateSelfConjugateFieldDefinition[field_?IsLorentzSelfConjugate, namespacePrefix_] :=
+    Module[{fieldName},
+           fieldName = TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix];
+           "template<> struct " <> LorentzConjugateOperation[field] <> "<" <> fieldName <> ">" <>
+           " { using type = " <> fieldName <> "; };"
+          ];
 
-CreateSelfConjugateFieldsDefinitions[fields_List] :=
-    Utils`StringJoinWithSeparator[CreateSelfConjugateFieldDefinition /@ Select[fields, IsLorentzSelfConjugate   ], "\n"];
+CreateSelfConjugateFieldsDefinitions[fields_List, namespacePrefix_:""] :=
+    Utils`StringJoinWithSeparator[CreateSelfConjugateFieldDefinition[#, namespacePrefix]& /@ Select[fields, IsLorentzSelfConjugate   ], "\n"] <> "\n";
 
 CreateFieldTypeLists[fields_] :=
     Module[{scalars, fermions, vectors, ghosts},
@@ -161,14 +167,8 @@ CreateFieldTypeLists[fields_] :=
            "using vectors = boost::mpl::vector<" <>
            Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ vectors, ", "] <> ">;\n" <>
            "using ghosts = boost::mpl::vector<" <>
-           Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ ghosts, ", "] <> ">;"
+           Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName /@ ghosts, ", "] <> ">;\n"
           ];
-
-CreateFields[fields_List] :=
-    CreateFieldStructs[fields] <> "\n" <>
-    CreateNamedFieldAliases[] <> "\n" <>
-    CreateSelfConjugateFieldsDefinitions[fields] <> "\n\n" <>
-    CreateFieldTypeLists[fields];
 
 CreateFieldTypeTraitDefinition[field_?TreeMasses`IsScalar, namespacePrefix_] :=
     "template<>\nstruct is_scalar<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
@@ -185,7 +185,7 @@ CreateFieldTraitsDefinition[field_, namespacePrefix_] :=
            fieldTypeTraitDefinition <> "\n"
           ];
 
-CreateFieldTraitsDefinitions[fields_, namespacePrefix_:"cxx_qft::fields"] :=
+CreateFieldTraitsDefinitions[fields_, namespacePrefix_:""] :=
     StringJoin[CreateFieldTraitsDefinition[#, namespacePrefix]& /@ fields];
 
 (* adjacencyMatrix must be undirected (i.e symmetric) *)
@@ -241,7 +241,7 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
 
 VerticesForDiagram[diagram_] := Select[diagram,Length[#] > 1 &]
 
-CreateMassFunctions[] :=
+CreateMassFunctions[fieldsNamespace_:""] :=
   Module[{massiveFields,
           ghostMappings = SelfEnergies`ReplaceGhosts[FlexibleSUSY`FSEigenstates]},
     massiveFields = TreeMasses`GetParticles[];
@@ -252,7 +252,7 @@ CreateMassFunctions[] :=
 
              "template<> inline\n" <>
              "double EvaluationContext::mass_impl<" <>
-               TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] <>
+               TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] <>
              ">(const std::array<int, " <> ToString @ numberOfIndices <>
              ">& indices) const\n" <>
              "{ return model.get_M" <> TreeMasses`CreateFieldClassName[# /. ghostMappings] <>

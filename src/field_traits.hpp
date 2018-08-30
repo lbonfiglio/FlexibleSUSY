@@ -25,13 +25,108 @@ namespace flexiblesusy {
 
 namespace cxx_qft {
 
-namespace fields {
+enum class ParticleType {
+   scalar,
+   fermion,
+   vector,
+   ghost
+};
 
-template <class T>
-struct conj;
+template<typename Field>
+struct is_massless {
+   static constexpr bool value = Field::massless;
+};
 
-template <class T>
-struct bar;
+enum class ParticleColorRep {
+   singlet,
+   triplet,
+   anti_triplet,
+   sextet,
+   octet
+};
+template<typename Field> struct is_triplet {
+   static constexpr bool value = Field::color_rep == ParticleColorRep::triplet;
+};
+template<typename Field> struct is_anti_triplet {
+   static constexpr bool value =
+      Field::color_rep == ParticleColorRep::anti_triplet;
+};
+template<typename Field>
+constexpr typename std::enable_if<
+   is_triplet<Field>::value, ParticleColorRep
+   >::type
+color_conj() {
+   return ParticleColorRep::anti_triplet;
+}
+template<typename Field>
+constexpr typename std::enable_if<
+   is_anti_triplet<Field>::value, ParticleColorRep
+   >::type
+color_conj() {
+   return ParticleColorRep::triplet;
+}
+template<typename Field>
+constexpr typename std::enable_if<
+   !is_triplet<Field>::value && !is_anti_triplet<Field>::value, ParticleColorRep
+   >::type
+color_conj() {
+   return Field::color_rep;
+}
+
+template<class Field>
+struct bar {
+   using index_bounds = typename Field::index_bounds;
+   using sm_flags = typename Field::sm_flags;
+   using lorentz_conjugate = Field;
+   using type = bar<Field>;
+
+   static constexpr int numberOfGenerations = Field::numberOfGenerations;
+   static constexpr int numberOfFieldIndices = Field::numberOfFieldIndices;
+   static constexpr double electric_charge = Field::electric_charge;
+   static constexpr auto particle_type = Field::particle_type;
+   static constexpr auto color_rep = color_conj<Field>();
+   static constexpr auto massless = Field::massless;
+};
+
+template<class Field>
+struct conj {
+   using index_bounds = typename Field::index_bounds;
+   using sm_flags = typename Field::sm_flags;
+   using lorentz_conjugate = Field;
+   using type = conj<Field>;
+
+   static constexpr int numberOfGenerations = Field::numberOfGenerations;
+   static constexpr int numberOfFieldIndices = Field::numberOfFieldIndices;
+   static constexpr double electric_charge = Field::electric_charge;
+   static constexpr auto particle_type = Field::particle_type;
+   static constexpr auto color_rep = color_conj<Field>();
+   static constexpr auto massless = Field::massless;
+};
+
+template<class Field>
+struct bar<bar<Field> > {
+   using type = Field;
+};
+
+template<class Field>
+struct conj<conj<Field> > {
+   using type = Field;
+};
+
+template<class Field>
+struct remove_lorentz_conjugation {
+   using type = Field;
+};
+
+template<class Field>
+struct remove_lorentz_conjugation<bar<Field>> {
+   using type = Field;
+};
+
+template<class Field>
+struct remove_lorentz_conjugation<conj<Field>> {
+   using type = Field;
+};
 
 template <class Field>
 struct is_scalar : public std::false_type {};
@@ -68,8 +163,6 @@ struct is_ghost<bar<Field> > : public is_ghost<Field> {};
 
 template <class Field>
 struct is_ghost<conj<Field> > : public is_ghost<Field> {};
-
-} // namespace fields
 
 } // namespace cxx_qft
 

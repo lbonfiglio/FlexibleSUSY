@@ -38,7 +38,7 @@
 using namespace flexiblesusy;
 using namespace cxx_qft;
 
-using Muon = fields::@AMuon_MuonField@;
+using Muon = @ModelName@_fields::@AMuon_MuonField@;
 
 namespace {
 
@@ -259,8 +259,6 @@ double calculate_a_muon_impl(@ModelName@_mass_eigenstates& model)
 
    EvaluationContext context{ model };
    double val = 0.0;
-
-   using namespace cxx_qft::fields;
 
 @AMuon_Calculation@
 

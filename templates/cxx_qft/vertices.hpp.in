@@ -227,7 +227,7 @@ namespace detail {
 static double unit_charge(const EvaluationContext& context)
 {
    return -(detail::unit_charge(context).left().real() /
-            fields::Electron::electric_charge);
+            @ModelName@_fields::Electron::electric_charge);
 }
 
 static double strong_coupling(const EvaluationContext& context)

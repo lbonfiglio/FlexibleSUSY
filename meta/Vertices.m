@@ -762,10 +762,10 @@ LoadVerticesIfNecessary[] :=
        SARAH`MakeCouplingLists;
       ];
 
-CreateVertexData[fields_List] :=
+CreateVertexData[fields_List, fieldsNamespace_:""] :=
     Module[{dataClassName,indexBounds,parsedVertex},
            dataClassName = "VertexData<" <> StringJoin[Riffle[
-               TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] & /@ fields,
+               TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] & /@ fields,
                ", "]] <> ">";
 
            "template<> struct " <> dataClassName <> "\n" <> "{\n" <>
@@ -775,16 +775,16 @@ CreateVertexData[fields_List] :=
           ];
 
 (* Returns the necessary c++ code corresponding to the vertices that need to be calculated. *)
-CreateVertices[vertices_List] :=
-    StringJoin @\[NonBreakingSpace]Riffle[CreateVertex[#] & /@ DeleteDuplicates[vertices], "\n\n"]
+CreateVertices[vertices_List, fieldsNamespace_:""] :=
+    StringJoin @\[NonBreakingSpace]Riffle[CreateVertex[#, fieldsNamespace] & /@ DeleteDuplicates[vertices], "\n\n"]
 
 (* Creates the actual c++ code for a vertex with given fields.
  You should never need to change this code! *)
-CreateVertex[fields_List] :=
+CreateVertex[fields_List, fieldsNamespace_:""] :=
     Module[{parsedVertex, functionClassName},
            LoadVerticesIfNecessary[];
            functionClassName = "Vertex<" <> StringJoin @ Riffle[
-           TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] & /@ fields, ", "] <> ">";
+           TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] & /@ fields, ", "] <> ">";
 
            "template<> template <class EvaluationContext> inline\n" <>
            functionClassName <> "::vertex_type\n" <>

@@ -48,7 +48,6 @@ namespace flexiblesusy {
 #define PHYSICAL(parameter) model.get_physical().parameter
 
 using namespace cxx_qft;
-using namespace cxx_qft::fields;
 using effective_couplings::beta;
 
 CLASSNAME::@ModelName@_decays(const @ModelName@_mass_eigenstates& model_)
@@ -110,13 +109,13 @@ void CLASSNAME::calculate_decays()
 
 // -------- specializations for decays needing higher order corrections --------
 
-using H = @HiggsBosonName@;
-using W = @WBosonName@;
-using Z = @ZBosonName@;
-using G = @GluonName@;
-using A = @PhotonName@;
-using dq = @DownQuarkName@;
-using uq = @UpQuarkName@;
+using H = @ModelName@_fields::@HiggsBosonName@;
+using W = @ModelName@_fields::@WBosonName@;
+using Z = @ModelName@_fields::@ZBosonName@;
+using G = @ModelName@_fields::@GluonName@;
+using A = @ModelName@_fields::@PhotonName@;
+using dq = @ModelName@_fields::@DownQuarkName@;
+using uq = @ModelName@_fields::@UpQuarkName@;
 
 // special case for Higgs -> Z Z
 // TODO: implement higher order corrections

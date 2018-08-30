@@ -1779,7 +1779,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decaysLists];
            decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
            partialWidthCalculationPrototypes = Decays`CreatePartialWidthCalculationPrototypes[decaysLists];
-           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists];
+           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists, FlexibleSUSY`FSModelName <> "_fields"];
            decaysGetters = Decays`CreateDecaysGetterFunctions[decayParticles];
            decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
            decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
@@ -1995,20 +1995,28 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
 
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,files_List] :=
-  Module[{fields, fieldsDefinitions, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
+  Module[{fields, fieldsNamespace, fieldStructDefinitions, namedFieldAliases, lorentzSelfConjugateFieldDefs,
+          fieldsByTypeDecls, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
           strongCoupling},
     fields = TreeMasses`GetParticles[];
-    fieldsDefinitions = CXXDiagrams`CreateFields[fields];
-    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields];
-    vertexData = StringJoin @ Riffle[Vertices`CreateVertexData /@
+    fieldsNamespace = FlexibleSUSY`FSModelName <> "_fields";
+    fieldStructDefinitions = CXXDiagrams`CreateFieldStructs[fields];
+    namedFieldAliases = CXXDiagrams`CreateNamedFieldAliases[];
+    lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[fields, fieldsNamespace];
+    fieldsByTypeDecls = CXXDiagrams`CreateFieldTypeLists[fields];
+    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields, fieldsNamespace];
+    vertexData = StringJoin @ Riffle[Vertices`CreateVertexData[#, fieldsNamespace]& /@
                                        DeleteDuplicates[vertices], "\n\n"];
-    cxxVertices = Vertices`CreateVertices[vertices];
-    massFunctions = CXXDiagrams`CreateMassFunctions[];
+    cxxVertices = Vertices`CreateVertices[vertices, fieldsNamespace];
+    massFunctions = CXXDiagrams`CreateMassFunctions[fieldsNamespace];
     unitCharge = CXXDiagrams`CreateUnitCharge[];
     strongCoupling = CXXDiagrams`CreateStrongCoupling[];
 
     WriteOut`ReplaceInFiles[files,
-                            {"@CXXDiagrams_Fields@"          -> fieldsDefinitions,
+                            {"@fieldStructDefinitions@"          -> fieldStructDefinitions,
+                             "@namedFieldAliases@"           -> namedFieldAliases,
+                             "@lorentzSelfConjugateFieldDefs@" -> lorentzSelfConjugateFieldDefs,
+                             "@fieldsByTypeDecls@" -> fieldsByTypeDecls,
                              "@defineFieldTraits@"           -> defineFieldTraits,
                              "@CXXDiagrams_VertexData@"      -> vertexData,
                              "@CXXDiagrams_Vertices@"        -> cxxVertices,
@@ -2021,28 +2029,30 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
 
 (* Write the EDM c++ files *)
 WriteEDMClass[edmFields_List,files_List] :=
-  Module[{graphs,diagrams,vertices,
-          interfacePrototypes,interfaceDefinitions},
-    graphs = EDM`EDMContributingGraphs[];
-    diagrams = Outer[EDM`EDMContributingDiagramsForFieldAndGraph,edmFields,graphs,1];
+    Module[{i, fieldsNamespace, graphs,diagrams,vertices,
+            interfacePrototypes,interfaceDefinitions},
+           fieldsNamespace = FlexibleSUSY`FSModelName <> "_fields";
+           graphs = EDM`EDMContributingGraphs[];
+           diagrams = Outer[EDM`EDMContributingDiagramsForFieldAndGraph,edmFields,graphs,1];
+           vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,2],1];
 
-    vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,2],1];
+           {interfacePrototypes,interfaceDefinitions} =
+               If[diagrams === {},
+                  {"",""},
+                  Print["arg = ", Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams}]];
+                  StringJoin @@@
+                      (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@
+                          Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams, Table[fieldsNamespace, {i, 1, Length[edmFields]}]}]])
+                 ];
 
-    {interfacePrototypes,interfaceDefinitions} =
-      If[diagrams === {},
-         {"",""},
-         StringJoin @@@
-          (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@
-            Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams}]])];
+           WriteOut`ReplaceInFiles[files,
+                                   {"@EDM_InterfacePrototypes@"       -> interfacePrototypes,
+                                    "@EDM_InterfaceDefinitions@"      -> interfaceDefinitions,
+                                    Sequence @@ GeneralReplacementRules[]
+                                   }];
 
-    WriteOut`ReplaceInFiles[files,
-                            {"@EDM_InterfacePrototypes@"       -> interfacePrototypes,
-                             "@EDM_InterfaceDefinitions@"      -> interfaceDefinitions,
-                             Sequence @@ GeneralReplacementRules[]
-                            }];
-
-    vertices
-  ]
+           vertices
+          ];
 
 (* Write the AMuon c++ files *)
 WriteAMuonClass[files_List] :=
@@ -2057,7 +2067,7 @@ WriteAMuonClass[files_List] :=
       vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,1],1];
 
       muonPhysicalMass = AMuon`AMuonCreateMuonPhysicalMass[];
-      calculation = AMuon`AMuonCreateCalculation @ Transpose[{graphs,diagrams}];
+      calculation = AMuon`AMuonCreateCalculation[Transpose[{graphs,diagrams}], FlexibleSUSY`FSModelName <> "_fields"];
 
       getMSUSY = AMuon`AMuonGetMSUSY[];
 
