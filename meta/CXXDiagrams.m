@@ -254,7 +254,7 @@ CreateMassFunctions[fieldsNamespace_:""] :=
              "double " <> FlexibleSUSY`FSModelName <> "_evaluation_context::mass_impl<" <>
                TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] <>
              ">(const std::array<int, " <> ToString @ numberOfIndices <>
-             ">& indices) const\n" <>
+             ">&" <> If[TreeMasses`GetDimension[#] === 1, "", " indices"] <> ") const\n" <>
              "{ return model.get_M" <> TreeMasses`CreateFieldClassName[# /. ghostMappings] <>
              If[TreeMasses`GetDimension[#] === 1, "()", "(indices[0])"] <> "; }"
             ] & /@ massiveFields, "\n\n"]
