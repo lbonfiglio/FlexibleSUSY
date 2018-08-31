@@ -248,7 +248,13 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+   const auto reordered =
+      tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+
+   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = reordered.amplitude;
+
+   return result;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
@@ -303,7 +309,13 @@ typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+   const auto reordered =
+      tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+
+   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = reordered.amplitude;
+
+   return result;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
@@ -324,7 +336,13 @@ typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+   const auto reordered =
+      tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+
+   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = reordered.amplitude;
+
+   return result;
 }
 
 } // namespace flexiblesusy
