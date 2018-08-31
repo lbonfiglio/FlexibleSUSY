@@ -70,6 +70,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/field_traits.hpp \
 		$(DIR)/fixed_point_iterator.hpp \
 		$(DIR)/functors.hpp \
+		$(DIR)/generic_vertices.hpp \
 		$(DIR)/global_thread_pool.hpp \
 		$(DIR)/gsl.hpp \
 		$(DIR)/gsl_utils.hpp \
