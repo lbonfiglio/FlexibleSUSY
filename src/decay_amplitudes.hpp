@@ -208,6 +208,7 @@ double square_amplitude(const Amplitude& a)
    return a.square();
 }
 
+// @todo implement all of the following with the correct conventions
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
@@ -215,7 +216,12 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
+   Decay_amplitude_SSS amplitude;
+   amplitude.matrix_element = vertex.value();
+
    Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = amplitude;
+
    return result;
 }
 
@@ -226,7 +232,12 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
+   Decay_amplitude_SSV amplitude;
+   amplitude.matrix_element = vertex.value(1, 2);
+
    Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = amplitude;
+
    return result;
 }
 
@@ -247,7 +258,12 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
+   Decay_amplitude_SVV amplitude;
+   amplitude.M1 = vertex.value();
+
    Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = amplitude;
+
    return result;
 }
 
@@ -258,7 +274,14 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
+   Decay_amplitude_SFF amplitude;
+
+   amplitude.matrix_element_left = vertex.left();
+   amplitude.matrix_element_right = vertex.right();
+
    Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
+   result.amplitude = amplitude;
+
    return result;
 }
 
