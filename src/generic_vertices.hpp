@@ -39,7 +39,25 @@ public:
    std::complex<double> value() const { return val; }
 
    bool isZero() const {
-      return (is_zero(val.real()) && is_zero(val.imag()));
+      return is_zero(val);
+   }
+
+private:
+   std::complex<double> val;
+};
+
+/**
+ * @class SSSSVertex
+ */
+class SSSSVertex {
+public:
+   explicit SSSSVertex(std::complex<double> v)
+      : val(v) {}
+
+   std::complex<double> value() const { return val; }
+
+   bool isZero() const {
+      return is_zero(val);
    }
 
 private:
@@ -51,16 +69,35 @@ private:
  */
 class FFSVertex {
 public:
-   FFSVertex(const std::complex<double>& left,
-                const std::complex<double>& right)
+   FFSVertex(std::complex<double> left,
+             std::complex<double> right)
       : value(left, right) {}
 
    std::complex<double> left() const { return value.first; }
    std::complex<double> right() const { return value.second; }
 
    bool isZero() const {
-      return (is_zero(value.first.real()) && is_zero(value.first.imag()) &&
-              is_zero(value.second.real()) && is_zero(value.second.imag()));
+      return is_zero(value.first) && is_zero(value.second);
+   }
+
+private:
+   std::pair<std::complex<double>, std::complex<double>> value;
+};
+
+/**
+ * @class FFVVertex
+ */
+class FFVVertex {
+public:
+   FFVVertex(std::complex<double> left,
+             std::complex<double> right)
+      : value(left, right) {}
+
+   std::complex<double> left() const { return value.first; }
+   std::complex<double> right() const { return value.second; }
+
+   bool isZero() const {
+      return is_zero(value.first) && is_zero(value.second);
    }
 
 private:
@@ -90,13 +127,13 @@ public:
    }
 
    bool isZero() const {
-      return (is_zero(val.real()) && is_zero(val.imag()));
+      return is_zero(val);
    }
 
 private:
-  std::complex<double> val;
-  int minuendIndex;
-  int subtrahendIndex;
+   std::complex<double> val;
+   int minuendIndex;
+   int subtrahendIndex;
 };
 
 /**
@@ -110,11 +147,103 @@ public:
    std::complex<double> value() const { return val; }
 
    bool isZero() const {
-      return (is_zero(val.real()) && is_zero(val.imag()));
+      return is_zero(val);
    }
 
 private:
-  std::complex<double> val;
+   std::complex<double> val;
+};
+
+/**
+ * @class SSVVVertex
+ */
+class SSVVVertex {
+public:
+   explicit SSVVVertex(std::complex<double> v)
+      : val(v) {}
+
+   std::complex<double> value() const { return val; }
+
+   bool isZero() const {
+      return is_zero(val);
+   }
+
+private:
+   std::complex<double> val;
+};
+
+/**
+ * @class VVVVertex
+ */
+class VVVVertex {
+public:
+   explicit VVVVertex(std::complex<double> v)
+      : val(v) {}
+
+   std::complex<double> value() const { return val; }
+
+   bool isZero() const {
+      return is_zero(val);
+   }
+
+private:
+   std::complex<double> val;
+};
+
+/**
+ * @class VVVVVertex
+ */
+class VVVVVertex {
+public:
+   VVVVVertex(std::complex<double> v1, std::complex<double> v2,
+              std::complex<double> v3)
+      : coeff_12_34(v1), coeff_13_24(v2), coeff_14_23(v3) {}
+
+   bool isZero() const {
+      return is_zero(coeff_12_34) && is_zero(coeff_13_24) &&
+         is_zero(coeff_14_23);
+   }
+
+private:
+   std::complex<double> coeff_12_34;
+   std::complex<double> coeff_13_24;
+   std::complex<double> coeff_14_23;
+};
+
+/**
+ * @class GGSVertex
+ */
+class GGSVertex {
+public:
+   explicit GGSVertex(std::complex<double> v)
+      : val(v) {}
+
+   std::complex<double> value() const { return val; }
+
+   bool isZero() const {
+      return is_zero(val);
+   }
+
+private:
+   std::complex<double> val;
+};
+
+/**
+ * @class GGVVertex
+ */
+class GGVVertex {
+public:
+   explicit GGVVertex(std::complex<double> v)
+      : val(v) {}
+
+   std::complex<double> value() const { return val; }
+
+   bool isZero() const {
+      return is_zero(val);
+   }
+
+private:
+   std::complex<double> val;
 };
 
 } // namespace cxx_qft

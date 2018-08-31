@@ -28,7 +28,7 @@ BeginPackage["Vertices`", {
     "CConversion`",
     "LatticeUtils`"}]
 
-FSVertexTypes = { SSSVertex, FFSVertex, SSVVertex, SVVVertex };
+FSVertexTypes = { SSSVertex, SSSSVertex, FFSVertex, FFVVertex, SSVVertex, SSVVVertex, SVVVertex, VVVVertex, VVVVVertex, GGSVertex, GGVVertex };
 VertexTypes::usage="";
 VertexTypeForFields::usage="Returns the vertex type for a vertex with a given list of fields.";
 
@@ -58,30 +58,49 @@ Begin["`Private`"]
 VertexTypes[] := FSVertexTypes;
 
 IsSSSVertex[fields_List] :=
-    Module[{scalarCount, ghostCount},
-           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsVector] != 0,
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsVector]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
               Return[False];
              ];
-           scalarCount = Count[fields, _?TreeMasses`IsScalar];
-           ghostCount = Count[fields, _?TreeMasses`IsGhost];
-           Or[(scalarCount == 3 && ghostCount == 0),
-              (scalarCount == 1 && ghostCount == 2),
-              (scalarCount == 4 && ghostCount == 0)]
+           Count[fields, _?TreeMasses`IsScalar] == 3
+          ];
+
+IsSSSSVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsVector]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsScalar] == 4
           ];
 
 IsFFSVertex[fields_List] :=
-    Module[{fermionCount, scalarCount, vectorCount},
-           If[Count[fields, _?TreeMasses`IsGhost] != 0,
+    Module[{fermionCount},
+           If[Count[fields, _?TreeMasses`IsGhost]  != 0 ||
+              Count[fields, _?TreeMasses`IsVector] != 0,
               Return[False];
              ];
            fermionCount = Count[fields, _?TreeMasses`IsFermion];
            If[fermionCount != 2,
               Return[False];
              ];
-           scalarCount = Count[fields, _?TreeMasses`IsScalar];
-           vectorCount = Count[fields, _?TreeMasses`IsVector];
-           Or[scalarCount == 1 && vectorCount == 0,
-              scalarCount == 0 && vectorCount == 1]
+           Count[fields, _?TreeMasses`IsScalar] == 1
+          ];
+
+IsFFVVertex[fields_List] :=
+    Module[{fermionCount},
+           If[Count[fields, _?TreeMasses`IsGhost]  != 0 ||
+              Count[fields, _?TreeMasses`IsScalar] != 0,
+              Return[False];
+             ];
+           fermionCount = Count[fields, _?TreeMasses`IsFermion];
+           If[fermionCount != 2,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 1
           ];
 
 IsSSVVertex[fields_List] :=
@@ -101,13 +120,76 @@ IsSVVVertex[fields_List] :=
              ];
            scalarCount = Count[fields, _?TreeMasses`IsScalar];
            vectorCount = Count[fields, _?TreeMasses`IsVector];
-           (vectorCount == 2) && (scalarCount == 1 || scalarCount == 2)
+           vectorCount == 2 && scalarCount == 1
+          ];
+
+IsSSVVVertex[fields_List] :=
+    Module[{scalarCount, vectorCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
+              Return[False];
+             ];
+           scalarCount = Count[fields, _?TreeMasses`IsScalar];
+           vectorCount = Count[fields, _?TreeMasses`IsVector];
+           vectorCount == 2 && scalarCount == 2
+          ];
+
+IsVVVVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsScalar]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 3
+          ];
+
+IsVVVVVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsScalar]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 4
+          ];
+
+IsGGSVertex[fields_List] :=
+    Module[{ghostCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsVector]  != 0,
+              Return[False];
+             ];
+           ghostCount = Count[fields, _?TreeMasses`IsGhost];
+           If[ghostCount != 2,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsScalar] == 1
+          ];
+
+IsGGVVertex[fields_List] :=
+    Module[{ghostCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsScalar]  != 0,
+              Return[False];
+             ];
+           ghostCount = Count[fields, _?TreeMasses`IsGhost];
+           If[ghostCount != 2,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 1
           ];
 
 VertexTypeForFields[fields_List /; IsSSSVertex[fields]] := SSSVertex;
+VertexTypeForFields[fields_List /; IsSSSSVertex[fields]] := SSSSVertex;
 VertexTypeForFields[fields_List /; IsFFSVertex[fields]] := FFSVertex;
+VertexTypeForFields[fields_List /; IsFFVVertex[fields]] := FFVVertex;
 VertexTypeForFields[fields_List /; IsSSVVertex[fields]] := SSVVertex;
+VertexTypeForFields[fields_List /; IsSSVVVertex[fields]] := SSVVVertex;
 VertexTypeForFields[fields_List /; IsSVVVertex[fields]] := SVVVertex;
+VertexTypeForFields[fields_List /; IsVVVVertex[fields]] := VVVVertex;
+VertexTypeForFields[fields_List /; IsVVVVVertex[fields]] := VVVVVertex;
+VertexTypeForFields[fields_List /; IsGGSVertex[fields]] := GGSVertex;
+VertexTypeForFields[fields_List /; IsGGVVertex[fields]] := GGVVertex;
 VertexTypeForFields[fields_List] := "UnknownVertexType" <> ToString[fields];
 
 (* There is a sign ambiguity when SARAH`Vertex[] factors an SSV-type
@@ -847,7 +929,7 @@ DeclareIndices[indexedFields_List, arrayName_String] :=
 (* @todo implement or remove this! *)
 SarahToFSVertexConventions[sortedFields_, expr_] := expr;
 
-CreateSSSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateScalarVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, expr, resultType},
            sortedIndexedFields = vertex[[1]];
@@ -872,7 +954,7 @@ CreateSSSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(result);"
           ];
 
-CreateFFSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, exprL, exprR, resultTypeL, resultTypeR},
            sortedIndexedFields = vertex[[1]];
@@ -939,6 +1021,8 @@ CreateSSVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(result, minuend_index, subtrahend_index);"
           ];
 
+CreateSSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+
 CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFIelds, indexedFields,
             vertexRules, expr, resultType},
@@ -963,6 +1047,14 @@ CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(result);"
           ];
 
+CreateVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+
+CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+
+CreateGGSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+
+CreateGGVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+
 VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
     Module[{sortedFields,
             vertex, vertexType = VertexTypeForFields[fields],
@@ -978,10 +1070,17 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
            vertex = vertex[[1]];
 
            Switch[vertexType,
-                  SSSVertex, CreateSSSVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  FFSVertex, CreateFFSVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SSSVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SSSSVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  FFSVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  FFVVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
                   SSVVertex, CreateSSVVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  SVVVertex, CreateSVVVertexFunctionBody[fields, vertex, stripGroupStructure]
+                  SSVVVertex, CreateSSVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SVVVertex, CreateSVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  VVVVertex, CreateVVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  VVVVVertex, CreateVVVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  GGSVertex, CreateGGSVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  GGVVertex, CreateGGVVertexFunctionBody[fields, vertex, stripGroupStructure]
                  ]
           ];
 
