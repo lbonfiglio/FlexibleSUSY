@@ -28,7 +28,7 @@ BeginPackage["Vertices`", {
     "CConversion`",
     "LatticeUtils`"}]
 
-FSVertexTypes = { ScalarVertex, ChiralVertex, MomentumDifferenceVertex, InverseMetricVertex };
+FSVertexTypes = { SSSVertex, FFSVertex, SSVVertex, SVVVertex };
 VertexTypes::usage="";
 VertexTypeForFields::usage="Returns the vertex type for a vertex with a given list of fields.";
 
@@ -57,7 +57,7 @@ Begin["`Private`"]
 
 VertexTypes[] := FSVertexTypes;
 
-IsScalarVertex[fields_List] :=
+IsSSSVertex[fields_List] :=
     Module[{scalarCount, ghostCount},
            If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsVector] != 0,
               Return[False];
@@ -69,7 +69,7 @@ IsScalarVertex[fields_List] :=
               (scalarCount == 4 && ghostCount == 0)]
           ];
 
-IsChiralVertex[fields_List] :=
+IsFFSVertex[fields_List] :=
     Module[{fermionCount, scalarCount, vectorCount},
            If[Count[fields, _?TreeMasses`IsGhost] != 0,
               Return[False];
@@ -84,7 +84,7 @@ IsChiralVertex[fields_List] :=
               scalarCount == 0 && vectorCount == 1]
           ];
 
-IsMomentumDifferenceVertex[fields_List] :=
+IsSSVVertex[fields_List] :=
     Module[{scalarCount, vectorCount},
            If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
               Return[False];
@@ -94,7 +94,7 @@ IsMomentumDifferenceVertex[fields_List] :=
            scalarCount == 2 && vectorCount == 1
           ];
 
-IsInverseMetricVertex[fields_List] :=
+IsSVVVertex[fields_List] :=
     Module[{scalarCount, vectorCount},
            If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
               Return[False];
@@ -104,10 +104,10 @@ IsInverseMetricVertex[fields_List] :=
            (vectorCount == 2) && (scalarCount == 1 || scalarCount == 2)
           ];
 
-VertexTypeForFields[fields_List /; IsScalarVertex[fields]] := ScalarVertex;
-VertexTypeForFields[fields_List /; IsChiralVertex[fields]] := ChiralVertex;
-VertexTypeForFields[fields_List /; IsMomentumDifferenceVertex[fields]] := MomentumDifferenceVertex;
-VertexTypeForFields[fields_List /; IsInverseMetricVertex[fields]] := InverseMetricVertex;
+VertexTypeForFields[fields_List /; IsSSSVertex[fields]] := SSSVertex;
+VertexTypeForFields[fields_List /; IsFFSVertex[fields]] := FFSVertex;
+VertexTypeForFields[fields_List /; IsSSVVertex[fields]] := SSVVertex;
+VertexTypeForFields[fields_List /; IsSVVVertex[fields]] := SVVVertex;
 VertexTypeForFields[fields_List] := "UnknownVertexType" <> ToString[fields];
 
 (* There is a sign ambiguity when SARAH`Vertex[] factors an SSV-type
@@ -818,15 +818,15 @@ GetIndexedFieldsForVertex[fields_, vertex_] :=
            sortedIndexedFields[[fOrderingWRTSortedF]]
           ];
 
-CreateZeroVertex[fields_?IsScalarVertex] := "return vertex_type(0);";
-CreateZeroVertex[fields_?IsChiralVertex] := "return vertex_type(0, 0);";
-CreateZeroVertex[fields_?IsMomentumDifferenceVertex] :=
+CreateZeroVertex[fields_?IsSSSVertex] := "return vertex_type(0);";
+CreateZeroVertex[fields_?IsFFSVertex] := "return vertex_type(0, 0);";
+CreateZeroVertex[fields_?IsSSVVertex] :=
     "return vertex_type(0, " <>
     StringJoin[Riffle[
         ToString /@ Flatten[Position[fields,
                                      field_ /; TreeMasses`IsScalar[field] || TreeMasses`IsGhost[field],
                                      {1}, Heads -> False] - 1], ", "]] <> ");";
-CreateZeroVertex[fields_?IsInverseMetricVertex] := "return vertex_type(0);";
+CreateZeroVertex[fields_?IsSVVVertex] := "return vertex_type(0);";
 
 (* Creates local declarations of field indices, whose values are taken
    from the elements of `arrayName'.
@@ -847,7 +847,7 @@ DeclareIndices[indexedFields_List, arrayName_String] :=
 (* @todo implement or remove this! *)
 SarahToFSVertexConventions[sortedFields_, expr_] := expr;
 
-CreateScalarVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateSSSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, expr, resultType},
            sortedIndexedFields = vertex[[1]];
@@ -872,7 +872,7 @@ CreateScalarVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(result);"
           ];
 
-CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateFFSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, exprL, exprR, resultTypeL, resultTypeR},
            sortedIndexedFields = vertex[[1]];
@@ -908,7 +908,7 @@ CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(left, right);"
           ];
 
-CreateMomentumDifferenceVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateSSVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             incomingScalar, outgoingScalar, vertexRules,
             expr, resultType},
@@ -939,7 +939,7 @@ CreateMomentumDifferenceVertexFunctionBody[fields_, vertex_, stripGroupStructure
            "return vertex_type(result, minuend_index, subtrahend_index);"
           ];
 
-CreateInverseMetricVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFIelds, indexedFields,
             vertexRules, expr, resultType},
            sortedIndexedFields = vertex[[1]];
@@ -978,10 +978,10 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
            vertex = vertex[[1]];
 
            Switch[vertexType,
-                  ScalarVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  ChiralVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  MomentumDifferenceVertex, CreateMomentumDifferenceVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  InverseMetricVertex, CreateInverseMetricVertexFunctionBody[fields, vertex, stripGroupStructure]
+                  SSSVertex, CreateSSSVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  FFSVertex, CreateFFSVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SSVVertex, CreateSSVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SVVVertex, CreateSVVVertexFunctionBody[fields, vertex, stripGroupStructure]
                  ]
           ];
 

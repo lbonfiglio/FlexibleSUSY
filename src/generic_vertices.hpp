@@ -29,11 +29,11 @@ namespace flexiblesusy {
 namespace cxx_qft {
 
 /**
- * @class ScalarVertex
+ * @class SSSVertex
  */
-class ScalarVertex {
+class SSSVertex {
 public:
-   explicit ScalarVertex(std::complex<double> v)
+   explicit SSSVertex(std::complex<double> v)
       : val(v) {}
 
    std::complex<double> value() const { return val; }
@@ -47,11 +47,11 @@ private:
 };
 
 /**
- * @class ChiralVertex
+ * @class FFSVertex
  */
-class ChiralVertex {
+class FFSVertex {
 public:
-   ChiralVertex(const std::complex<double>& left,
+   FFSVertex(const std::complex<double>& left,
                 const std::complex<double>& right)
       : value(left, right) {}
 
@@ -68,11 +68,11 @@ private:
 };
 
 /**
- * @class MomentumDifferenceVertex
+ * @class SSVVertex
  */
-class MomentumDifferenceVertex {
+class SSVVertex {
 public:
-   MomentumDifferenceVertex(std::complex<double> v, int mi, int si )
+   SSVVertex(std::complex<double> v, int mi, int si )
       : val(v), minuendIndex(mi), subtrahendIndex(si) {}
 
    std::complex<double> value(int mi, int si) const {
@@ -100,11 +100,11 @@ private:
 };
 
 /**
- * @class InverseMetrixVertex
+ * @class SVVVertex
  */
-class InverseMetricVertex {
+class SVVVertex {
 public:
-   explicit InverseMetricVertex(std::complex<double> v)
+   explicit SVVVertex(std::complex<double> v)
       : val(v) {}
 
    std::complex<double> value() const { return val; }

@@ -270,9 +270,9 @@ CreateUnitCharge[] :=
          numberOfElectronIndices = NumberOfFieldIndices[electron];
          numberOfPhotonIndices = NumberOfFieldIndices[photon];
 
-         "static ChiralVertex unit_charge(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
+         "static FFSVertex unit_charge(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
          "{\n" <>
-         TextFormatting`IndentText["using vertex_type = ChiralVertex;"] <> "\n\n" <>
+         TextFormatting`IndentText["using vertex_type = FFSVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @
            ("std::array<int, " <> ToString @ numberOfElectronIndices <> "> electron_indices = {" <>
               If[TreeMasses`GetDimension[electron] =!= 1,
@@ -317,9 +317,9 @@ CreateStrongCoupling[] :=
          numberOfdownquarkIndices = NumberOfFieldIndices[downquark];
          numberOfgluonIndices = NumberOfFieldIndices[gluon];
 
-         "static ChiralVertex strong_coupling(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
+         "static FFSVertex strong_coupling(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
          "{\n" <>
-         TextFormatting`IndentText["using vertex_type = ChiralVertex;"] <> "\n\n" <>
+         TextFormatting`IndentText["using vertex_type = FFSVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @
            ("std::array<int, " <> ToString @ numberOfdownquarkIndices <> "> downquark_indices = {" <>
               If[TreeMasses`GetDimension[downquark] =!= 1,
