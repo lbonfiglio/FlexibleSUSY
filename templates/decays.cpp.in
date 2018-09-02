@@ -331,9 +331,13 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
    typename field_indices<dq>::type const& indexOut2
    ) const
 {
-   BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
-      "Template specialization for H -> Fu1 bar[Fu2] is only valid for Fd1 = Fd2"
-   );
+   // TODO: should we take the off-diagonal case at all?
+   //       or should this never happen and we should crash
+   if(boost::range::equal(indexOut1, indexOut2))
+      return 0.;
+//    BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
+      // "Template specialization for H -> Fd1 bar[Fd2] is only valid for Fd1 = Fd2"
+//    );
 
    const double mH = context.mass<H>(indexIn);
    const double mdq = context.mass<dq>(indexOut1);
@@ -369,9 +373,13 @@ double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
    typename field_indices<uq>::type const& indexOut2
    ) const
 {
-   BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
-      "Template specialization for H -> Fu1 bar[Fu2] is only valid for Fu1 = Fu2"
-   );
+   // TODO: should we take the off-diagonal case at all?
+   //       or should this never happen and we should crash
+   if(boost::range::equal(indexOut1, indexOut2))
+      return 0.;
+//    BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
+      // "Template specialization for H -> Fu1 bar[Fu2] is only valid for Fu1 = Fu2"
+//    );
 
    const double mH = context.mass<H>(indexIn);
    const double muq = context.mass<uq>(indexOut1);
