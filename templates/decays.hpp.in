@@ -49,7 +49,6 @@ final_state_symmetry_factor(typename cxx_qft::field_indices<Field1>::type const&
                             typename cxx_qft::field_indices<Field2>::type const& idx2)
 {
    if (std::is_same<Field1, Field2>::value) {
-      std::cout << std::is_same<Field1, Field2>::value << '\n';
       // TODO: we also compare if (potential) color indices are the same,
       //       this might cause problems if someone accidentaly initializes them
       //       differently
@@ -339,7 +338,7 @@ double @ModelName@_decays::get_partial_width(
    const double mOut1 = context.mass<FieldOut1>(indexOut1);
    const double mOut2 = context.mass<FieldOut2>(indexOut2);
 
-   const double ps = oneOver16Pi * beta(mIn, mOut1, mOut2);
+   const double ps = 1./(8.*Pi) * beta(mIn, mOut1, mOut2);
 
    // phase space symmetry factor
    const double ps_symmetry = 
