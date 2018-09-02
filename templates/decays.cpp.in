@@ -46,20 +46,10 @@ namespace flexiblesusy {
 #define CLASSNAME @ModelName@_decays
 
 #define PHYSICAL(parameter) model.get_physical().parameter
+#define MODELPARAMETER(parameter) model.get_##parameter()
 
 using namespace cxx_qft;
 using effective_couplings::beta;
-
-CLASSNAME::@ModelName@_decays(const @ModelName@_mass_eigenstates& model_)
-   : model(model_)
-{
-}
-
-CLASSNAME::@ModelName@_decays(const @ModelName@_mass_eigenstates& model_, bool corrections)
-   : model(model_)
-   , include_higher_order_corrections(corrections)
-{
-}
 
 void CLASSNAME::set_include_higher_order_corrections(bool flag)
 {

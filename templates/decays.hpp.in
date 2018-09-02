@@ -38,6 +38,7 @@
 #include "decays_loop_corrections.hpp"
 #include "decays_problems.hpp"
 #include "effective_couplings.hpp"
+#include "lowe.h"
 
 namespace flexiblesusy {
 
@@ -61,8 +62,15 @@ final_state_symmetry_factor(typename cxx_qft::field_indices<Field1>::type const&
 
 class @ModelName@_decays {
 public:
-   explicit @ModelName@_decays(const @ModelName@_mass_eigenstates&);
-   @ModelName@_decays(@ModelName@_mass_eigenstates const& model, bool);
+   explicit @ModelName@_decays(const @ModelName@_mass_eigenstates& model_, softsusy::QedQcd const& qedqcd_)
+      : model(model_)
+      , qedqcd(qedqcd_)
+      {}
+   @ModelName@_decays(const @ModelName@_mass_eigenstates& model_, softsusy::QedQcd const& qedqcd_, bool corrections)
+      : model(model_)
+      , qedqcd(qedqcd_)
+      , include_higher_order_corrections(corrections)
+      {}
    @ModelName@_decays(const @ModelName@_decays&) = default;
    @ModelName@_decays(@ModelName@_decays&&) = default;
    ~@ModelName@_decays() = default;
@@ -86,6 +94,7 @@ public:
 
 private:
    @ModelName@_mass_eigenstates model{};
+   softsusy::QedQcd const& qedqcd;
    bool include_higher_order_corrections{true};
    bool run_to_decay_particle_scale{true};
    @ModelName@_decay_table decay_table{};
