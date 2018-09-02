@@ -244,7 +244,7 @@ double CLASSNAME::get_partial_width<H,A,A>(
    ) const
 {
    const double mass = context.mass<H>(indexIn);
-   return 0.0049735919716217296 * pow(mass, 3.0);
+   return 0 * 0.0049735919716217296 * pow(mass, 3.0);
       //* effective_coupling<H,A,A>(context, indexIn, indexOut1, indexOut2).square();
 }
 
@@ -261,7 +261,7 @@ double CLASSNAME::get_partial_width<H, A, Z>(
    const double MVZ = context.mass<Z>(indexOut2);
    if(MVZ/mass >= 1.0)
       return 0.0;
-   return 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3);
+   return 0 * 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3);
       //   * effective_coupling<H, A,Z>(context, indexIn, indexOut1, indexOut2).square();
 }
 
