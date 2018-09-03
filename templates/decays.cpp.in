@@ -99,13 +99,8 @@ void CLASSNAME::calculate_decays()
 
 // -------- specializations for decays needing higher order corrections --------
 
-using H = @ModelName@_fields::@HiggsBosonName@;
-using W = @ModelName@_fields::@WBosonName@;
-using Z = @ModelName@_fields::@ZBosonName@;
-using G = @ModelName@_fields::@GluonName@;
-using A = @ModelName@_fields::@PhotonName@;
-using dq = @ModelName@_fields::@DownQuarkName@;
-using uq = @ModelName@_fields::@UpQuarkName@;
+@create_SM_particle_usings@
+using ContextName = cxx_qft::@ModelName@_evaluation_context;
 
 template<>
 Decay_amplitude<H,G,G> CLASSNAME::effective_coupling(
@@ -143,81 +138,7 @@ Decay_amplitude<H,A,Z> CLASSNAME::effective_coupling(
    return result;
 }
 
-// special case for Higgs -> Z Z
-// TODO: implement higher order corrections
-template<>
-double CLASSNAME::get_partial_width<H,Z,Z>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<Z>::type const& indexOut1,
-   typename field_indices<Z>::type const& indexOut2
-   ) const
-{
 
-   const double mH = context.mass<H>(indexIn);
-   const double mZ = context.mass<Z>(indexOut1);
-   const double x = Sqr(mZ/mH);
-   double res;
-   // three-body-decays if below threshold
-   if(4*x > 1.0) {
-      // const auto vd = MODELPARAMETER(vd);
-      // const auto vu = MODELPARAMETER(vu);
-      // TODO: specify the vev correctly
-      const auto vev = 246.0; //sqrt(Sqr(vd) + Sqr(vu));
-      const double sw2 = Sqr(Sin(model.ThetaW()));//1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
-
-      const double deltaV = 7.0/12.0 - 10.0/9.0 * sw2 + 40.0/27.0 * Sqr(sw2);
-      const double RT = 3*(1 - 8*x + 20*Sqr(x))/sqrt(4*x - 1) * acos(0.5*(3*x - 1)/pow(x, 3.0/2.0))
-                     - 0.5*(1 - x)/x * (2 - 13*x + 47*Sqr(x))
-                     - 3.0/2.0 * (1 - 6*x + 4*Sqr(x))*Log(x);
-
-      res = 3.0/(128*pow(Pi,3)) * mH/Sqr(vev) * deltaV * RT;
-   } else {
-      res = 1.0/(128*Pi * mH * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
-   }
-   const auto indices = concatenate(indexOut1, indexOut2, indexIn);
-   return res * std::norm(Vertex<Z,Z,H>::evaluate(indices, context).value());
-}
-
-// special case for H -> W+ W-
-// TODO: implement higher order corrections
-template <>
-double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<conj<W>::type>::type const& indexOut1,
-   typename field_indices<W>::type const& indexOut2) const
-{
-
-   const double mH = context.mass<H>(indexIn);
-   const double mW = context.mass<W>(indexOut1);
-   const double x = Sqr(mW / mH);
-   double res;
-   // three-body-decays if below threshold
-   if (4 * x > 1.0) {
-      // const auto vd = MODELPARAMETER(vd);
-      // const auto vu = MODELPARAMETER(vu);
-      // TODO: specify the vev correctly
-      const auto vev = 246.0; // sqrt(Sqr(vd) + Sqr(vu));
-      const double sw2 =
-         Sqr(Sin(model.ThetaW())); // 1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
-
-      // deltaV is 1 for W-bosons
-      const double RT = 3 * (1 - 8 * x + 20 * Sqr(x)) / sqrt(4 * x - 1) *
-                           acos(0.5 * (3 * x - 1) / pow(x, 3.0 / 2.0)) -
-                        0.5 * (1 - x) / x * (2 - 13 * x + 47 * Sqr(x)) -
-                        3.0 / 2.0 * (1 - 6 * x + 4 * Sqr(x)) * Log(x);
-
-      res = 3.0 / (128 * pow(Pi, 3)) * mH / Sqr(vev) * RT;
-   } else {
-      res = 2.0 / (128 * Pi * mH * Sqr(x)) * sqrt(1 - 4 * x) *
-            (1 - 4 * x + 12 * Sqr(x));
-   }
-   const auto indices = concatenate(indexOut2, indexOut1, indexIn);
-   const auto ghWW =
-      Vertex<conj<W>::type, W, H>::evaluate(indices, context).value();
-   return res * std::norm(ghWW);
-}
 
 // special case for H -> gluon gluon
 template<>
@@ -248,58 +169,8 @@ double CLASSNAME::get_partial_width<H,A,A>(
       //* effective_coupling<H,A,A>(context, indexIn, indexOut1, indexOut2).square();
 }
 
-// special case for H -> photon Z
-template <>
-double CLASSNAME::get_partial_width<H, A, Z>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<A>::type const& indexOut1,
-   typename field_indices<Z>::type const& indexOut2) const
-{
 
-   const double mass = context.mass<H>(indexIn);
-   const double MVZ = context.mass<Z>(indexOut2);
-   if(MVZ/mass >= 1.0)
-      return 0.0;
-   return 0 * 1.0/(16.0*Pi) * pow(mass * (1.0 - Sqr(MVZ/mass)), 3);
-      //   * effective_coupling<H, A,Z>(context, indexIn, indexOut1, indexOut2).square();
-}
 
-template<>
-double CLASSNAME::get_partial_width<H,Z,A>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<Z>::type const& indexOut1,
-   typename field_indices<A>::type const& indexOut2
-   ) const
-{
-   return get_partial_width<H,A,Z>(context, indexIn, indexOut2, indexOut1);
-}
-
-// special case for H -> H H
-template <>
-double CLASSNAME::get_partial_width<H, H, H>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<H>::type const& indexOut1,
-   typename field_indices<H>::type const& indexOut2) const
-{
-   const double mHIn = context.mass<H>(indexIn);
-   const double mH1 = context.mass<H>(indexOut1);
-   const double mH2 = context.mass<H>(indexOut2);
-
-   if (mHIn < mH1 + mH2) {
-         return 0.;
-   }
-
-   const double flux = 1. / (2. * mHIn);
-   const double ps = beta(mHIn, mH1, mH2) / (8. * Pi);
-   const auto ps_symmetry =
-      final_state_symmetry_factor<H, H>(indexOut1, indexOut2);
-
-   return flux * ps * ps_symmetry *
-      effective_coupling<H, H, H>(context, indexIn, indexOut1, indexOut2).square();
-}
 
 unsigned int number_of_active_flavours(double m)
 {
@@ -322,114 +193,13 @@ double calc_deltaqq(double alpha_s_red, double Nf) {
       + (164.14 - 25.77*Nf + 0.26*Sqr(Nf))*std::pow(alpha_s_red, 3);
 }
 
-// special case for H -> Fd Fd
-template<>
-double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<dq>::type const& indexOut1,
-   typename field_indices<dq>::type const& indexOut2
-   ) const
-{
-   // TODO: should we take the off-diagonal case at all?
-   //       or should this never happen and we should crash
-   if(boost::range::equal(indexOut1, indexOut2))
-      return 0.;
-//    BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
-      // "Template specialization for H -> Fd1 bar[Fd2] is only valid for Fd1 = Fd2"
-//    );
 
-   const double mH = context.mass<H>(indexIn);
-   const double mdq = context.mass<dq>(indexOut1);
-
-   // TODO: add off-shell decays?
-   if (mH < 2.*mdq) {
-      return 0.;
-   }
-
-   const double g3 = MODELPARAMETER(g3);
-   const double Nf = number_of_active_flavours(mH);
-   const double alpha_s_red = Sqr(g3)/(4*Sqr(Pi));
-   const double mtpole = qedqcd.displayPoleMt();
-
-   const double deltaqq = calc_deltaqq(g3, Nf);
-
-   const double lt = Log(Sqr(mH/mtpole));
-   const double lq = Log(Sqr(mdq/mH));
-   const double deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
-
-   // SM expression + pure BSM 1L corrections
-   return 3./(8.*Pi) * mH * 
-      amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2)
-      * (1. + deltaqq);
-}
-
-// special case for H -> Fu Fu
-template<>
-double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<uq>::type const& indexOut1,
-   typename field_indices<uq>::type const& indexOut2
-   ) const
-{
-   // TODO: should we take the off-diagonal case at all?
-   //       or should this never happen and we should crash
-   if(boost::range::equal(indexOut1, indexOut2))
-      return 0.;
-//    BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
-      // "Template specialization for H -> Fu1 bar[Fu2] is only valid for Fu1 = Fu2"
-//    );
-
-   const double mH = context.mass<H>(indexIn);
-   const double muq = context.mass<uq>(indexOut1);
-
-   // TODO: add off-shell decays?
-   if (mH < 2.*muq) {
-      return 0.;
-   }
-
-   // SM expression + pure BSM 1L corrections
-//    return amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2);
-
-   const double g3 = MODELPARAMETER(g3);
-   const double alpha_s_red = Sqr(g3)/(4*Sqr(Pi));
-   const double Nf = number_of_active_flavours(mH);
-   const double mtpole = qedqcd.displayPoleMt();
-
-   // top-quark needs special treatment
-   const double x = 4.*Sqr(muq/mH);
-   if(indexOut1[1] == 2) {
-     const double betaT = Sqrt(1 - x);//Sqrt(1 - 4*Sqr(mtpole/mass));
-     const double Abeta = (1 + Sqr(betaT))
-                        * (4*PolyLog(2, (1-betaT)/(1+betaT))
-                          + 2*PolyLog(2, (betaT-1)/(1+betaT))
-                          - 3*Log((1+betaT)/(1-betaT))*Log(2.0/(1+betaT))
-                          - 2*Log((1+betaT)/(1-betaT))*Log(betaT))
-                        - 3*betaT*Log(4.0/(1-Sqr(betaT)))
-                        - 4*betaT*Log(betaT);
-
-     const double deltaHt = 4.0/3.0 * alpha_s_red * (Abeta/betaT
-                          + (3 + 34*Sqr(betaT) - 13*Power(betaT,4))
-                            * Log((1+betaT)/(1-betaT)) / (16*Power(betaT,3))
-                          + 3.0/(8*Sqr(betaT)) * (7*Sqr(betaT) - 1));
-
-     return 3.0/(8*Pi) * mH * Power(betaT,3) * 
-      amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2)
-            * (1 + deltaHt);
-   }
-
-   const double deltaqq = calc_deltaqq(g3, Nf);
-   const double lt = Log(Sqr(mH/mtpole));
-   const double lq = Log(Sqr(muq/mH));
-   const double deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
-
-   const double xt = qedqcd.displayFermiConstant()*Sqr(mtpole)/(8*Sqrt(2.0)*Sqr(Pi));
-
-   return 3.0/(8*Pi) * mH * 
-      amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2)
-      * (1 + deltaqq + deltaH2);
-}
+@include_H_to_ZZ@
+@include_H_to_WW@
+@include_H_to_ZA@
+@include_H_to_HH@
+@include_H_to_FuFubar@
+@include_H_to_FdFdbar@
 
 @define_pseudoscalar_Higgs@
 #ifdef HAS_AH
