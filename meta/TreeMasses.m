@@ -2183,41 +2183,35 @@ CreateMixingArraySetter[masses_List, array_String] :=
 
 GetPhoton[] :=
    If[ValueQ[SARAH`Photon],
-      SARAH`Photon,
-      Print["Could not identify the name given to the photon"]; Quit[1]
+      SARAH`Photon
    ];
+
 GetGluon[] :=
    If[ValueQ[SARAH`Gluon],
-      SARAH`Gluon,
-      Print["Could not identify the name given to the gluon"]; Quit[1]
+      SARAH`Gluon
    ];
+
 GetZBoson[] :=
    If[ValueQ[SARAH`Zboson],
-      SARAH`Zboson,
-      Print["Could not identify the name given to the Z-boson"]; Quit[1]
+      SARAH`Zboson
    ];
+
 GetWBoson[] :=
    Module[{temp = Select[Unevaluated[{SARAH`Wboson, SARAH`VectorW}], ValueQ]},
       If[Length @ DeleteDuplicates[temp] === 1,
-         temp[[1]],
-         Print["Could not identify the name given to the W-boson"]; Quit[1]
+         temp[[1]]
       ]
    ];
 GetHiggsBoson[] :=
    If[ValueQ[SARAH`HiggsBoson],
-      SARAH`HiggsBoson,
-      Print["Could not identify the name given to the Higgs boson"]; Quit[1]
+      SARAH`HiggsBoson
    ];
 
 GetChargedHiggsBoson[] :=
    If[ValueQ[SARAH`ChargedHiggs],
-      SARAH`ChargedHiggs,
-      Print["Could not identify the name given to the charged Higgs boson"]; Quit[1]
+      SARAH`ChargedHiggs
    ];
 
-(* Not all models have a pseudoscalar Higgs boson, one example being CPV MSSM,
-   so we don't quit if we don't find one.
-   Rather, we return Null to let the caller handle this case *)
 GetPseudoscalarHiggsBoson[] :=
    If[ValueQ[SARAH`PseudoScalarBoson], SARAH`PseudoScalarBoson];
 
