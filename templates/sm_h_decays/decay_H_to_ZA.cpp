@@ -1,3 +1,15 @@
+template<>
+Decay_amplitude<H,A,Z> CLASSNAME::effective_coupling(
+   const ContextName& context,
+   typename cxx_qft::field_indices<H>::type const& indexIn,
+   typename cxx_qft::field_indices<A>::type const& indexOut1,
+   typename cxx_qft::field_indices<Z>::type const& indexOut2
+   ) const
+{
+   Decay_amplitude<H,A,Z> result;
+   return result;
+}
+
 // special case for H -> photon Z
 template <>
 double CLASSNAME::get_partial_width<H, A, Z>(

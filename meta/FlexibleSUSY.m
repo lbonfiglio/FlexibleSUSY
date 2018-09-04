@@ -1768,7 +1768,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             decaysListGettersPrototypes = "", decaysListGettersFunctions = "",
             decaysGetters = "", initDecayTable = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
-            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "", SMParticlesInModel},
+            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "", SMParticlesInModel, CreateInclude, Declarations},
            numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            decaysVertices = DeleteDuplicates[Flatten[Permutations /@ Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1], 1]];
@@ -1787,7 +1787,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            (* create the list of SM-like particles present in the model *)
            SMParticlesInModel =
                DeleteCases[
-                  {TreeMasses`GetHiggsBoson[], TreeMasses`GetWBoson[], TreeMasses`GetZBoson[],
+                  {TreeMasses`GetHiggsBoson[], TreeMasses`GetPseudoscalarHiggsBoson[], TreeMasses`GetWBoson[], TreeMasses`GetZBoson[],
                TreeMasses`GetGluon[], TreeMasses`GetPhoton[],
                   If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
                      TreeMasses`GetSMDownQuarks[][[1]],
@@ -1801,6 +1801,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            (* maping of model names to universal ids *)
            SimplifiedName[name_] := Switch[name,
               TreeMasses`GetHiggsBoson[], "H",
+              TreeMasses`GetPseudoscalarHiggsBoson[], "AH",
               TreeMasses`GetWBoson[], "W",
               TreeMasses`GetZBoson[], "Z",
               TreeMasses`GetPhoton[], "A",
@@ -1810,9 +1811,38 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            ];
            CreateInclude[p1_, p2_] :=
                "@include_H_to_" <> SimplifiedName[p1] <> SimplifiedName[p2] <> "@" ->
+                   If[ContainsAll[SMParticlesInModel, {p1, p2}],
                    "#include \"templates/sm_h_decays/decay_H_to_" <>
-                   SimplifiedName[p1] <> SimplifiedName[p2] <> ".cpp\"\n";
-           usings =
+                   SimplifiedName[p1] <> SimplifiedName[p2] <> ".cpp\"",
+                  ""
+                  ];
+           BarWrap[cos_] :=
+               Print[TreeMasses`CreateFieldClassName[cos]];
+               If[Head[cos] === bar,
+                  "cxx_qft::bar<cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos] <> ">::type",
+                  "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos]
+               ];
+           Declaration[p1_, p2_, p3_] := Module[
+              {p1Str = TreeMasses`CreateFieldClassName[p1, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
+               p2Str = TreeMasses`CreateFieldClassName[p2, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
+                 p3Str = TreeMasses`CreateFieldClassName[p3, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
+                 p2Str2 = TreeMasses`CreateFieldClassName[p2/. bar|conj -> Identity, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
+                 p3Str2 = TreeMasses`CreateFieldClassName[p3/. bar|conj -> Identity, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"]
+
+
+              },
+
+              If[ContainsAll[Join[SMParticlesInModel, AntiField /@ SMParticlesInModel], {p1, p2, p3}],
+"template <>
+double " <> FlexibleSUSY`FSModelName <> "_decays::get_partial_width<" <> p1Str <> "," <> p2Str <> "," <> p3Str <> ">(
+const cxx_qft::" <> FlexibleSUSY`FSModelName <> "_evaluation_context&,
+typename cxx_qft::field_indices<" <> p1Str <> ">::type const&,
+typename cxx_qft::field_indices<" <> p2Str2 <> ">::type const&,
+typename cxx_qft::field_indices<" <> p3Str2 <> ">::type const&
+) const;",
+          ""
+                 ]
+              ];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
@@ -1849,22 +1879,43 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                                    Quit[1]
                                 ]
                              ],
-                             CreateInclude[TreeMasses`GetZBoson[],TreeMasses`GetZBoson[]],
-                             CreateInclude[TreeMasses`GetWBoson[], TreeMasses`GetWBoson[]],
-                             CreateInclude[TreeMasses`GetHiggsBoson[], TreeMasses`GetHiggsBoson[]],
-                             (*"@include_H_to_WW@" -> ("using " <> SimplifiedName[#] <> " = " <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[#] <> ";\n#include \"templates/decay_H_to_" <>*)
-                                 (*SimplifiedName[#] <> SimplifiedName[#] <> ".cpp\"\n")&[TreeMasses`GetWBoson[]],*)
-                             (*"@include_H_to_HH@" -> "#include \"templates/decay_H_to_HH.cpp\"",*)
-                             "@include_H_to_ZA@" -> "#include \"templates/sm_h_decays/decay_H_to_ZA.cpp\"",
-                             "@include_H_to_FuFubar@" -> "#include \"templates/sm_h_decays/decay_H_to_uubar.cpp\"",
-                             "@include_H_to_FdFdbar@" -> "#include \"templates/sm_h_decays/decay_H_to_ddbar.cpp\"",
                              "@create_SM_particle_usings@" ->
                                  StringJoin[
                                     ("using " <> SimplifiedName[#] <> " = " <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[#] <> ";\n")& /@
-                                    SMParticlesInModel
+                                        SMParticlesInModel
                                  ],
+                             Sequence @@ (CreateInclude @@@
+                                 Join[
+                                    Transpose[{SMParticlesInModel, SMParticlesInModel}],
+                                    {DeleteCases[{TreeMasses`GetZBoson[], TreeMasses`GetPhoton[]}, Null]}
+                              ]),
+                             "@declarations@" -> StringJoin @ Riffle[Declaration @@@ {
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetZBoson[], TreeMasses`GetZBoson[]},
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetWBoson[], TreeMasses`GetWBoson[]},
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetGluon[], TreeMasses`GetGluon[]},
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetPhoton[], TreeMasses`GetPhoton[]},
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetPhoton[], TreeMasses`GetZBoson[]},
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetZBoson[], TreeMasses`GetPhoton[]},
+                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetHiggsBoson[], TreeMasses`GetHiggsBoson[]},
+                                {TreeMasses`GetHiggsBoson[],
+                                   AntiField[If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
+                                      TreeMasses`GetSMUpQuarks[][[1]],
+                                      Null
+                                   ]
+                                   ],
+
+                                   If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
+                                      TreeMasses`GetSMUpQuarks[][[1]],
+                                      Null
+                                   ]
+                                }
+
+                             },
+                                "\n\n"
+                             ],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
+
            decaysVertices
           ];
 

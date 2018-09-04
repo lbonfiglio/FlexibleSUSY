@@ -385,22 +385,10 @@ double calc_deltaqq(double alpha_s_red, double Nf) {
 @include_H_to_WW@
 @include_H_to_ZA@
 @include_H_to_HH@
-@include_H_to_FuFubar@
-@include_H_to_FdFdbar@
+@include_H_to_uquq@
+@include_H_to_dqdq@
+@include_H_to_AHAH@
 
-@define_pseudoscalar_Higgs@
-#ifdef HAS_AH
-using AH = @ModelName@_fields::@PseudoscalarHiggsBosonName@;
-template<>
-double CLASSNAME::get_partial_width<H,AH,AH>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<AH>::type const& indexIn,
-   typename field_indices<AH>::type const& indexOut1,
-   typename field_indices<AH>::type const& indexOut2
-   ) const
-{
-}
-#endif
 
 @decaysCalculationFunctions@
 @partialWidthCalculationFunctions@

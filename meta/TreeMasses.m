@@ -2202,6 +2202,7 @@ GetWBoson[] :=
          temp[[1]]
       ]
    ];
+
 GetHiggsBoson[] :=
    If[ValueQ[SARAH`HiggsBoson],
       SARAH`HiggsBoson

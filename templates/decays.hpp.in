@@ -201,6 +201,10 @@ double @ModelName@_decays::get_partial_width(
 }
 
 // explicit specializations
+
+@declarations@
+
+/*
 template<>
 double @ModelName@_decays::get_partial_width<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@ZBosonName@, cxx_qft::@ModelName@_fields::@ZBosonName@>(
    const cxx_qft::@ModelName@_evaluation_context& context,
@@ -272,7 +276,7 @@ double @ModelName@_decays::get_partial_width<cxx_qft::@ModelName@_fields::@Higgs
    typename cxx_qft::field_indices<cxx_qft::conj<cxx_qft::@ModelName@_fields::@UpQuarkName@> >::type const& indexOut1,
    typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@UpQuarkName@>::type const& indexOut2
    ) const;
-
+*/
 } // namespace flexiblesusy
 
 #endif
