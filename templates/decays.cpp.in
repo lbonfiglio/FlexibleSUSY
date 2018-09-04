@@ -51,6 +51,182 @@ namespace flexiblesusy {
 using namespace cxx_qft;
 using effective_couplings::beta;
 
+
+// returns an amplitude squared
+// we need to distinguish between different combinations of scalars, fermions and vectors
+// as, for examples, for S -> SS we take |A|^2 while for S - > FF we take (|A_L|^2 + |A_R|^2)
+
+// S -> FF
+template <typename Field1, typename Field2, typename Field3>
+typename std::enable_if<cxx_qft::is_scalar<Field1>::value &&
+                        cxx_qft::is_fermion<Field2>::value &&
+                        cxx_qft::is_fermion<Field3>::value,
+                        double>::type
+amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<Field1>::type const& indexIn,
+                  typename cxx_qft::field_indices<Field2>::type const& indexOut1,
+                  typename cxx_qft::field_indices<Field3>::type const& indexOut2)
+{
+   // const auto mA = context_.mass<Field1>(indexIn);
+   // const auto muB = context_.mass<Field2>(indexOut1) / mA;
+   // const auto muC = context_.mass<Field2>(indexOut2) / mA;
+
+   // const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   // const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+
+   // const auto L = vertex.left();
+   // const auto R = vertex.right();
+
+   // // eq. B.35b
+   // return mA * mA *
+   //        ((std::norm(L) + std::norm(R)) * (1. - muB * muB - muC * muC) -
+   //         2. * muB * muC * 2. * std::real(std::conj(L) * R) );
+
+   Decay_amplitude_SFF amplitude;
+   amplitude.m_decay = context.mass<Field1>(indexIn);
+   amplitude.m_out_1 = context.mass<Field2>(indexOut1);
+   amplitude.m_out_2 = context.mass<Field3>(indexOut2);
+
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = cxx_qft::Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+
+   // @todo correct assignments
+   amplitude.matrix_element_left = vertex.left();
+   amplitude.matrix_element_right = vertex.right();
+
+   return amplitude.square();
+}
+
+// S -> VV
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<cxx_qft::is_scalar<Field1>::value &&
+                        cxx_qft::is_vector<Field2>::value &&
+                        cxx_qft::is_vector<Field3>::value, double>::type
+amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<Field1>::type const& indexIn,
+                  typename cxx_qft::field_indices<Field2>::type const& indexOut1,
+                  typename cxx_qft::field_indices<Field3>::type const& indexOut2)
+{
+   // const auto mA = context_.mass<Field1>(indexIn);
+   // double res;
+   // // B.37
+   // if(Field2::massless && Field3::massless) {
+   //    res = 4.;
+   // } else if((Field2::massless && !Field3::massless) || (!Field2::massless && Field3::massless)) {
+   //    res = 3.;
+   // } else {
+   //    const auto muB2 = pow(context_.mass<Field2>(indexOut1) / mA, 2);
+   //    const auto muC2 = pow(context_.mass<Field2>(indexOut2) / mA, 2);
+   //    res = 1./(4.*muB2*muC2) * (
+   //       pow(muB2 + muC2, 2) - 2.*(muB2 + muC2) + 8.*muB2*muC2 + 1
+   //    );
+   // }
+   // const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   // const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+   // return res * std::norm(vertex.value());
+
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = cxx_qft::Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+
+   if (Field2::massless && Field3::massless) {
+      return 4. * AbsSqr(vertex.value());
+   } else if ((Field2::massless && !Field3::massless) ||
+              (!Field2::massless && Field3::massless)) {
+      return 3. * AbsSqr(vertex.value());
+   }
+
+   Decay_amplitude_SVV amplitude;
+   amplitude.m_decay = context.mass<Field1>(indexIn);
+   amplitude.m_out_1 = context.mass<Field2>(indexOut1);
+   amplitude.m_out_2 = context.mass<Field3>(indexOut2);
+
+   amplitude.M1 = vertex.value();
+   amplitude.M2 = std::complex<double>(0., 0.);
+
+   return amplitude.square();
+}
+// S -> S V
+template <typename Field1, typename Field2, typename Field3>
+typename std::enable_if<cxx_qft::is_scalar<Field1>::value &&
+                        cxx_qft::is_scalar<Field2>::value &&
+                        cxx_qft::is_vector<Field3>::value,
+                        double>::type
+amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<Field1>::type const& indexIn,
+                  typename cxx_qft::field_indices<Field2>::type const& indexOut1,
+                  typename cxx_qft::field_indices<Field3>::type const& indexOut2)
+{
+   // const auto mA2 = pow(context_.mass<Field1>(indexIn), 2);
+   // const auto muB2 = pow(context_.mass<Field2>(indexOut1), 2) / mA2;
+
+   // double result;
+   // // B.36
+   // if (Field3::massless) {
+   //    result = -2. * mA2 * (1 + muB2);
+   // } else {
+   //    const auto muC2 = pow(context_.mass<Field2>(indexOut2), 2) / mA2;
+   //    result = mA2/muC2 * (pow(muC2 - muB2, 2) -2. * (muB2 + muC2) + 1.);
+   // }
+   // const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   // const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+   // return result * std::norm(vertex.value(1,2));
+
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto vertex = cxx_qft::Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+
+   if (Field3::massless) {
+      const auto mA2 = Sqr(context.mass<Field1>(indexIn));
+      const auto muB2 = Sqr(context.mass<Field2>(indexOut1)) / mA2;
+
+      return -2. * mA2 * (1. + muB2) * AbsSqr(vertex.value(1, 2));
+   }
+
+   Decay_amplitude_SSV amplitude;
+   amplitude.m_decay = context.mass<Field1>(indexIn);
+   amplitude.m_scalar = context.mass<Field2>(indexOut1);
+   amplitude.m_vector = context.mass<Field3>(indexOut2);
+
+   amplitude.matrix_element = vertex.value(1, 2);
+
+   return amplitude.square();
+}
+// S -> V S
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<cxx_qft::is_scalar<Field1>::value &&
+                        cxx_qft::is_scalar<Field3>::value &&
+                        cxx_qft::is_vector<Field2>::value, double>::type
+amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<Field1>::type const& indexIn,
+                  typename cxx_qft::field_indices<Field2>::type const& indexOut1,
+                  typename cxx_qft::field_indices<Field3>::type const& indexOut2)
+{
+      return amplitude_squared<Field1, Field3, Field2>(context, indexIn, indexOut2, indexOut1);
+}
+
+// S -> SS
+template<typename Field1, typename Field2, typename Field3>
+typename std::enable_if<cxx_qft::is_scalar<Field1>::value &&
+                        cxx_qft::is_scalar<Field2>::value &&
+                        cxx_qft::is_scalar<Field3>::value, double>::type
+amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<Field1>::type const& indexIn,
+                  typename cxx_qft::field_indices<Field2>::type const& indexOut1,
+                  typename cxx_qft::field_indices<Field3>::type const& indexOut2)
+{
+      // const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+      // const auto vertex = Vertex<Field1,Field2,Field3>::evaluate(indices, context_);
+      // // eq. B.35b
+      // return std::norm(vertex.value());
+
+      const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+      const auto vertex = cxx_qft::Vertex<Field1,Field2,Field3>::evaluate(indices, context);
+
+      Decay_amplitude_SSS amplitude;
+      amplitude.matrix_element = vertex.value();
+
+      return amplitude.square();
+}
+
 void CLASSNAME::set_include_higher_order_corrections(bool flag)
 {
    include_higher_order_corrections = flag;
