@@ -302,29 +302,6 @@ Decay_amplitude_SVV CLASSNAME::effective_coupling<H,A,A>(
    return result;
 }
 
-template<>
-Decay_amplitude_SVV CLASSNAME::effective_coupling<H,A,Z>(
-   const cxx_qft::@ModelName@_evaluation_context& context,
-   const typename cxx_qft::field_indices<H>::type& indexIn,
-   const typename cxx_qft::field_indices<A>::type& indexOut1,
-   const typename cxx_qft::field_indices<Z>::type& indexOut2
-   ) const
-{
-   Decay_amplitude_type<H,A,Z>::type result;
-   return result;
-}
-
-template<>
-Decay_amplitude_SVV CLASSNAME::effective_coupling<H,Z,A>(
-   const cxx_qft::@ModelName@_evaluation_context& context,
-   const typename cxx_qft::field_indices<H>::type& indexIn,
-   const typename cxx_qft::field_indices<Z>::type& indexOut1,
-   const typename cxx_qft::field_indices<A>::type& indexOut2
-   ) const
-{
-   Decay_amplitude_type<H,Z,A>::type result;
-   return result;
-}
 
 
 // special case for H -> gluon gluon
