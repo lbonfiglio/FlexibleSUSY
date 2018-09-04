@@ -111,95 +111,103 @@ struct Decay_amplitude_FFV {
 
 namespace detail {
 
-template <class Field_in, class Field_out_1, class Field_out_2, class Amplitude_type = void>
+template <class Field_in, class Field_out_1, class Field_out_2,
+          class Amplitude_type = void>
 struct Two_body_decay_amplitude_type { };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
-                                                             cxx_qft::is_scalar<Field_out_1>::value &&
-                                                             cxx_qft::is_scalar<Field_out_2>::value>::type > {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_scalar<Field_out_1>::value &&
+                           cxx_qft::is_scalar<Field_out_2>::value>::type > {
    using type = Decay_amplitude_SSS;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
-                                                             cxx_qft::is_scalar<Field_out_1>::value &&
-                                                             cxx_qft::is_vector<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_scalar<Field_out_1>::value &&
+                           cxx_qft::is_vector<Field_out_2>::value>::type> {
    using type = Decay_amplitude_SSV;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
-                                                             cxx_qft::is_vector<Field_out_1>::value &&
-                                                             cxx_qft::is_scalar<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_vector<Field_out_1>::value &&
+                           cxx_qft::is_scalar<Field_out_2>::value>::type> {
    using type = Decay_amplitude_SSV;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
-                                                             cxx_qft::is_vector<Field_out_1>::value &&
-                                                             cxx_qft::is_vector<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_vector<Field_out_1>::value &&
+                           cxx_qft::is_vector<Field_out_2>::value>::type> {
    using type = Decay_amplitude_SVV;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
-                                                             cxx_qft::is_fermion<Field_out_1>::value &&
-                                                             cxx_qft::is_fermion<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_fermion<Field_out_1>::value &&
+                           cxx_qft::is_fermion<Field_out_2>::value>::type> {
    using type = Decay_amplitude_SFF;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
-                                                             cxx_qft::is_fermion<Field_out_1>::value &&
-                                                             cxx_qft::is_scalar<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_fermion<Field_out_1>::value &&
+                           cxx_qft::is_scalar<Field_out_2>::value>::type> {
    using type = Decay_amplitude_FFS;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
-                                                             cxx_qft::is_scalar<Field_out_1>::value &&
-                                                             cxx_qft::is_fermion<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_scalar<Field_out_1>::value &&
+                           cxx_qft::is_fermion<Field_out_2>::value>::type> {
    using type = Decay_amplitude_FFS;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                     typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
-                                                             cxx_qft::is_fermion<Field_out_1>::value &&
-                                                             cxx_qft::is_vector<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_fermion<Field_out_1>::value &&
+                           cxx_qft::is_vector<Field_out_2>::value>::type> {
    using type = Decay_amplitude_FFV;
 };
 
 template <class Field_in, class Field_out_1, class Field_out_2>
-struct Two_body_decay_amplitude_type<Field_in, Field_out_1, Field_out_2,
-                                typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
-                                                        cxx_qft::is_vector<Field_out_1>::value &&
-                                                        cxx_qft::is_fermion<Field_out_2>::value>::type> {
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_vector<Field_out_1>::value &&
+                           cxx_qft::is_fermion<Field_out_2>::value>::type> {
    using type = Decay_amplitude_FFV;
-};
-
-template <class... Fields>
-struct Decay_amplitude_type {
-   using type = typename std::enable_if<sizeof...(Fields) == 3,
-                                        typename Two_body_decay_amplitude_type<Fields...>::type >::type;
 };
 
 } // namespace detail
 
-template <class Field_in, class... Fields_out>
-struct Decay_amplitude {
-   using amplitude_type = typename detail::Decay_amplitude_type<Field_in, Fields_out...>::type;
-   amplitude_type amplitude{};
-
-   double square() const { return amplitude.square(); }
+/**
+ * @class Decay_amplitude_type
+ * @brief helper class to determine amplitude type for a given set of fields
+ */
+template <class... Fields>
+struct Decay_amplitude_type {
+   using type =
+      typename std::enable_if<
+      sizeof...(Fields) == 3,
+      typename detail::Two_body_decay_amplitude_type<Fields...>::type >::type;
 };
 
 template <typename Amplitude>
@@ -213,71 +221,56 @@ template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
                         cxx_qft::is_scalar<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_SSS>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
    Decay_amplitude_SSS amplitude;
    amplitude.matrix_element = vertex.value();
 
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = amplitude;
-
-   return result;
+   return amplitude;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
                         cxx_qft::is_vector<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_SSV>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
    Decay_amplitude_SSV amplitude;
    amplitude.matrix_element = vertex.value(1, 2);
 
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = amplitude;
-
-   return result;
+   return amplitude;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_vector<Field_out_1>::value &&
                         cxx_qft::is_scalar<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_SSV>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   const auto reordered =
-      tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
-
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = reordered.amplitude;
-
-   return result;
+   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_vector<Field_out_1>::value &&
                         cxx_qft::is_vector<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_SVV>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
    Decay_amplitude_SVV amplitude;
    amplitude.M1 = vertex.value();
 
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = amplitude;
-
-   return result;
+   return amplitude;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_fermion<Field_out_1>::value &&
                         cxx_qft::is_fermion<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_SFF>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
    Decay_amplitude_SFF amplitude;
@@ -285,64 +278,49 @@ tree_level_decay_amplitude(const Vertex& vertex)
    amplitude.matrix_element_left = vertex.left();
    amplitude.matrix_element_right = vertex.right();
 
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = amplitude;
-
-   return result;
+   return amplitude;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_fermion<Field_out_1>::value &&
                         cxx_qft::is_scalar<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_FFS>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   return result;
+   Decay_amplitude_FFS amplitude;
+   return amplitude;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
                         cxx_qft::is_fermion<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_FFS>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   const auto reordered =
-      tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
-
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = reordered.amplitude;
-
-   return result;
+   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_fermion<Field_out_1>::value &&
                         cxx_qft::is_vector<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_FFV>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   return result;
+   Decay_amplitude_FFV amplitude;
+   return amplitude;
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
 typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_vector<Field_out_1>::value &&
                         cxx_qft::is_fermion<Field_out_2>::value,
-                        Decay_amplitude<Field_in, Field_out_1, Field_out_2> >::type
+                        Decay_amplitude_FFV>::type
 tree_level_decay_amplitude(const Vertex& vertex)
 {
-   const auto reordered =
-      tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
-
-   Decay_amplitude<Field_in, Field_out_1, Field_out_2> result;
-   result.amplitude = reordered.amplitude;
-
-   return result;
+   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
 }
 
 } // namespace flexiblesusy
