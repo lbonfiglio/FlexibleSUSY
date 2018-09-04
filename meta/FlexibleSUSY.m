@@ -1816,15 +1816,14 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                    SimplifiedName[p1] <> SimplifiedName[p2] <> ".cpp\"",
                   ""
                   ];
-           BarWrap[cos_] :=
-               Print[TreeMasses`CreateFieldClassName[cos]];
-               If[Head[cos] === bar,
-                  "cxx_qft::bar<cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos] <> ">::type",
+           BarWrap[cos_] :=(
+               If[Head[cos] === SARAH`bar,
+                  "cxx_qft::bar<cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos /. bar|conj -> Identity] <> ">::type",
                   "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos]
-               ];
+               ]);
            Declaration[p1_, p2_, p3_] := Module[
               {p1Str = TreeMasses`CreateFieldClassName[p1, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
-               p2Str = TreeMasses`CreateFieldClassName[p2, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
+               p2Str = BarWrap[p2],
                  p3Str = TreeMasses`CreateFieldClassName[p3, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
                  p2Str2 = TreeMasses`CreateFieldClassName[p2/. bar|conj -> Identity, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
                  p3Str2 = TreeMasses`CreateFieldClassName[p3/. bar|conj -> Identity, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"]

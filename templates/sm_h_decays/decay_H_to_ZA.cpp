@@ -1,5 +1,5 @@
 template<>
-Decay_amplitude<H,A,Z> CLASSNAME::effective_coupling(
+Decay_amplitude_SVV CLASSNAME::effective_coupling(
    const ContextName& context,
    typename cxx_qft::field_indices<H>::type const& indexIn,
    typename cxx_qft::field_indices<A>::type const& indexOut1,
