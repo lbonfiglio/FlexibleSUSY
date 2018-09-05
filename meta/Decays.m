@@ -218,6 +218,8 @@ ContainsOnlySupportedVertices[diagram_] :=
 
 IsSupportedDiagram[diagram_] := ContainsOnlySupportedVertices[diagram];
 
+GetFinalStateExternalField[particle_] := SARAH`AntiField[particle];
+
 GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
     Module[{externalFields, diagrams},
            externalFields = Join[{1 -> initialField}, MapIndexed[(First[#2] + 1 -> #1)&, finalFields]];
@@ -228,7 +230,7 @@ GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
 GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
     Module[{nFinalParticles = Length[finalParticles], topologies, diagrams},
            topologies = GetDecayTopologies[nFinalParticles, 0];
-           diagrams = Flatten[GetContributingDiagramsForDecayGraph[initialParticle, finalParticles, #]& /@ topologies, 1];
+           diagrams = Flatten[GetContributingDiagramsForDecayGraph[initialParticle, GetFinalStateExternalField /@ finalParticles, #]& /@ topologies, 1];
            Select[diagrams, IsSupportedDiagram]
           ];
 
