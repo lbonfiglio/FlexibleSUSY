@@ -222,9 +222,15 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
                         cxx_qft::is_scalar<Field_out_2>::value,
                         Decay_amplitude_SSS>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_out_1, double m_out_2,
+                           const Vertex& vertex)
 {
    Decay_amplitude_SSS amplitude;
+
+   amplitude.m_decay = m_decay;
+   amplitude.m_out_1 = m_out_1;
+   amplitude.m_out_2 = m_out_2;
+
    amplitude.matrix_element = vertex.value();
 
    return amplitude;
@@ -235,9 +241,15 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
                         cxx_qft::is_vector<Field_out_2>::value,
                         Decay_amplitude_SSV>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_scalar, double m_vector,
+                           const Vertex& vertex)
 {
    Decay_amplitude_SSV amplitude;
+
+   amplitude.m_decay = m_decay;
+   amplitude.m_scalar = m_scalar;
+   amplitude.m_vector = m_vector;
+
    amplitude.matrix_element = vertex.value(1, 2);
 
    return amplitude;
@@ -248,9 +260,11 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_vector<Field_out_1>::value &&
                         cxx_qft::is_scalar<Field_out_2>::value,
                         Decay_amplitude_SSV>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_vector, double m_scalar,
+                           const Vertex& vertex)
 {
-   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(
+      m_decay, m_scalar, m_vector, vertex);
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
@@ -258,9 +272,15 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_vector<Field_out_1>::value &&
                         cxx_qft::is_vector<Field_out_2>::value,
                         Decay_amplitude_SVV>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_out_1, double m_out_2,
+                           const Vertex& vertex)
 {
    Decay_amplitude_SVV amplitude;
+
+   amplitude.m_decay = m_decay;
+   amplitude.m_out_1 = m_out_1;
+   amplitude.m_out_2 = m_out_2;
+
    amplitude.M1 = vertex.value();
 
    return amplitude;
@@ -271,10 +291,16 @@ typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
                         cxx_qft::is_fermion<Field_out_1>::value &&
                         cxx_qft::is_fermion<Field_out_2>::value,
                         Decay_amplitude_SFF>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_out_1, double m_out_2,
+                           const Vertex& vertex)
 {
    Decay_amplitude_SFF amplitude;
 
+   amplitude.m_decay = m_decay;
+   amplitude.m_out_1 = m_out_1;
+   amplitude.m_out_2 = m_out_2;
+
+   // @todo check sign convention in SARAH
    amplitude.matrix_element_left = vertex.left();
    amplitude.matrix_element_right = vertex.right();
 
@@ -286,9 +312,18 @@ typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_fermion<Field_out_1>::value &&
                         cxx_qft::is_scalar<Field_out_2>::value,
                         Decay_amplitude_FFS>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_fermion, double m_scalar,
+                           const Vertex& vertex)
 {
    Decay_amplitude_FFS amplitude;
+
+   amplitude.m_decay = m_decay;
+   amplitude.m_fermion = m_fermion;
+   amplitude.m_scalar = m_scalar;
+
+   amplitude.matrix_element_left = vertex.left();
+   amplitude.matrix_element_right = vertex.right();
+
    return amplitude;
 }
 
@@ -297,9 +332,11 @@ typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_scalar<Field_out_1>::value &&
                         cxx_qft::is_fermion<Field_out_2>::value,
                         Decay_amplitude_FFS>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_scalar, double m_fermion,
+                           const Vertex& vertex)
 {
-   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(
+      m_decay, m_fermion, m_scalar, vertex);
 }
 
 template <class Field_in, class Field_out_1, class Field_out_2, class Vertex>
@@ -307,9 +344,15 @@ typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_fermion<Field_out_1>::value &&
                         cxx_qft::is_vector<Field_out_2>::value,
                         Decay_amplitude_FFV>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_fermion, double m_vector,
+                           const Vertex& vertex)
 {
    Decay_amplitude_FFV amplitude;
+
+   amplitude.m_decay = m_decay;
+   amplitude.m_fermion = m_fermion;
+   amplitude.m_vector = m_vector;
+
    return amplitude;
 }
 
@@ -318,9 +361,11 @@ typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
                         cxx_qft::is_vector<Field_out_1>::value &&
                         cxx_qft::is_fermion<Field_out_2>::value,
                         Decay_amplitude_FFV>::type
-tree_level_decay_amplitude(const Vertex& vertex)
+tree_level_decay_amplitude(double m_decay, double m_vector, double m_fermion,
+                           const Vertex& vertex)
 {
-   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(vertex);
+   return tree_level_decay_amplitude<Field_in, Field_out_2, Field_out_1>(
+      m_decay, m_fermion, m_vector, vertex);
 }
 
 } // namespace flexiblesusy

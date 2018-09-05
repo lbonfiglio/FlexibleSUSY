@@ -130,7 +130,11 @@ typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
       cxx_qft::Vertex<FieldIn, FieldOut1, FieldOut2>::evaluate(
          indices, context);
 
-   return tree_level_decay_amplitude<FieldIn, FieldOut1, FieldOut2>(vertex);
+   const auto m_decay = context.mass<FieldIn>(indexIn);
+   const auto m_out_1 = context.mass<FieldOut1>(indexOut1);
+   const auto m_out_2 = context.mass<FieldOut2>(indexOut2);
+
+   return tree_level_decay_amplitude<FieldIn, FieldOut1, FieldOut2>(m_decay, m_out_1, m_out_2, vertex);
 }
 
 template<>
@@ -362,8 +366,9 @@ double @ModelName@_decays::get_partial_width(
       final_state_symmetry_factor<FieldOut1, FieldOut2>(indexOut1, indexOut2);
 
    // matrix element squared
-   const auto mat_elem_sq = amplitude_squared<FieldIn, FieldOut1, FieldOut2>(
+   const auto mat_elem = effective_coupling<FieldIn, FieldOut1, FieldOut2>(
       context, indexIn, indexOut1, indexOut2);
+   const auto mat_elem_sq = mat_elem.square();
 
    // flux * phase space factor * symmetry factor * matrix element^2
    return 0.5 * ps * ps_symmetry * mat_elem_sq / mIn;
