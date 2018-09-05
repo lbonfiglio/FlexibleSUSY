@@ -9,7 +9,7 @@ double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
 {
    // TODO: should we take the off-diagonal case at all?
    //       or should this never happen and we should crash
-   if(boost::range::equal(indexOut1, indexOut2))
+   if(!boost::range::equal(indexOut1, indexOut2))
       return 0.;
 //    BOOST_ASSERT_MSG(boost::range::equal(indexOut1, indexOut2), 
       // "Template specialization for H -> Fu1 bar[Fu2] is only valid for Fu1 = Fu2"
@@ -53,14 +53,18 @@ double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
             * (1 + deltaHt);
    }
 
-   const double deltaqq = calc_deltaqq(g3, Nf);
+   const double deltaqq = calc_deltaqq(alpha_s_red, Nf);
    const double lt = Log(Sqr(mH/mtpole));
    const double lq = Log(Sqr(muq/mH));
    const double deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
 
    const double xt = qedqcd.displayFermiConstant()*Sqr(mtpole)/(8*Sqrt(2.0)*Sqr(Pi));
 
-   return 3.0/(8*Pi) * mH * 
+   const double flux = 1./(2.*mH);
+   const double phase_space = 1./(8.*Pi) * beta(mH, muq, muq);
+   const double color_factor = 3;
+
+   return flux * phase_space * color_factor *
       amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2)
       * (1 + deltaqq + deltaH2);
 }

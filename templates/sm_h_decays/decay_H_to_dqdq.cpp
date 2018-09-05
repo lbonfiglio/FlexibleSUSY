@@ -1,5 +1,7 @@
 
-// special case for H -> Fd Fd
+// specialization for the H -> Fd Fd case
+
+// TODO: we need to distinguish between scalar and scalar-pseudoscalar-mixture Higgses
 template<>
 double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
    const ContextName& context,
@@ -35,12 +37,9 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
    const double lq = Log(Sqr(mdq/mH));
    const double deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
 
-   // SM expression + pure BSM 1L corrections
-
-   const double phase_space = 1./(8.*Pi) * beta(mH, mdq, mdq);
    const double flux = 1./(2.*mH);
+   const double phase_space = 1./(8.*Pi) * beta(mH, mdq, mdq);
    const double color_factor = 3;
-
 
    return flux * phase_space * color_factor *
       amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2) *
