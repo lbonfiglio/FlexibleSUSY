@@ -22,7 +22,6 @@ double CLASSNAME::get_partial_width<H,uq,bar<uq>::type>(
    if (mH < 2.*muq) {
       return 0.;
    }
-   std::cout << "hello?\n";
 
    // SM expression + pure BSM 1L corrections
 //    return amplitude_squared<H, bar<uq>::type, uq>(context, indexIn, indexOut1, indexOut2);
