@@ -43,11 +43,6 @@ namespace flexiblesusy {
 
 namespace cxx_qft {
 
-template<class Field>
-struct field_indices {
-   using type = std::array<int, Field::numberOfFieldIndices>;
-};
-
 namespace @ModelName@_fields {
 
 @fieldStructDefinitions@
@@ -58,6 +53,11 @@ namespace @ModelName@_fields {
 @lorentzSelfConjugateFieldDefs@
 
 @defineFieldTraits@
+
+template<class Field>
+struct field_indices {
+   using type = std::array<int, Field::numberOfFieldIndices>;
+};
 
 namespace detail {
 
