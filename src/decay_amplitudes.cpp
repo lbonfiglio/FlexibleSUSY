@@ -125,13 +125,13 @@ double Decay_amplitude_FFV::square() const
                                 m_in_4 + Sqr(m_f_sq - m_v_sq) - 2. * m_in_sq * (
                                    m_f_sq + m_v_sq))) / m_v_sq;
 
-   return c1 * (AbsSqr(matrix_element_gam_1) + AbsSqr(matrix_element_gam_2))
+   return c1 * (AbsSqr(matrix_element_gam_left) + AbsSqr(matrix_element_gam_right))
       + c2 * (AbsSqr(matrix_element_p_1) + AbsSqr(matrix_element_p_2))
-      + 2. * c3 * Re(matrix_element_gam_1 * Conj(matrix_element_gam_2))
-      + 2. * c4 * Re(matrix_element_gam_1 * Conj(matrix_element_p_1)
-                     + matrix_element_gam_2 * Conj(matrix_element_p_2))
-      + 2. * c5 * Re(matrix_element_gam_1 * Conj(matrix_element_p_2)
-                     + matrix_element_gam_2 * Conj(matrix_element_p_1))
+      + 2. * c3 * Re(matrix_element_gam_left * Conj(matrix_element_gam_right))
+      + 2. * c4 * Re(matrix_element_gam_left * Conj(matrix_element_p_1)
+                     + matrix_element_gam_right * Conj(matrix_element_p_2))
+      + 2. * c5 * Re(matrix_element_gam_left * Conj(matrix_element_p_2)
+                     + matrix_element_gam_right * Conj(matrix_element_p_1))
       + 2. * c6 * Re(matrix_element_p_1 * Conj(matrix_element_p_2));
 }
 

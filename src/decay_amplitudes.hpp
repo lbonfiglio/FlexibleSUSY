@@ -101,8 +101,8 @@ struct Decay_amplitude_FFV {
    double m_decay{0.};
    double m_fermion{0.};
    double m_vector{0.};
-   std::complex<double> matrix_element_gam_1{};
-   std::complex<double> matrix_element_gam_2{};
+   std::complex<double> matrix_element_gam_left{};
+   std::complex<double> matrix_element_gam_right{};
    std::complex<double> matrix_element_p_1{};
    std::complex<double> matrix_element_p_2{};
 
@@ -352,6 +352,9 @@ tree_level_decay_amplitude(double m_decay, double m_fermion, double m_vector,
    amplitude.m_decay = m_decay;
    amplitude.m_fermion = m_fermion;
    amplitude.m_vector = m_vector;
+
+   amplitude.matrix_element_gam_left = vertex.left();
+   amplitude.matrix_element_gam_right = vertex.right();
 
    return amplitude;
 }
