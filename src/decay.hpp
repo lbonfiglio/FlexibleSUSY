@@ -72,6 +72,8 @@ public:
    const_iterator end() const noexcept { return decays.end(); }
    const_iterator cend() const noexcept { return decays.end(); }
 
+   std::size_t size() const noexcept { return decays.size(); }
+
    void clear();
    void set_decay(double width, std::initializer_list<int> products);
    int get_particle_id() const { return initial_pdg; }
