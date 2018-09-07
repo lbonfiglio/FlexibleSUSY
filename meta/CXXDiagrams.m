@@ -37,6 +37,7 @@ CreateSelfConjugateFieldsDefinitions::usage="";
 CreateFieldTypeLists::usage="";
 CreateFieldTraitsDefinitions::usage="";
 CreateMassFunctions::usage="";
+CreatePhysicalMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
 NumberOfFieldIndices::usage="";
@@ -257,6 +258,25 @@ CreateMassFunctions[fieldsNamespace_:""] :=
              ">&" <> If[TreeMasses`GetDimension[#] === 1, "", " indices"] <> ") const\n" <>
              "{ return model.get_M" <> TreeMasses`CreateFieldClassName[# /. ghostMappings] <>
              If[TreeMasses`GetDimension[#] === 1, "()", "(indices[0])"] <> "; }"
+            ] & /@ massiveFields, "\n\n"]
+        ]
+
+CreatePhysicalMassFunctions[fieldsNamespace_:""] :=
+  Module[{massiveFields,
+          ghostMappings = SelfEnergies`ReplaceGhosts[FlexibleSUSY`FSEigenstates]},
+    massiveFields = TreeMasses`GetParticles[];
+
+    StringJoin @ Riffle[
+      Module[{fieldInfo = FieldInfo[#], numberOfIndices},
+             numberOfIndices = Length @ fieldInfo[[5]];
+
+             "template<> inline\n" <>
+             "double " <> FlexibleSUSY`FSModelName <> "_evaluation_context::physical_mass_impl<" <>
+               TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] <>
+             ">(const std::array<int, " <> ToString @ numberOfIndices <>
+             ">&" <> If[TreeMasses`GetDimension[#] === 1, "", " indices"] <> ") const\n" <>
+             "{ return model.get_physical().M" <> TreeMasses`CreateFieldClassName[# /. ghostMappings] <>
+             If[TreeMasses`GetDimension[#] === 1, "", "[indices[0]]"] <> "; }"
             ] & /@ massiveFields, "\n\n"]
         ]
 

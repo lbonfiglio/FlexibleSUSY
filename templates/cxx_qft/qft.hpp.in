@@ -41,13 +41,22 @@ struct @ModelName@_evaluation_context {
          using CleanField = typename remove_lorentz_conjugation<Field>::type;
          return mass_impl<CleanField>(indices);
       }
+   template<class Field>
+   double physical_mass(const typename field_indices<Field>::type& indices) const
+      {
+         using CleanField = typename remove_lorentz_conjugation<Field>::type;
+         return physical_mass_impl<CleanField>(indices);
+      }
 
 private:
    template<class Field>
    double mass_impl(const typename field_indices<Field>::type& indices) const;
+   template<class Field>
+   double physical_mass_impl(const typename field_indices<Field>::type& indices) const;
 };
 
 @CXXDiagrams_MassFunctions@
+@CXXDiagrams_PhysicalMassFunctions@
 } // namespace cxx_qft
 
 } // namespace flexiblesusy

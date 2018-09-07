@@ -2113,7 +2113,7 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,files_List] :=
   Module[{fields, fieldsNamespace, fieldStructDefinitions, namedFieldAliases, lorentzSelfConjugateFieldDefs,
-          fieldsByTypeDecls, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
+          fieldsByTypeDecls, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, physicalMassFunctions, unitCharge,
           strongCoupling},
     fields = TreeMasses`GetParticles[];
     fieldsNamespace = FlexibleSUSY`FSModelName <> "_fields";
@@ -2126,6 +2126,7 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
                                        DeleteDuplicates[vertices], "\n\n"];
     cxxVertices = Vertices`CreateVertices[vertices, fieldsNamespace];
     massFunctions = CXXDiagrams`CreateMassFunctions[fieldsNamespace];
+    physicalMassFunctions = CXXDiagrams`CreatePhysicalMassFunctions[fieldsNamespace];
     unitCharge = CXXDiagrams`CreateUnitCharge[];
     strongCoupling = CXXDiagrams`CreateStrongCoupling[];
 
@@ -2138,6 +2139,7 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
                              "@CXXDiagrams_VertexData@"      -> vertexData,
                              "@CXXDiagrams_Vertices@"        -> cxxVertices,
                              "@CXXDiagrams_MassFunctions@"   -> massFunctions,
+                             "@CXXDiagrams_PhysicalMassFunctions@"   -> physicalMassFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              Sequence @@ GeneralReplacementRules[]
