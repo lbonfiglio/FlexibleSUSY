@@ -2358,7 +2358,13 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
             numberOfSpectrumEntries, putSpectrum, setInputParameters,
             numberOfObservables, putObservables,
             inputPars, outPars, requestedObservables, defaultSolverType,
-            solverIncludes = "", runEnabledSolvers = ""},
+            solverIncludes = "", runEnabledSolvers = "",
+            decaysData = "", calculateDecaysVirtualFunc = "", calculateSpectrumDecaysPrototype = "",
+            calculateSpectrumDecaysFunction = "", calculateModelDecaysPrototype = "",
+            calculateModelDecaysFunction = "", fillDecaysSLHA = "", getDecaysVirtualFunc = "",
+            getSpectrumDecays = "", putDecaysPrototype = "", putDecaysFunction = "",
+            mathlinkDecaysCalculationFunction = "", loadCalculateDecaysFunction = "",
+            calculateDecaysMessages = "", calculateDecaysExample = ""},
            inputPars = {#[[1]], #[[3]]}& /@ inputParameters;
            numberOfInputParameters = Total[CConversion`CountNumberOfEntries[#[[2]]]& /@ inputPars];
            numberOfInputParameterRules = FSMathLink`GetNumberOfInputParameterRules[inputPars];
@@ -2381,6 +2387,25 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
               defaultSolverType = "-1",
               defaultSolverType = GetBVPSolverSLHAOptionKey[FlexibleSUSY`FSBVPSolvers[[1]]];
              ];
+           If[FlexibleSUSY`FSCalculateDecays,
+              decaysData = FlexibleSUSY`FSModelName <> "_decays decays{};              ///< decays";
+              getDecaysVirtualFunc = FSMathLink`CreateSpectrumDecaysGetterInterface[FlexibleSUSY`FSModelName];
+              getSpectrumDecays = CreateSpectrumDecaysGetter[FlexibleSUSY`FSModelName];
+              calculateDecaysVirtualFunc = FSMathLink`CreateSpectrumDecaysInterface[];
+              {calculateSpectrumDecaysPrototype, calculateSpectrumDecaysFunction} =
+                  FSMathLink`CreateSpectrumDecaysCalculation[FlexibleSUSY`FSModelName];
+              {calculateModelDecaysPrototype, calculateModelDecaysFunction} =
+                  FSMathLink`CreateModelDecaysCalculation[];
+              fillDecaysSLHA = FSMathLink`FillDecaysSLHAData[];
+              {putDecaysPrototype, putDecaysFunction} = FSMathLink`PutDecays[FlexibleSUSY`FSModelName];
+              mathlinkDecaysCalculationFunction = FSMathLink`CreateMathLinkDecaysCalculation[FlexibleSUSY`FSModelName];
+              loadCalculateDecaysFunction = "FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays = LibraryFunctionLoad[lib" <>
+                                            FlexibleSUSY`FSModelName <> ", \"FS" <> FlexibleSUSY`FSModelName <>
+                                            "CalculateDecays\", LinkObject, LinkObject];\n";
+              calculateDecaysMessages = "\n" <> "FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays::error = \"`1`\";\n" <>
+                                        "FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays::warning = \"`1`\";\n";
+              calculateDecaysExample = "decays      = FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays[handle];\n";
+             ];
            WriteOut`ReplaceInFiles[files,
                           { "@numberOfInputParameters@" -> ToString[numberOfInputParameters],
                             "@numberOfInputParameterRules@" -> ToString[numberOfInputParameterRules],
@@ -2396,6 +2421,21 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
                             "@solverIncludes@" -> solverIncludes,
                             "@runEnabledSolvers@" -> runEnabledSolvers,
                             "@defaultSolverType@" -> defaultSolverType,
+                            "@calculateDecaysVirtualFunc@" -> IndentText[calculateDecaysVirtualFunc],
+                            "@calculateSpectrumDecaysPrototype@" -> IndentText[calculateSpectrumDecaysPrototype],
+                            "@calculateSpectrumDecaysFunction@" -> calculateSpectrumDecaysFunction,
+                            "@calculateModelDecaysPrototype@" -> IndentText[calculateModelDecaysPrototype],
+                            "@calculateModelDecaysFunction@" -> calculateModelDecaysFunction,
+                            "@decaysData@" -> IndentText[decaysData],
+                            "@fillDecaysSLHA@" -> IndentText[fillDecaysSLHA],
+                            "@getDecaysVirtualFunc@" -> IndentText[getDecaysVirtualFunc],
+                            "@getSpectrumDecays@" -> IndentText[getSpectrumDecays],
+                            "@putDecaysPrototype@" -> IndentText[putDecaysPrototype],
+                            "@putDecaysFunction@" -> putDecaysFunction,
+                            "@mathlinkDecaysCalculationFunction@" -> mathlinkDecaysCalculationFunction,
+                            "@loadCalculateDecaysFunction@" -> loadCalculateDecaysFunction,
+                            "@calculateDecaysMessages@" -> calculateDecaysMessages,
+                            "@calculateDecaysExample@" -> calculateDecaysExample,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];

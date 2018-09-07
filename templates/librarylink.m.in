@@ -20,13 +20,13 @@ FS@ModelName@SetLib = LibraryFunctionLoad[lib@ModelName@, "FS@ModelName@Set", {I
 
 FS@ModelName@CalculateSpectrum = LibraryFunctionLoad[lib@ModelName@, "FS@ModelName@CalculateSpectrum", LinkObject, LinkObject];
 FS@ModelName@CalculateObservables = LibraryFunctionLoad[lib@ModelName@, "FS@ModelName@CalculateObservables", LinkObject, LinkObject];
-
+@loadCalculateDecaysFunction@
 FS@ModelName@CalculateSpectrum::error = "`1`";
 FS@ModelName@CalculateSpectrum::warning = "`1`";
 
 FS@ModelName@CalculateObservables::error = "`1`";
 FS@ModelName@CalculateObservables::warning = "`1`";
-
+@calculateDecaysMessages@
 FS@ModelName@::info = "`1`";
 FS@ModelName@::nonum = "Error: `1` is not a numeric input value!";
 FS@ModelName@Message[s_] := Message[FS@ModelName@::info, s];
@@ -65,6 +65,7 @@ fsDefaultSettings = {
       higgs3loopCorrectionAtAtAs -> 1,   (* FlexibleSUSY[28] *)
       higgs3loopCorrectionAtAtAt -> 1,   (* FlexibleSUSY[29] *)
       higgs4loopCorrectionAtAsAsAs -> 1, (* FlexibleSUSY[30] *)
+      calculateDecays -> 1,              (* FlexibleSUSY[31] *)
       parameterOutputScale -> 0          (* MODSEL[12] *)
 };
 
@@ -147,6 +148,7 @@ FS@ModelName@OpenHandle[OptionsPattern[]] :=
             OptionValue[higgs3loopCorrectionAtAtAs],
             OptionValue[higgs3loopCorrectionAtAtAt],
             OptionValue[higgs4loopCorrectionAtAsAsAs],
+            OptionValue[calculateDecays],
             OptionValue[parameterOutputScale],
 
             (* Standard Model input parameters *)
@@ -225,6 +227,7 @@ FS@ModelName@Set[handle_Integer, p:OptionsPattern[]] :=
             OptionValue[higgs3loopCorrectionAtAtAs],
             OptionValue[higgs3loopCorrectionAtAtAt],
             OptionValue[higgs4loopCorrectionAtAsAsAs],
+            OptionValue[calculateDecays],
             OptionValue[parameterOutputScale],
 
             (* Standard Model input parameters *)
