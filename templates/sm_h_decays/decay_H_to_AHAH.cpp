@@ -7,5 +7,5 @@ double CLASSNAME::get_partial_width<H,AH,AH>(
    typename field_indices<AH>::type const& indexOut2
    ) const
 {
-   return 1.;
+   return 0.;
 }
