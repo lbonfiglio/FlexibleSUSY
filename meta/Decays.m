@@ -24,7 +24,7 @@ BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`"
 
 FSParticleDecay::usage="head used for storing details of an particle decay,
 in the format
-   FSParticleDecay[particle, {final state particle}, {diagram 1, diagram 2, ...}]
+   FSParticleDecay[particle, {final state particles}, {diagram 1, diagram 2, ...}]
 ";
 
 CreateCompleteParticleList::usage="";
@@ -42,9 +42,10 @@ functions computing partial widths of all decays.";
 CreatePartialWidthCalculationFunctions::usage="creates definitions for
 functions computing partial widths of all decays.";
 CreateDecaysGetterFunctions::usage="create getters for specific particle decays";
-CreateDecayTableGetterPrototypes::usage="create getter prototypes for C++ decay table";
-CreateDecayTableGetterFunctions::usage="create getter definitions for C++ decay table";
+CreateDecayTableGetterPrototypes::usage="create getter prototypes for C++ decay table.";
+CreateDecayTableGetterFunctions::usage="create getter definitions for C++ decay table.";
 CreateDecayTableInitialization::usage="create C++ initializer for decay table."
+CreateEffectiveCouplingSpecializations::usage="creates specialized functions for higher-order decays.";
 
 Begin["`Private`"];
 
@@ -107,6 +108,21 @@ GenericScalarName[] := "scalar";
 GenericVectorName[] := "vector";
 GenericFermionName[] := "fermion";
 GenericGhostName[] := "ghost";
+
+SimplifiedName[Susyno`LieGroups`conj[particle_]] :=
+    Susyno`LieGroups`conj[SimplifiedName[particle]];
+SimplifiedName[SARAH`bar[particle_]] :=
+    SARAH`bar[SimplifiedName[particle]];
+
+SimplifiedName[particle_?TreeMasses`IsSMDownQuark] := "dq";
+SimplifiedName[particle_?TreeMasses`IsSMUpQuark] := "uq";
+SimplifiedName[particle_ /; TreeMasses`GetHiggsBoson[] =!= Null && particle === TreeMasses`GetHiggsBoson[]] := "H";
+SimplifiedName[particle_ /; TreeMasses`GetPseudoscalarHiggsBoson[] =!= Null && particle === TreeMasses`GetPseudoscalarHiggsBoson[]] := "AH";
+SimplifiedName[particle_ /; TreeMasses`GetWBoson[] =!= Null && particle === TreeMasses`GetWBoson[]] := "W";
+SimplifiedName[particle_ /; TreeMasses`GetZBoson[] =!= Null && particle === TreeMasses`GetZBoson[]] := "Z";
+SimplifiedName[particle_ /; TreeMasses`GetPhoton[] =!= Null && particle === TreeMasses`GetPhoton[]] := "A";
+SimplifiedName[particle_ /; TreeMasses`GetGluon[] =!= Null && particle === TreeMasses`GetGluon[]] := "G";
+SimplifiedName[particle_] := particle;
 
 GetGenericTypeName[p_?TreeMasses`IsScalar] := GenericScalarName[];
 GetGenericTypeName[p_?TreeMasses`IsVector] := GenericVectorName[];
@@ -546,6 +562,130 @@ CallDecaysCalculationFunctions[particles_List, enableDecaysThreads_] :=
               result = StringJoin[CallDecaysFunction /@ particles];
              ];
            result
+          ];
+
+GetDecayAmplitudeType[initialParticle_, finalState_List] :=
+    Module[{vertexType},
+           vertexType = Vertices`VertexTypeForFields[Join[{initialParticle}, finalState]];
+           Switch[vertexType,
+                  Vertices`SSSVertex, "Decay_amplitude_SSS",
+                  Vertices`FFSVertex, "Decay_amplitude_FFS",
+                  Vertices`FFVVertex, "Decay_amplitude_FFV",
+                  Vertices`SSVVertex, "Decay_amplitude_SSV",
+                  Vertices`SVVVertex, "Decay_amplitude_SVV",
+                  _, Print["Warning: decay ", initialParticle, " -> ", finalState, " is not supported."];
+                     "Unknown_amplitude_type"
+                 ]
+          ];
+
+CreateFieldIndices[particle_String] :=
+    "typename cxx_qft::field_indices<" <> particle <> " >::type";
+
+CreateFieldIndices[particle_, fieldsNamespace_] :=
+    CreateFieldIndices[TreeMasses`CreateFieldClassName[particle, prefixNamespace -> fieldsNamespace]];
+
+CreateEffectiveCouplingFunctionName[] := "effective_coupling";
+
+CreateEffectiveCouplingSpecializationDecl[decay_FSParticleDecay, modelName_] :=
+    Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
+            returnType = "", fieldsNamespace, fieldsList, templatePars = "", args = ""},
+           returnType = GetDecayAmplitudeType[initialParticle, finalState];
+           fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
+           fieldsList = Join[{initialParticle}, finalState];
+           templatePars = "<" <> Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]& /@
+                                                               fieldsList, ", "] <> ">";
+           args = "const cxx_qft::" <> modelName <> "_evaluation_context&, " <>
+                  Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[#, fieldsNamespace] <> "&")& /@ fieldsList, ", "];
+           "template<>\n" <> returnType <> " " <> modelName <> "_decays::" <>
+           CreateEffectiveCouplingFunctionName[] <> templatePars <> "(" <> args <> ") const;"
+          ];
+
+GetHiggsBosonDecays[particleDecays_List] :=
+    If[TreeMasses`GetHiggsBoson =!= Null, Select[particleDecays, (First[#] === TreeMasses`GetHiggsBoson[])&], {}];
+
+SelectDecayByFinalState[finalState_List, decays_List] :=
+    Select[decays, (Sort[GetFinalState[#]] === Sort[finalState])&];
+
+SelectHiggsToGluonGluonDecay[higgsDecays_List] :=
+    Module[{gluonSymbol = TreeMasses`GetGluon[], result = {}},
+           If[gluonSymbol =!= Null,
+              result = SelectDecayByFinalState[{gluonSymbol, gluonSymbol}, higgsDecays];
+             ];
+           result
+          ];
+
+SelectHiggsToPhotonPhotonDecay[higgsDecays_List] :=
+    Module[{photonSymbol = TreeMasses`GetPhoton[], result = {}},
+           If[photonSymbol =!= Null,
+              result = SelectDecayByFinalState[{photonSymbol, photonSymbol}, higgsDecays];
+             ];
+           result
+          ];
+
+CreateHiggsToGluonGluonEffectiveCouplingFunction[hggDecay_FSParticleDecay, modelName_] :=
+    Module[{initialParticle = GetInitialState[hggDecay], finalState = GetFinalState[hggDecay],
+            fieldsList, returnType = "", args = "", templatePars = "", body = ""},
+           fieldsList = Join[{initialParticle}, finalState];
+           returnType = GetDecayAmplitudeType[initialParticle, finalState];
+           args = "const cxx_qft::" <> modelName <> "_evaluation_context& context, " <>
+                  Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
+           templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
+           body = returnType <> " result;\nreturn result;\n";
+           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateEffectiveCouplingFunctionName[] <>
+           templatePars <> "(" <> args <> ") const\n{\n" <>
+           TextFormatting`IndentText[body] <> "}\n"
+          ];
+
+CreateHiggsToGluonGluonEffectiveCoupling[particleDecays_List, modelName_] :=
+    Module[{higgsDecays, hggDecay, prototype = "", function = ""},
+           higgsDecays = GetHiggsBosonDecays[particleDecays];
+           If[higgsDecays =!= {},
+              higgsDecays = First[higgsDecays];
+              hggDecay = SelectHiggsToGluonGluonDecay[Last[higgsDecays]];
+              If[hggDecay =!= {},
+                 hggDecay = First[hggDecay];
+                 prototype = CreateEffectiveCouplingSpecializationDecl[hggDecay, modelName];
+                 function  = CreateHiggsToGluonGluonEffectiveCouplingFunction[hggDecay, modelName]
+                ];
+             ];
+           {prototype, function}
+          ];
+
+CreateHiggsToPhotonPhotonEffectiveCouplingFunction[hgamgamDecay_FSParticleDecay, modelName_] :=
+    Module[{initialParticle = GetInitialState[hgamgamDecay], finalState = GetFinalState[hgamgamDecay],
+            fieldsList, returnType = "", args = "", templatePars = "", body = ""},
+           fieldsList = Join[{initialParticle}, finalState];
+           returnType = GetDecayAmplitudeType[initialParticle, finalState];
+           args = "const cxx_qft::" <> modelName <> "_evaluation_context& context, " <>
+                  Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
+           templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
+           body = returnType <> " result;\nreturn result;\n";
+           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateEffectiveCouplingFunctionName[] <>
+           templatePars <> "(" <> args <> ") const\n{\n" <>
+           TextFormatting`IndentText[body] <> "}\n"
+          ];
+
+CreateHiggsToPhotonPhotonEffectiveCoupling[particleDecays_List, modelName_] :=
+    Module[{higgsDecays, hgamgamDecay, prototype = "", function = ""},
+           higgsDecays = GetHiggsBosonDecays[particleDecays];
+           If[higgsDecays =!= {},
+              higgsDecays = First[higgsDecays];
+              hgamgamDecay = SelectHiggsToPhotonPhotonDecay[Last[higgsDecays]];
+              If[hgamgamDecay =!= {},
+                 hgamgamDecay = First[hgamgamDecay];
+                 prototype = CreateEffectiveCouplingSpecializationDecl[hgamgamDecay, modelName];
+                 function  = CreateHiggsToPhotonPhotonEffectiveCouplingFunction[hgamgamDecay, modelName]
+                ];
+             ];
+           {prototype, function}
+          ];
+
+CreateEffectiveCouplingSpecializations[particleDecays_List, modelName_] :=
+    Module[{specializations},
+           specializations = {CreateHiggsToGluonGluonEffectiveCoupling[particleDecays, modelName],
+                              CreateHiggsToPhotonPhotonEffectiveCoupling[particleDecays, modelName]};
+           specializations = Select[specializations, (# =!= {} && # =!= {"", ""})&];
+           Utils`StringJoinWithSeparator[#, "\n"]& /@ Transpose[specializations]
           ];
 
 CreateDecaysGetterFunctionName[particle_] :=

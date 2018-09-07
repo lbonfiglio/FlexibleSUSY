@@ -108,29 +108,30 @@ void CLASSNAME::calculate_decays()
 @create_SM_particle_usings@
 using ContextName = cxx_qft::@ModelName@_evaluation_context;
 
-template<>
-Decay_amplitude_SVV CLASSNAME::effective_coupling<H,G,G>(
-   const cxx_qft::@ModelName@_evaluation_context& context,
-   const typename cxx_qft::field_indices<H>::type& indexIn,
-   const typename cxx_qft::field_indices<G>::type& indexOut1,
-   const typename cxx_qft::field_indices<G>::type& indexOut2
-   ) const
-{
-   Decay_amplitude_type<H,G,G>::type result;
-   return result;
-}
+@effectiveCouplingsSpecializationDefs@
+// template<>
+// Decay_amplitude_SVV CLASSNAME::effective_coupling<H,G,G>(
+//    const cxx_qft::@ModelName@_evaluation_context& context,
+//    const typename cxx_qft::field_indices<H>::type& indexIn,
+//    const typename cxx_qft::field_indices<G>::type& indexOut1,
+//    const typename cxx_qft::field_indices<G>::type& indexOut2
+//    ) const
+// {
+//    Decay_amplitude_type<H,G,G>::type result;
+//    return result;
+// }
 
-template<>
-Decay_amplitude_SVV CLASSNAME::effective_coupling<H,A,A>(
-   const cxx_qft::@ModelName@_evaluation_context& context,
-   const typename cxx_qft::field_indices<H>::type& indexIn,
-   const typename cxx_qft::field_indices<A>::type& indexOut1,
-   const typename cxx_qft::field_indices<A>::type& indexOut2
-   ) const
-{
-   Decay_amplitude_type<H,A,A>::type result;
-   return result;
-}
+// template<>
+// Decay_amplitude_SVV CLASSNAME::effective_coupling<H,A,A>(
+//    const cxx_qft::@ModelName@_evaluation_context& context,
+//    const typename cxx_qft::field_indices<H>::type& indexIn,
+//    const typename cxx_qft::field_indices<A>::type& indexOut1,
+//    const typename cxx_qft::field_indices<A>::type& indexOut2
+//    ) const
+// {
+//    Decay_amplitude_type<H,A,A>::type result;
+//    return result;
+// }
 
 
 

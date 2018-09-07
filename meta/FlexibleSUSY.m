@@ -1786,7 +1786,9 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             decaysListGettersPrototypes = "", decaysListGettersFunctions = "",
             decaysGetters = "", initDecayTable = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
-            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "", SMParticlesInModel, CreateInclude, Declarations},
+            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "",
+            effectiveCouplingsSpecializationDecls = "", effectiveCouplingsSpecializationDefs = "",
+            SMParticlesInModel, CreateInclude, Declarations},
            numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            decaysVertices = DeleteDuplicates[Flatten[Permutations /@ Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1], 1]];
@@ -1802,6 +1804,8 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
            decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
            initDecayTable = Decays`CreateDecayTableInitialization[decayParticles];
+           {effectiveCouplingsSpecializationDecls, effectiveCouplingsSpecializationDefs}
+               = Decays`CreateEffectiveCouplingSpecializations[decaysLists, FlexibleSUSY`FSModelName];
            (* create the list of SM-like particles present in the model *)
            SMParticlesInModel =
                DeleteCases[
@@ -1816,22 +1820,11 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                      Null
                   ]
                }, Null];
-           (* maping of model names to universal ids *)
-           SimplifiedName[name_] := Switch[name,
-              TreeMasses`GetHiggsBoson[], "H",
-              TreeMasses`GetPseudoscalarHiggsBoson[], "AH",
-              TreeMasses`GetWBoson[], "W",
-              TreeMasses`GetZBoson[], "Z",
-              TreeMasses`GetPhoton[], "A",
-              TreeMasses`GetGluon[], "G",
-              TreeMasses`GetSMUpQuarks[][[1]], "uq",
-              TreeMasses`GetSMDownQuarks[][[1]], "dq"
-           ];
            CreateInclude[p1_, p2_] :=
-               "@include_H_to_" <> SimplifiedName[p1] <> SimplifiedName[p2] <> "@" ->
+               "@include_H_to_" <> Decays`Private`SimplifiedName[p1] <> Decays`Private`SimplifiedName[p2] <> "@" ->
                    If[ContainsAll[SMParticlesInModel, {p1, p2}],
                    "#include \"templates/sm_h_decays/decay_H_to_" <>
-                   SimplifiedName[p1] <> SimplifiedName[p2] <> ".cpp\"",
+                   Decays`Private`SimplifiedName[p1] <> Decays`Private`SimplifiedName[p2] <> ".cpp\"",
                   ""
                   ];
            BarWrap[cos_] :=(
@@ -1868,6 +1861,8 @@ typename cxx_qft::field_indices<" <> p3Str2 <> ">::type const&
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],
                             "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
+                            "@effectiveCouplingsSpecializationDecls@" -> WrapLines[effectiveCouplingsSpecializationDecls],
+                            "@effectiveCouplingsSpecializationDefs@" -> WrapLines[effectiveCouplingsSpecializationDefs],
                             "@decaysListGettersPrototypes@" -> IndentText[decaysListGettersPrototypes],
                             "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
@@ -1880,10 +1875,6 @@ typename cxx_qft::field_indices<" <> p3Str2 <> ">::type const&
                                 ],
                                 "@define_pseudoscalar_Higgs@" -> ""
                              ],
-                            "@WBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetWBoson[]],
-                            "@ZBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetZBoson[]],
-                            "@GluonName@"      -> TreeMasses`CreateFieldClassName[TreeMasses`GetGluon[]],
-                            "@PhotonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetPhoton[]],
                              "@DownQuarkName@"     -> TreeMasses`CreateFieldClassName[
                                  If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
                                     TreeMasses`GetSMDownQuarks[][[1]],
@@ -1898,7 +1889,7 @@ typename cxx_qft::field_indices<" <> p3Str2 <> ">::type const&
                              ],
                              "@create_SM_particle_usings@" ->
                                  StringJoin[
-                                    ("using " <> SimplifiedName[#] <> " = " <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[#] <> ";\n")& /@
+                                    ("using " <> Decays`Private`SimplifiedName[#] <> " = " <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[#] <> ";\n")& /@
                                         SMParticlesInModel
                                  ],
                              Sequence @@ (CreateInclude @@@
@@ -2139,7 +2130,7 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
                              "@CXXDiagrams_VertexData@"      -> vertexData,
                              "@CXXDiagrams_Vertices@"        -> cxxVertices,
                              "@CXXDiagrams_MassFunctions@"   -> massFunctions,
-                             "@CXXDiagrams_PhysicalMassFunctions@"   -> physicalMassFunctions,
+                             "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              Sequence @@ GeneralReplacementRules[]

@@ -138,41 +138,43 @@ typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
    return tree_level_decay_amplitude<FieldIn, FieldOut1, FieldOut2>(m_decay, m_out_1, m_out_2, vertex);
 }
 
-template<>
-Decay_amplitude_SVV
-@ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@GluonName@, cxx_qft::@ModelName@_fields::@GluonName@>(
-   const cxx_qft::@ModelName@_evaluation_context&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@GluonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@GluonName@>::type&
-   ) const;
+@effectiveCouplingsSpecializationDecls@
 
-template<>
-Decay_amplitude_SVV
-@ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@, cxx_qft::@ModelName@_fields::@PhotonName@>(
-   const cxx_qft::@ModelName@_evaluation_context&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&
-   ) const;
+// template<>
+// Decay_amplitude_SVV
+// @ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@GluonName@, cxx_qft::@ModelName@_fields::@GluonName@>(
+//    const cxx_qft::@ModelName@_evaluation_context&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@GluonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@GluonName@>::type&
+//    ) const;
 
-template<>
-Decay_amplitude_SVV
-@ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@, cxx_qft::@ModelName@_fields::@ZBosonName@>(
-   const cxx_qft::@ModelName@_evaluation_context&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@ZBosonName@>::type&
-   ) const;
+// template<>
+// Decay_amplitude_SVV
+// @ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@, cxx_qft::@ModelName@_fields::@PhotonName@>(
+//    const cxx_qft::@ModelName@_evaluation_context&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&
+//    ) const;
 
-template<>
-Decay_amplitude_SVV
-@ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@ZBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@>(
-   const cxx_qft::@ModelName@_evaluation_context&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@ZBosonName@>::type&,
-   const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&
-   ) const;
+// template<>
+// Decay_amplitude_SVV
+// @ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@, cxx_qft::@ModelName@_fields::@ZBosonName@>(
+//    const cxx_qft::@ModelName@_evaluation_context&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@ZBosonName@>::type&
+//    ) const;
+
+// template<>
+// Decay_amplitude_SVV
+// @ModelName@_decays::effective_coupling<cxx_qft::@ModelName@_fields::@HiggsBosonName@, cxx_qft::@ModelName@_fields::@ZBosonName@, cxx_qft::@ModelName@_fields::@PhotonName@>(
+//    const cxx_qft::@ModelName@_evaluation_context&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@HiggsBosonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@ZBosonName@>::type&,
+//    const typename cxx_qft::field_indices<cxx_qft::@ModelName@_fields::@PhotonName@>::type&
+//    ) const;
 
 // S -> FF
 template <typename Field1, typename Field2, typename Field3>
