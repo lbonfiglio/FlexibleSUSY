@@ -53,7 +53,7 @@ double Decay_amplitude_SVV::square() const
    const double m_2_sq = Sqr(m_out_2);
    const double m_2_4 = Power4(m_out_2);
 
-   const double m11 = 0.5 * (m_in_4 + m_1_4 + m_2_4 + 10. * m_1_sq * m_2_sq
+   const double m11 = 0.25 * (m_in_4 + m_1_4 + m_2_4 + 10. * m_1_sq * m_2_sq
                              - 2. * m_in_sq * (m_1_sq + m_2_sq)) * AbsSqr(M1)
       / (m_1_sq * m_2_sq);
 
