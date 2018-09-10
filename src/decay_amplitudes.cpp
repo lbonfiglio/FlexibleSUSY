@@ -30,15 +30,18 @@ double Decay_amplitude_SSS::square() const
    return AbsSqr(matrix_element);
 }
 
-// @todo handle massless vectors safely
 double Decay_amplitude_SSV::square() const
 {
+   if (m_vector <= massless_vector_threshold) {
+      return -2. * AbsSqr(matrix_element) * (Sqr(m_decay) + Sqr(m_scalar));
+   }
+
    const double m_in_sq = Sqr(m_decay);
    const double m_s_sq = Sqr(m_scalar);
    const double m_v_sq = Sqr(m_vector);
 
-   return 0.25 * (Sqr(m_in_sq) + Sqr(m_s_sq - m_v_sq)
-                  - 2. * m_in_sq * (m_s_sq + m_v_sq))
+   return (Sqr(m_in_sq) + Sqr(m_v_sq - m_s_sq)
+           - 2. * m_in_sq * (m_s_sq + m_v_sq))
       * AbsSqr(matrix_element) / m_v_sq;
 }
 
@@ -46,6 +49,15 @@ double Decay_amplitude_SSV::square() const
 // @todo handle massless vectors safely
 double Decay_amplitude_SVV::square() const
 {
+   if (m_out_1 <= massless_vector_threshold &&
+       m_out_2 <= massless_vector_threshold) {
+
+   } else if (m_out_1 <= massless_vector_threshold) {
+
+   } else if (m_out_2 <= massless_vector_threshold) {
+
+   }
+
    const double m_in_sq = Sqr(m_decay);
    const double m_in_4 = Power4(m_decay);
    const double m_1_sq = Sqr(m_out_1);
@@ -54,7 +66,7 @@ double Decay_amplitude_SVV::square() const
    const double m_2_4 = Power4(m_out_2);
 
    const double m11 = 0.25 * (m_in_4 + m_1_4 + m_2_4 + 10. * m_1_sq * m_2_sq
-                             - 2. * m_in_sq * (m_1_sq + m_2_sq)) * AbsSqr(M1)
+                              - 2. * m_in_sq * (m_1_sq + m_2_sq)) * AbsSqr(M1)
       / (m_1_sq * m_2_sq);
 
    const double m22 = 0.125 * Sqr(m_in_4 + Sqr(m_1_sq - m_2_sq)
@@ -62,9 +74,9 @@ double Decay_amplitude_SVV::square() const
       * AbsSqr(M2) / (m_1_sq * m_2_sq);
 
    const double m12 = 0.5 * (m_in_sq * m_in_4 - 3. * m_in_4 * (m_1_sq + m_2_sq)
-                              - Sqr(m_1_sq - m_2_sq) * (m_1_sq + m_2_sq)
-                              + m_1_sq * (3. * m_1_4 + 2. * m_1_sq * m_2_sq
-                                          + 3. * m_2_4))
+                             - Sqr(m_1_sq - m_2_sq) * (m_1_sq + m_2_sq)
+                             + m_1_sq * (3. * m_1_4 + 2. * m_1_sq * m_2_sq
+                                         + 3. * m_2_4))
       * Re(M1 * Conj(M2)) / (m_1_sq * m_2_sq);
 
    return m11 + m22 + m12;
@@ -97,6 +109,10 @@ double Decay_amplitude_FFS::square() const
 // @todo handle massless vectors safely
 double Decay_amplitude_FFV::square() const
 {
+   if (m_vector <= massless_vector_threshold) {
+      return 0.;
+   }
+
    const double m_in_sq = Sqr(m_decay);
    const double m_in_4 = Power4(m_decay);
    const double m_f_sq = Sqr(m_fermion);

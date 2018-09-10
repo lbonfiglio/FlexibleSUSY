@@ -46,6 +46,7 @@ struct Decay_amplitude_SSV {
    double m_decay{0.};
    double m_scalar{0.};
    double m_vector{0.};
+   double massless_vector_threshold{1.e-10};
    std::complex<double> matrix_element{};
 
    double square() const;
@@ -59,6 +60,7 @@ struct Decay_amplitude_SVV {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
+   double massless_vector_threshold{1.e-10};
    std::complex<double> M1{};
    std::complex<double> M2{};
 
@@ -101,6 +103,7 @@ struct Decay_amplitude_FFV {
    double m_decay{0.};
    double m_fermion{0.};
    double m_vector{0.};
+   double massless_vector_threshold{1.e-10};
    std::complex<double> matrix_element_gam_left{};
    std::complex<double> matrix_element_gam_right{};
    std::complex<double> matrix_element_p_1{};
