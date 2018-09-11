@@ -255,7 +255,14 @@ GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
 OrderFinalState[initialParticle_, finalParticles_List] :=
     Module[{orderedFinalState},
            orderedFinalState = First[Vertices`SortCp[SARAH`Cp[Join[{initialParticle}, finalParticles]]]];
-           Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]]
+           orderedFinalState = Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]];
+           If[Length[orderedFinalState] === 2,
+              (* re-order to SSV *)
+              If[TreeMasses`IsScalar[initialParticle] && TreeMasses`IsVector[orderedFinalState[[1]]] && TreeMasses`IsScalar[orderedFinalState[[2]]],
+                 Return[Reverse[orderedFinalState]]
+              ]
+           ];
+            orderedFinalState
           ];
 
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=

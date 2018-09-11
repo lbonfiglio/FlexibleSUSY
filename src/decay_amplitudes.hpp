@@ -253,7 +253,7 @@ tree_level_decay_amplitude(double m_decay, double m_scalar, double m_vector,
    amplitude.m_scalar = m_scalar;
    amplitude.m_vector = m_vector;
 
-   amplitude.matrix_element = vertex.value(1, 2);
+   amplitude.matrix_element = vertex.value(0, 1);
 
    return amplitude;
 }
