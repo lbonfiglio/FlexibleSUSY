@@ -1,7 +1,7 @@
-
 // special case for Higgs -> Z Z
 // TODO: implement higher order corrections
-template<>
+
+template <>
 double CLASSNAME::get_partial_width<H,Z,Z>(
    const ContextName& context,
    typename field_indices<H>::type const& indexIn,
@@ -11,7 +11,9 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
 {
 
    const double mH = context.mass<H>(indexIn);
+   const double mHOS = context.physical_mass<H>(indexIn);
    const double mZ = context.mass<Z>(indexOut1);
+   const double mZOS = context.physical_mass<Z>(indexOut1);
    const double x = Sqr(mZ/mH);
    double res;
    // three-body-decays if below threshold
@@ -29,7 +31,21 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
 
       res = 3.0/(128*pow(Pi,3)) * mH/Sqr(vev) * deltaV * RT;
    } else {
-      res = 1.0/(128*Pi * mH * Sqr(x)) * sqrt(1 - 4*x) * (1 - 4*x + 12*Sqr(x));
+
+      const double flux = 1. / (2 * mHOS);
+      // phase space without symmetry factor
+      const double ps = 1. / (8. * Pi) * beta(mHOS, mZOS, mZOS);
+
+      // phase space symmetry factor
+      const double ps_symmetry = 1. / 2.;
+
+      // matrix element squared
+      const auto mat_elem = effective_coupling<H, Z, Z>(
+         context, indexIn, indexOut1, indexOut2);
+      const auto mat_elem_sq = mat_elem.square();
+
+      // flux * phase space factor * matrix element squared
+      return flux * ps * ps_symmetry * mat_elem_sq;
    }
    const auto indices = concatenate(indexOut1, indexOut2, indexIn);
    return res * std::norm(Vertex<Z,Z,H>::evaluate(indices, context).value());

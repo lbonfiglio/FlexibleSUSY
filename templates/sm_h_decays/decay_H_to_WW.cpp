@@ -1,16 +1,16 @@
-
 // special case for H -> W+ W-
 // TODO: implement higher order corrections
 template <>
 double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
-   const ContextName& context,
-   typename field_indices<H>::type const& indexIn,
+   const ContextName& context, typename field_indices<H>::type const& indexIn,
    typename field_indices<conj<W>::type>::type const& indexOut1,
    typename field_indices<W>::type const& indexOut2) const
 {
 
    const double mH = context.mass<H>(indexIn);
+   const double mHOS = context.physical_mass<H>(indexIn);
    const double mW = context.mass<W>(indexOut1);
+   const double mWOS = context.physical_mass<W>(indexOut1);
    const double x = Sqr(mW / mH);
    double res;
    // three-body-decays if below threshold
@@ -30,8 +30,18 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
 
       res = 3.0 / (128 * pow(Pi, 3)) * mH / Sqr(vev) * RT;
    } else {
-      res = 2.0 / (128 * Pi * mH * Sqr(x)) * sqrt(1 - 4 * x) *
-            (1 - 4 * x + 12 * Sqr(x));
+
+      const double flux = 1. / (2 * mHOS);
+      // phase space without symmetry factor
+      const double ps = 1. / (8. * Pi) * beta(mHOS, mWOS, mWOS);
+
+      // matrix element squared
+      const auto mat_elem = effective_coupling<H, W, conj<W>::type>(
+         context, indexIn, indexOut1, indexOut2);
+      const auto mat_elem_sq = mat_elem.square();
+
+      // flux * phase space factor * matrix element squared
+      return flux * ps * mat_elem_sq;
    }
    const auto indices = concatenate(indexOut2, indexOut1, indexIn);
    const auto ghWW =
