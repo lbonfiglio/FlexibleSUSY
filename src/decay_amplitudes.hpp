@@ -22,6 +22,7 @@
 #include "field_traits.hpp"
 
 #include <complex>
+#include <limits>
 
 namespace flexiblesusy {
 
@@ -33,7 +34,7 @@ struct Decay_amplitude_SSS {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
-   std::complex<double> matrix_element{};
+   std::complex<double> form_factor{};
 
    double square() const;
 };
@@ -46,8 +47,8 @@ struct Decay_amplitude_SSV {
    double m_decay{0.};
    double m_scalar{0.};
    double m_vector{0.};
-   double massless_vector_threshold{1.e-10};
-   std::complex<double> matrix_element{};
+   double massless_vector_threshold{std::numeric_limits<double>::epsilon()};
+   std::complex<double> form_factor{};
 
    double square() const;
 };
@@ -60,9 +61,13 @@ struct Decay_amplitude_SVV {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
-   double massless_vector_threshold{1.e-10};
-   std::complex<double> M1{};
-   std::complex<double> M2{};
+   double massless_vector_threshold{std::numeric_limits<double>::epsilon()};
+   std::complex<double> form_factor_g{};
+   std::complex<double> form_factor_11{};
+   std::complex<double> form_factor_12{};
+   std::complex<double> form_factor_21{};
+   std::complex<double> form_factor_22{};
+   std::complex<double> form_factor_eps{};
 
    double square() const;
 };
@@ -75,8 +80,8 @@ struct Decay_amplitude_SFF {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
-   std::complex<double> matrix_element_left{};
-   std::complex<double> matrix_element_right{};
+   std::complex<double> form_factor_left{};
+   std::complex<double> form_factor_right{};
 
    double square() const;
 };
@@ -89,8 +94,8 @@ struct Decay_amplitude_FFS {
    double m_decay{0.};
    double m_fermion{0.};
    double m_scalar{0.};
-   std::complex<double> matrix_element_left{};
-   std::complex<double> matrix_element_right{};
+   std::complex<double> form_factor_left{};
+   std::complex<double> form_factor_right{};
 
    double square() const;
 };
@@ -103,11 +108,11 @@ struct Decay_amplitude_FFV {
    double m_decay{0.};
    double m_fermion{0.};
    double m_vector{0.};
-   double massless_vector_threshold{1.e-10};
-   std::complex<double> matrix_element_gam_left{};
-   std::complex<double> matrix_element_gam_right{};
-   std::complex<double> matrix_element_p_1{};
-   std::complex<double> matrix_element_p_2{};
+   double massless_vector_threshold{std::numeric_limits<double>::epsilon()};
+   std::complex<double> form_factor_gam_left{};
+   std::complex<double> form_factor_gam_right{};
+   std::complex<double> form_factor_p_1{};
+   std::complex<double> form_factor_p_2{};
 
    double square() const;
 };
@@ -234,7 +239,7 @@ tree_level_decay_amplitude(double m_decay, double m_out_1, double m_out_2,
    amplitude.m_out_1 = m_out_1;
    amplitude.m_out_2 = m_out_2;
 
-   amplitude.matrix_element = vertex.value();
+   amplitude.form_factor = vertex.value();
 
    return amplitude;
 }
@@ -253,7 +258,7 @@ tree_level_decay_amplitude(double m_decay, double m_scalar, double m_vector,
    amplitude.m_scalar = m_scalar;
    amplitude.m_vector = m_vector;
 
-   amplitude.matrix_element = vertex.value(0, 1);
+   amplitude.form_factor = vertex.value(0, 1);
 
    return amplitude;
 }
@@ -284,7 +289,12 @@ tree_level_decay_amplitude(double m_decay, double m_out_1, double m_out_2,
    amplitude.m_out_1 = m_out_1;
    amplitude.m_out_2 = m_out_2;
 
-   amplitude.M1 = vertex.value();
+   amplitude.form_factor_g = vertex.value();
+   amplitude.form_factor_11 = std::complex<double>(0., 0.);
+   amplitude.form_factor_12 = std::complex<double>(0., 0.);
+   amplitude.form_factor_21 = std::complex<double>(0., 0.);
+   amplitude.form_factor_22 = std::complex<double>(0., 0.);
+   amplitude.form_factor_eps = std::complex<double>(0., 0.);
 
    return amplitude;
 }
@@ -304,8 +314,8 @@ tree_level_decay_amplitude(double m_decay, double m_out_1, double m_out_2,
    amplitude.m_out_2 = m_out_2;
 
    // @todo check sign convention in SARAH
-   amplitude.matrix_element_left = vertex.left();
-   amplitude.matrix_element_right = vertex.right();
+   amplitude.form_factor_left = vertex.left();
+   amplitude.form_factor_right = vertex.right();
 
    return amplitude;
 }
@@ -324,8 +334,8 @@ tree_level_decay_amplitude(double m_decay, double m_fermion, double m_scalar,
    amplitude.m_fermion = m_fermion;
    amplitude.m_scalar = m_scalar;
 
-   amplitude.matrix_element_left = vertex.left();
-   amplitude.matrix_element_right = vertex.right();
+   amplitude.form_factor_left = vertex.left();
+   amplitude.form_factor_right = vertex.right();
 
    return amplitude;
 }
@@ -356,8 +366,10 @@ tree_level_decay_amplitude(double m_decay, double m_fermion, double m_vector,
    amplitude.m_fermion = m_fermion;
    amplitude.m_vector = m_vector;
 
-   amplitude.matrix_element_gam_left = vertex.left();
-   amplitude.matrix_element_gam_right = vertex.right();
+   amplitude.form_factor_gam_left = vertex.left();
+   amplitude.form_factor_gam_right = vertex.right();
+   amplitude.form_factor_p_1 = std::complex<double>(0., 0.);
+   amplitude.form_factor_p_2 = std::complex<double>(0., 0.);
 
    return amplitude;
 }
