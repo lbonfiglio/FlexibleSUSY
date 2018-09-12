@@ -1,5 +1,4 @@
-
-// specialization for the H -> Fd Fd case
+// template specialization for the H -> Fd Fd case
 
 // TODO: we need to distinguish between scalar and scalar-pseudoscalar-mixture Higgses
 template<>
@@ -32,6 +31,7 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
    const double alpha_s_red = Sqr(g3)/(4*Sqr(Pi));
    const double mtpole = qedqcd.displayPoleMt();
 
+   // higher order corrections in the chiral limit
    const double deltaqq = calc_deltaqq(alpha_s_red, Nf);
 
    // chiral breaking correctios

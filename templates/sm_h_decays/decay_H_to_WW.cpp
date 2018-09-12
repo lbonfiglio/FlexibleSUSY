@@ -19,8 +19,6 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
       // const auto vu = MODELPARAMETER(vu);
       // TODO: specify the vev correctly
       const auto vev = 246.0; // sqrt(Sqr(vd) + Sqr(vu));
-      const double sw2 =
-         Sqr(Sin(model.ThetaW())); // 1.0 - Sqr(PHYSICAL(MVWp)/PHYSICAL(MVZ));
 
       // deltaV is 1 for W-bosons
       const double RT = 3 * (1 - 8 * x + 20 * Sqr(x)) / sqrt(4 * x - 1) *
