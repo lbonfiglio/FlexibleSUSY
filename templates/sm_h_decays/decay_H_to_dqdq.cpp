@@ -18,27 +18,30 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
       // "Template specialization for H -> Fd1 bar[Fd2] is only valid for Fd1 = Fd2"
 //    );
 
-   const double mH = context.mass<H>(indexIn);
-   const double mdq = context.mass<dq>(indexOut1);
+   const double mHOS = context.physical_mass<H>(indexIn);
+   const double mdqDR = context.mass<dq>(indexOut1);
+   const double mdqOS = context.physical_mass<dq>(indexOut1);
 
    // TODO: add off-shell decays?
-   if (mH < 2.*mdq) {
+   if (mHOS < 2.*mdqDR) {
       return 0.;
    }
 
    const double g3 = MODELPARAMETER(g3);
-   const double Nf = number_of_active_flavours(mH);
+   const double Nf = number_of_active_flavours(mHOS);
    const double alpha_s_red = Sqr(g3)/(4*Sqr(Pi));
    const double mtpole = qedqcd.displayPoleMt();
 
    const double deltaqq = calc_deltaqq(alpha_s_red, Nf);
 
-   const double lt = Log(Sqr(mH/mtpole));
-   const double lq = Log(Sqr(mdq/mH));
+   // chiral breaking correctios
+   // TODO: probably shouldn't be applied in case of CP-breaking 
+   const double lt = Log(Sqr(mHOS/mtpole));
+   const double lq = Log(Sqr(mdqDR/mHOS));
    const double deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
 
-   const double flux = 1./(2.*mH);
-   const double phase_space = 1./(8.*Pi) * beta(mH, mdq, mdq);
+   const double flux = 1./(2.*mHOS);
+   const double phase_space = 1./(8.*Pi) * beta(mHOS, mdqDR, mdqDR);
    const double color_factor = 3;
 
    return flux * phase_space * color_factor *
