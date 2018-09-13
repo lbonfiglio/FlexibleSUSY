@@ -149,15 +149,31 @@ double Decay_amplitude_FFS::square() const
 }
 
 // @todo handle massless vectors safely
+// @todo check these expressions, they appear not to agree with SARAH/SPheno
 double Decay_amplitude_FFV::square() const
 {
+   const double m_in_sq = Sqr(m_decay);
+   const double m_f_sq = Sqr(m_fermion);
+
    if (m_vector <= massless_vector_threshold) {
-      return 0.;
+      const double c1 = m_in_sq + m_f_sq;
+      const double c2 = -0.5 * m_in_sq * (m_in_sq + m_f_sq);
+      const double c3 = -4. * m_decay * m_fermion;
+      const double c4 = -m_in_sq * m_fermion;
+      const double c5 = -0.5 * m_decay * (m_in_sq + m_f_sq);
+      const double c6 = -0.5 * m_decay * m_fermion * (m_in_sq + m_f_sq);
+
+      return c1 * (AbsSqr(form_factor_gam_left) + AbsSqr(form_factor_gam_right))
+         + c2 * (AbsSqr(form_factor_p_1) + AbsSqr(form_factor_p_2))
+         + 2. * c3 * Re(form_factor_gam_left * Conj(form_factor_gam_right))
+         + 2. * c4 * (Re(form_factor_gam_left * Conj(form_factor_p_1))
+                      + Re(form_factor_gam_right * Conj(form_factor_p_2)))
+         + 2. * c5 * (Re(form_factor_gam_left * Conj(form_factor_p_2))
+                      + Re(form_factor_gam_right * Conj(form_factor_p_1)))
+         + 2. * c6 * Re(form_factor_p_1 * Conj(form_factor_p_2));
    }
 
-   const double m_in_sq = Sqr(m_decay);
    const double m_in_4 = Power4(m_decay);
-   const double m_f_sq = Sqr(m_fermion);
    const double m_f_4 = Power4(m_fermion);
    const double m_v_sq = Sqr(m_vector);
    const double m_v_4 = Power4(m_vector);
@@ -171,12 +187,12 @@ double Decay_amplitude_FFV::square() const
 
    const double c3 = -3. * m_decay * m_fermion;
 
-   const double c4 = -0.25 * (m_fermion * (m_in_4 + Sqr(m_f_sq - m_v_sq)
-                                           - 2. * m_in_sq * (m_f_sq + m_v_sq)))
+   const double c4 = 0.25 * (m_fermion * (m_in_4 + Sqr(m_f_sq - m_v_sq)
+                                          - 2. * m_in_sq * (m_f_sq + m_v_sq)))
       / m_v_sq;
 
-   const double c5 = -0.25 * (m_decay * (m_in_4 + Sqr(m_f_sq - m_v_sq)
-                                         - 2. * m_in_sq * (m_f_sq + m_v_sq)))
+   const double c5 = 0.25 * (m_decay * (m_in_4 + Sqr(m_f_sq - m_v_sq)
+                                        - 2. * m_in_sq * (m_f_sq + m_v_sq)))
       / m_v_sq;
 
    const double c6 = 0.25 * (m_decay * m_fermion * (
