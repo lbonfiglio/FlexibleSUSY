@@ -104,35 +104,6 @@ using ContextName = cxx_qft::@ModelName@_evaluation_context;
 
 @effectiveCouplingsSpecializationDefs@
 
-// special case for H -> gluon gluon
-template<>
-double CLASSNAME::get_partial_width<H,G,G>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<G>::type const& indexOut1,
-   typename field_indices<G>::type const& indexOut2
-   ) const
-{
-
-   const double mass = context.mass<H>(indexIn);
-   return 0.039788735772973836 * pow(mass, 3.0);
-//      * effective_coupling<H,G,G>(context, indexIn, indexOut1, indexOut2).square();
-}
-
-// special case for H -> photon photon
-template<>
-double CLASSNAME::get_partial_width<H,A,A>(
-   const @ModelName@_evaluation_context& context,
-   typename field_indices<H>::type const& indexIn,
-   typename field_indices<A>::type const& indexOut1,
-   typename field_indices<A>::type const& indexOut2
-   ) const
-{
-   const double mass = context.mass<H>(indexIn);
-   return 0 * 0.0049735919716217296 * pow(mass, 3.0);
-      //* effective_coupling<H,A,A>(context, indexIn, indexOut1, indexOut2).square();
-}
-
 unsigned int number_of_active_flavours(double m)
 {
    /*
@@ -154,13 +125,7 @@ double calc_deltaqq(double alpha_s_red, double Nf) {
       + (164.14 - 25.77*Nf + 0.26*Sqr(Nf))*std::pow(alpha_s_red, 3);
 }
 
-@include_H_to_ZZ@
-@include_H_to_WW@
-@include_H_to_ZA@
-@include_H_to_HH@
-@include_H_to_uquq@
-@include_H_to_dqdq@
-@include_H_to_AHAH@
+@partialWidthSpecializationDefs@
 
 @decaysCalculationFunctions@
 @partialWidthCalculationFunctions@

@@ -190,9 +190,8 @@ double @ModelName@_decays::get_partial_width(
    return 0.5 * ps * ps_symmetry * mat_elem_sq / mIn;
 }
 
-// explicit specializations
+@partialWidthSpecializationDecls@
 
-@declarations@
 } // namespace flexiblesusy
 
 #endif

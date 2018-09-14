@@ -1788,7 +1788,8 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
             partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "",
             effectiveCouplingsSpecializationDecls = "", effectiveCouplingsSpecializationDefs = "",
-            SMParticlesInModel, CreateInclude, Declarations},
+            partialWidthSpecializationDecls = "", partialWidthSpecializationDefs = "",
+            smParticleAliases},
            numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            decaysVertices = DeleteDuplicates[Flatten[Permutations /@ Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1], 1]];
@@ -1806,53 +1807,9 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            initDecayTable = Decays`CreateDecayTableInitialization[decayParticles];
            {effectiveCouplingsSpecializationDecls, effectiveCouplingsSpecializationDefs}
                = Decays`CreateEffectiveCouplingSpecializations[decaysLists, FlexibleSUSY`FSModelName];
-           (* create the list of SM-like particles present in the model *)
-           SMParticlesInModel =
-               DeleteCases[
-                  {TreeMasses`GetHiggsBoson[], TreeMasses`GetPseudoscalarHiggsBoson[], TreeMasses`GetWBoson[], TreeMasses`GetZBoson[],
-               TreeMasses`GetGluon[], TreeMasses`GetPhoton[],
-                  If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
-                     TreeMasses`GetSMDownQuarks[][[1]],
-                     Null
-                  ],
-                  If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
-                     TreeMasses`GetSMUpQuarks[][[1]],
-                     Null
-                  ]
-               }, Null];
-           CreateInclude[p1_, p2_] :=
-               "@include_H_to_" <> Decays`Private`SimplifiedName[p1] <> Decays`Private`SimplifiedName[p2] <> "@" ->
-                   If[ContainsAll[SMParticlesInModel, {p1, p2}],
-                   "#include \"templates/sm_h_decays/decay_H_to_" <>
-                   Decays`Private`SimplifiedName[p1] <> Decays`Private`SimplifiedName[p2] <> ".cpp\"",
-                  ""
-                  ];
-           BarWrap[cos_] :=(
-               If[Head[cos] === SARAH`bar,
-                  "cxx_qft::bar<cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos /. bar|conj -> Identity] <> ">::type",
-                  "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[cos]
-               ]);
-           Declaration[p1_, p2_, p3_] := Module[
-              {p1Str = TreeMasses`CreateFieldClassName[p1, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
-               p2Str = BarWrap[p2],
-                 p3Str = TreeMasses`CreateFieldClassName[p3, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
-                 p2Str2 = TreeMasses`CreateFieldClassName[p2/. bar|conj -> Identity, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"],
-                 p3Str2 = TreeMasses`CreateFieldClassName[p3/. bar|conj -> Identity, prefixNamespace-> "cxx_qft::" <> FlexibleSUSY`FSModelName <> "_fields"]
-
-
-              },
-
-              If[ContainsAll[Join[SMParticlesInModel, AntiField /@ SMParticlesInModel], {p1, p2, p3}],
-"template <>
-double " <> FlexibleSUSY`FSModelName <> "_decays::get_partial_width<" <> p1Str <> "," <> p2Str <> "," <> p3Str <> ">(
-const cxx_qft::" <> FlexibleSUSY`FSModelName <> "_evaluation_context&,
-typename cxx_qft::field_indices<" <> p1Str <> ">::type const&,
-typename cxx_qft::field_indices<" <> p2Str2 <> ">::type const&,
-typename cxx_qft::field_indices<" <> p3Str2 <> ">::type const&
-) const;",
-          ""
-                 ]
-              ];
+           {partialWidthSpecializationDecls, partialWidthSpecializationDefs}
+               = Decays`CreatePartialWidthSpecializations[decaysLists, FlexibleSUSY`FSModelName];
+           smParticleAliases = Decays`CreateSMParticleAliases[FlexibleSUSY`FSModelName <> "_fields"];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
@@ -1863,64 +1820,13 @@ typename cxx_qft::field_indices<" <> p3Str2 <> ">::type const&
                             "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
                             "@effectiveCouplingsSpecializationDecls@" -> WrapLines[effectiveCouplingsSpecializationDecls],
                             "@effectiveCouplingsSpecializationDefs@" -> WrapLines[effectiveCouplingsSpecializationDefs],
+                            "@partialWidthSpecializationDecls@" -> WrapLines[partialWidthSpecializationDecls],
+                            "@partialWidthSpecializationDefs@" -> WrapLines[partialWidthSpecializationDefs],
                             "@decaysListGettersPrototypes@" -> IndentText[decaysListGettersPrototypes],
                             "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
-                            "@HiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetHiggsBoson[]],
-                             ReleaseHold@If[TreeMasses`GetPseudoscalarHiggsBoson[] =!= Null,
-                                Hold@Sequence[
-                                   "@define_pseudoscalar_Higgs@" -> "#define HAS_AH",
-                                   "@PseudoscalarHiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetPseudoscalarHiggsBoson[]]
-                                ],
-                                "@define_pseudoscalar_Higgs@" -> ""
-                             ],
-                             "@DownQuarkName@"     -> TreeMasses`CreateFieldClassName[
-                                 If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
-                                    TreeMasses`GetSMDownQuarks[][[1]],
-                                    Quit[1]
-                                 ]
-                             ],
-                             "@UpQuarkName@"     -> TreeMasses`CreateFieldClassName[
-                                If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
-                                   TreeMasses`GetSMUpQuarks[][[1]],
-                                   Quit[1]
-                                ]
-                             ],
-                             "@create_SM_particle_usings@" ->
-                                 StringJoin[
-                                    ("using " <> Decays`Private`SimplifiedName[#] <> " = " <> FlexibleSUSY`FSModelName <> "_fields::" <> TreeMasses`CreateFieldClassName[#] <> ";\n")& /@
-                                        SMParticlesInModel
-                                 ],
-                             Sequence @@ (CreateInclude @@@
-                                 Join[
-                                    Transpose[{SMParticlesInModel, SMParticlesInModel}],
-                                    {DeleteCases[{TreeMasses`GetZBoson[], TreeMasses`GetPhoton[]}, Null]}
-                              ]),
-                             "@declarations@" -> StringJoin @ Riffle[Declaration @@@ {
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetZBoson[], TreeMasses`GetZBoson[]},
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetWBoson[], TreeMasses`GetWBoson[]},
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetGluon[], TreeMasses`GetGluon[]},
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetPhoton[], TreeMasses`GetPhoton[]},
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetPhoton[], TreeMasses`GetZBoson[]},
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetZBoson[], TreeMasses`GetPhoton[]},
-                                {TreeMasses`GetHiggsBoson[], TreeMasses`GetHiggsBoson[], TreeMasses`GetHiggsBoson[]},
-                                {TreeMasses`GetHiggsBoson[],
-                                   AntiField[If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
-                                      TreeMasses`GetSMUpQuarks[][[1]],
-                                      Null
-                                   ]
-                                   ],
-
-                                   If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
-                                      TreeMasses`GetSMUpQuarks[][[1]],
-                                      Null
-                                   ]
-                                }
-
-                             },
-                                "\n\n"
-                             ],
+                            "@create_SM_particle_usings@" -> smParticleAliases,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
 
@@ -3918,10 +3824,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                  FlexibleSUSY`DecayParticles = { TreeMasses`GetHiggsBoson[] }; (* or, e.g., TreeMasses`GetParticles[] *);
                 ];
 
-              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
-                                                                                 !TreeMasses`IsMassless[#] &&
-                                                                                 TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
+              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, Decays`IsSupportedDecayParticle];
+
               If[FlexibleSUSY`DecayParticles === {},
+                 Print["Warning: no supported particles to calculate decays for were found."];
+                 Print["   Generation of decays code will be skipped."];
                  FlexibleSUSY`FSCalculateDecays = False;
                 ,
                 decaysSLHAIncludeFiles = {FlexibleSUSY`FSModelName <> "_decays.hpp", "decays_problems.hpp"};
