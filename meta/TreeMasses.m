@@ -1061,10 +1061,10 @@ CreateFieldClassName[p_, OptionsPattern[{prefixNamespace -> False}]] :=
        ""] <> SymbolName[p];
 
 CreateFieldClassName[SARAH`bar[p_], OptionsPattern[{prefixNamespace -> False}]] :=
-    "typename bar<" <> CreateFieldClassName[p, prefixNamespace -> OptionValue[prefixNamespace]] <> ">::type";
+    "typename cxx_qft::bar<" <> CreateFieldClassName[p, prefixNamespace -> OptionValue[prefixNamespace]] <> ">::type";
 
 CreateFieldClassName[Susyno`LieGroups`conj[p_], OptionsPattern[{prefixNamespace -> False}]] :=
-    "typename conj<" <> CreateFieldClassName[p, prefixNamespace -> OptionValue[prefixNamespace]] <> ">::type";
+    "typename cxx_qft::conj<" <> CreateFieldClassName[p, prefixNamespace -> OptionValue[prefixNamespace]] <> ">::type";
 
 FillSpectrumVector[particles_List] :=
     Module[{par, parStr, massStr, latexName, result = ""},
