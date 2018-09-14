@@ -42,8 +42,6 @@
 
 namespace flexiblesusy {
 
-class @ModelName@_mass_eigenstates;
-
 template <typename Field1, typename Field2>
 double
 final_state_symmetry_factor(typename cxx_qft::field_indices<Field1>::type const& idx1,
