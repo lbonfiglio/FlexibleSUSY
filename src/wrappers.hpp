@@ -285,15 +285,19 @@ double PrintTo(std::ostream& ostr, T0&& v, Ts&&... vs)
 }
 
 ///< print debug information to cerr
+#ifdef ENABLE_DEBUG
 template<typename... Ts>
 double PrintDEBUG(Ts&&... vs)
 {
-#ifdef ENABLE_DEBUG
    return PrintTo(std::cerr, std::forward<Ts>(vs)...);
-#else
-   return 0.;
-#endif
 }
+#else
+template<typename... Ts>
+double PrintDEBUG(Ts&&...)
+{
+   return 0.;
+}
+#endif
 
 ///< print error to cerr
 template<typename... Ts>
@@ -321,15 +325,19 @@ double PrintINFO(Ts&&... vs)
 }
 
 ///< print verbose information to cerr
+#ifdef ENABLE_VERBOSE
 template<typename... Ts>
 double PrintVERBOSE(Ts&&... vs)
 {
-#ifdef ENABLE_VERBOSE
    return PrintTo(std::cerr, std::forward<Ts>(vs)...);
-#else
-   return 0.;
-#endif
 }
+#else
+template<typename... Ts>
+double PrintVERBOSE(Ts&&...)
+{
+   return 0.;
+}
+#endif
 
 ///< print warning to cerr
 template<typename... Ts>
