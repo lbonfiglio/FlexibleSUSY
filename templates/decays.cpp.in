@@ -51,12 +51,6 @@ namespace flexiblesusy {
 using namespace cxx_qft;
 using effective_couplings::beta;
 
-
-// returns an amplitude squared
-// we need to distinguish between different combinations of scalars, fermions and vectors
-// as, for examples, for S -> SS we take |A|^2 while for S - > FF we take (|A_L|^2 + |A_R|^2)
-
-
 void CLASSNAME::set_include_higher_order_corrections(bool flag)
 {
    include_higher_order_corrections = flag;
