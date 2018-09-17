@@ -571,7 +571,8 @@ CreateDecaysCalculationFunction[decaysList_] :=
            particleStart = TreeMasses`GetDimensionStartSkippingGoldstones[particle];
            runToScale = "const auto& decay_mass = PHYSICAL(" <>
                         CConversion`ToValidCSymbolString[TreeMasses`GetMass[particle]] <>
-                        ");\nmodel_.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n";
+                        ");\nmodel_.run_to(decay_mass" <> If[particleDim > 1, "(gI1)", ""] <> ");\n" <>
+                        "model_.calculate_DRbar_masses();\n";
            body = StringJoin[CallPartialWidthCalculation /@ decayChannels];
            body = "auto& decays = decay_table.get_" <> CConversion`ToValidCSymbolString[particle] <>
                   "_decays(" <> If[particleDim > 1, "gI1", ""] <> ");\n\n" <> body;
