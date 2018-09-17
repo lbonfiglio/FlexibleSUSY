@@ -21,7 +21,7 @@
 #ifndef @ModelName@_CXX_QFT_H
 #define @ModelName@_CXX_QFT_H
 
-#include "../@ModelName@_mass_eigenstates.hpp"
+#include "@ModelName@_mass_eigenstates.hpp"
 
 #include "@ModelName@_fields.hpp"
 

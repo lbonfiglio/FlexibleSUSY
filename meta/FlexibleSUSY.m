@@ -3363,8 +3363,7 @@ Options[MakeFlexibleSUSY] :=
 
 MakeFlexibleSUSY[OptionsPattern[]] :=
     Module[{nPointFunctions, runInputFile, initialGuesserInputFile,
-            edmVertices, aMuonVertices, edmFields,
-            cxxQFTTemplateDir, cxxQFTOutputDir, cxxQFTFiles,
+            edmVertices, aMuonVertices, edmFields, cxxQFTFiles,
             susyBetaFunctions, susyBreakingBetaFunctions,
             numberOfSusyParameters, anomDim,
             inputParameters (* list of 3-component lists of the form {name, block, type} *),
@@ -4313,19 +4312,14 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                               {FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.cpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.cpp"}]}}];
 
-           cxxQFTTemplateDir = FileNameJoin[{$flexiblesusyTemplateDir, "cxx_qft"}];
-           cxxQFTOutputDir = FileNameJoin[{FSOutputDir, "cxx_qft"}];
-           cxxQFTFiles = {{FileNameJoin[{cxxQFTTemplateDir, "qft.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_qft.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "fields.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "vertices.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "generic_calculations.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_generic_calculations.hpp"}]}};
-
-           If[DirectoryQ[cxxQFTOutputDir] === False,
-              CreateDirectory[cxxQFTOutputDir]];
+           cxxQFTFiles = {{FileNameJoin[{$flexiblesusyTemplateDir, "qft.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_qft.hpp"}]},
+                          {FileNameJoin[{$flexiblesusyTemplateDir, "fields.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
+                          {FileNameJoin[{$flexiblesusyTemplateDir, "vertices.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
+                          {FileNameJoin[{$flexiblesusyTemplateDir, "generic_calculations.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_generic_calculations.hpp"}]}};
 
            WriteCXXDiagramClass[
              DeleteDuplicates @ Join[
