@@ -615,15 +615,25 @@ CallDecaysCalculationFunctions[particles_List, enableDecaysThreads_] :=
            result
           ];
 
-GetDecayAmplitudeType[initialParticle_, finalState_List] :=
+GetDecayAmplitudeType[initialParticle_?TreeMasses`IsScalar, finalState_List] :=
     Module[{vertexType},
            vertexType = Vertices`VertexTypeForFields[Join[{initialParticle}, finalState]];
            Switch[vertexType,
                   Vertices`SSSVertex, "Decay_amplitude_SSS",
-                  Vertices`FFSVertex, "Decay_amplitude_FFS",
-                  Vertices`FFVVertex, "Decay_amplitude_FFV",
+                  Vertices`FFSVertex, "Decay_amplitude_SFF",
                   Vertices`SSVVertex, "Decay_amplitude_SSV",
                   Vertices`SVVVertex, "Decay_amplitude_SVV",
+                  _, Print["Warning: decay ", initialParticle, " -> ", finalState, " is not supported."];
+                     "Unknown_amplitude_type"
+                 ]
+          ];
+
+GetDecayAmplitudeType[initialParticle_?TreeMasses`IsFermion, finalState_List] :=
+    Module[{vertexType},
+           vertexType = Vertices`VertexTypeForFields[Join[{initialParticle}, finalState]];
+           Switch[vertexType,
+                  Vertices`FFSVertex, "Decay_amplitude_FFS",
+                  Vertices`FFVVertex, "Decay_amplitude_FFV",
                   _, Print["Warning: decay ", initialParticle, " -> ", finalState, " is not supported."];
                      "Unknown_amplitude_type"
                  ]
