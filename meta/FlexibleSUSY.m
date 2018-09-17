@@ -1827,6 +1827,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
                             "@create_SM_particle_usings@" -> smParticleAliases,
+                            "@gs_name@" -> ToString[TreeMasses`GetStrongCoupling[]],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
 

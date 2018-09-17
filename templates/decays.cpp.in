@@ -96,6 +96,9 @@ void CLASSNAME::calculate_decays()
 #endif
 }
 
+double get_alphas(cxx_qft::@ModelName@_evaluation_context const&  context) {
+   return pow(context.model.get_@gs_name@(), 2)/(4.*Pi);
+}
 
 // -------- specializations for decays needing higher order corrections --------
 

@@ -26,9 +26,9 @@ double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
       return 0.;
    }
 
-   const double g3 = MODELPARAMETER(g3);
+   const double alpha_s = get_alphas(context);
+   const double alpha_s_red = alpha_s/(Pi);
    const double Nf = number_of_active_flavours(mHOS);
-   const double alpha_s_red = Sqr(g3)/(4*Sqr(Pi));
    const double mtpole = qedqcd.displayPoleMt();
 
    // higher order corrections in the chiral limit
