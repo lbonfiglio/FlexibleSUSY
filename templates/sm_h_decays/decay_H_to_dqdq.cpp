@@ -2,7 +2,7 @@
 
 // TODO: we need to distinguish between scalar and scalar-pseudoscalar-mixture Higgses
 template<>
-double CLASSNAME::get_partial_width<H,dq,bar<dq>::type>(
+double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const ContextName& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<dq>::type const& indexOut1,

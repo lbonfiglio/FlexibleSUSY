@@ -246,12 +246,13 @@ IsColorInvariantDecay[initialParticle_, finalState_List] :=
            result
           ];
 
+IsPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
+
 IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
     Module[{vertices, vertexVals, isPossibleNonZeroVertex},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
-           isPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
            vertexVals = SARAH`Vertex[#, UseDependences -> useDependences]& /@ vertices;
-           And @@ (isPossibleNonZeroVertex /@ vertexVals)
+           And @@ (IsPossibleNonZeroVertex /@ vertexVals)
           ];
 
 ContainsOnlySupportedVertices[diagram_] :=
@@ -292,16 +293,22 @@ GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
 
 (* defines a fixed ordering for final state particles  *)
 (* @todo decide on what this ordering actually will be *)
-OrderFinalState[initialParticle_, finalParticles_List] :=
+OrderFinalState[initialParticle_?TreeMasses`IsScalar, finalParticles_List] :=
     Module[{orderedFinalState},
            orderedFinalState = First[Vertices`SortCp[SARAH`Cp[Join[{initialParticle}, finalParticles]]]];
            orderedFinalState = Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]];
            If[Length[orderedFinalState] === 2,
               (* re-order to SSV *)
-              If[TreeMasses`IsScalar[initialParticle] && TreeMasses`IsVector[orderedFinalState[[1]]] && TreeMasses`IsScalar[orderedFinalState[[2]]],
-                 Return[Reverse[orderedFinalState]]
-              ]
-           ];
+              If[TreeMasses`IsVector[orderedFinalState[[1]]] && TreeMasses`IsScalar[orderedFinalState[[2]]],
+                 orderedFinalState = Reverse[orderedFinalState]
+                ];
+              (* re-order to S bar[F] F *)
+              If[TreeMasses`IsFermion[orderedFinalState[[1]]] && TreeMasses`IsFermion[orderedFinalState[[2]]],
+                 If[Head[orderedFinalState[[2]]] === SARAH`bar && !Head[orderedFinalState[[1]]] === SARAH`bar,
+                    orderedFinalState = Reverse[orderedFinalState];
+                   ];
+                ];
+             ];
             orderedFinalState
           ];
 
@@ -661,6 +668,39 @@ CreateTotalAmplitudeSpecializationDecl[decay_FSParticleDecay, modelName_] :=
            CreateTotalAmplitudeFunctionName[] <> templatePars <> "(" <> args <> ") const;"
           ];
 
+CreateTotalAmplitudeSpecializationDef[decay_FSParticleDecay, modelName_] :=
+    Module[{i, initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
+            returnType = "", fieldsNamespace, fieldsList, templatePars = "", args = "",
+            treeLevelDiags = {}, body = ""},
+           returnType = GetDecayAmplitudeType[initialParticle, finalState];
+           fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
+           fieldsList = Join[{initialParticle}, finalState];
+           templatePars = "<" <> Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]& /@
+                                                               fieldsList, ", "] <> ">";
+           args = "const cxx_qft::" <> modelName <> "_evaluation_context& context, " <>
+                  Utils`StringJoinWithSeparator[MapIndexed[("const " <> CreateFieldIndices[#1, fieldsNamespace] <> "& idx_" <> ToString[First[#2]])&, fieldsList], ", "];
+           templatePars = "<" <> Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]& /@
+                                                               fieldsList, ", "] <> ">";
+           body = returnType <> " result;\n";
+           treeLevelDiags = GetDecayDiagramsAtLoopOrder[decay, 0];
+           If[treeLevelDiags =!= {} && IsPossibleNonZeroDiagram[treeLevelDiags],
+              body = body <> "\n" <> "// tree-level amplitude\n\n" <>
+                     "const auto m_decay = context.physical_mass<" <> TreeMasses`CreateFieldClassName[initialParticle, prefixNamespace -> fieldsNamespace] <>
+                     ">(idx_1);\n" <>
+                     StringJoin[MapIndexed[("const auto m_out_" <> ToString[First[#2] + 1] <> " = context.physical_mass<" <>
+                                            TreeMasses`CreateFieldClassName[#1, prefixNamespace -> fieldsNamespace] <> ">(idx_" <>
+                                            ToString[First[#2] + 1] <> ");\n")&, finalState]] <> "\n" <>
+                     "const auto indices = concatenate(" <> Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <>
+                     ");\n" <> "const auto vertex = cxx_qft::Vertex" <> templatePars <> "::evaluate(indices, context);\n\n" <>
+                     "result = tree_level_decay_amplitude" <> templatePars <> "(m_decay, " <>
+                     Utils`StringJoinWithSeparator[Table["m_out_" <> ToString[i], {i, 2, Length[fieldsList]}], ", "] <> ", vertex);\n\n";
+             ];
+           body = body <> "return result;\n";
+           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateTotalAmplitudeFunctionName[] <>
+           templatePars <> "(" <> args <> ") const\n{\n" <>
+           TextFormatting`IndentText[body] <> "}\n"
+          ];
+
 GetHiggsBosonDecays[particleDecays_List] :=
     If[TreeMasses`GetHiggsBoson =!= Null, Select[particleDecays, (First[#] === TreeMasses`GetHiggsBoson[])&], {}];
 
@@ -799,10 +839,16 @@ CreateHiggsToPhotonPhotonTotalAmplitude[particleDecays_List, modelName_] :=
            {prototype, function}
           ];
 
+CreateTotalAmplitudeSpecialization[decay_FSParticleDecay, modelName_] :=
+    Module[{decl = "", def = ""},
+           decl = CreateTotalAmplitudeSpecializationDecl[decay, modelName];
+           def = CreateTotalAmplitudeSpecializationDef[decay, modelName];
+           {decl, def}
+          ];
+
 CreateTotalAmplitudeSpecializations[particleDecays_List, modelName_] :=
     Module[{specializations},
-           specializations = {CreateHiggsToGluonGluonTotalAmplitude[particleDecays, modelName],
-                              CreateHiggsToPhotonPhotonTotalAmplitude[particleDecays, modelName]};
+           specializations = Flatten[(CreateTotalAmplitudeSpecialization[#, modelName]& /@ Last[#])& /@ particleDecays, 1];
            specializations = Select[specializations, (# =!= {} && # =!= {"", ""})&];
            Utils`StringJoinWithSeparator[#, "\n"]& /@ Transpose[specializations]
           ];

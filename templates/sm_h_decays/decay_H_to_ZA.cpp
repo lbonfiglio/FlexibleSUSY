@@ -1,26 +1,26 @@
-template<>
-Decay_amplitude_SVV CLASSNAME::calculate_amplitude<H,A,Z>(
-   const ContextName& context,
-   const typename cxx_qft::field_indices<H>::type& indexIn,
-   const typename cxx_qft::field_indices<A>::type& indexOut1,
-   const typename cxx_qft::field_indices<Z>::type& indexOut2
-   ) const
-{
-   Decay_amplitude_type<H,A,Z>::type result;
-   return result;
-}
+// template<>
+// Decay_amplitude_SVV CLASSNAME::calculate_amplitude<H,A,Z>(
+//    const ContextName& context,
+//    const typename cxx_qft::field_indices<H>::type& indexIn,
+//    const typename cxx_qft::field_indices<A>::type& indexOut1,
+//    const typename cxx_qft::field_indices<Z>::type& indexOut2
+//    ) const
+// {
+//    Decay_amplitude_type<H,A,Z>::type result;
+//    return result;
+// }
 
-template<>
-Decay_amplitude_SVV CLASSNAME::calculate_amplitude<H,Z,A>(
-   const ContextName& context,
-   const typename cxx_qft::field_indices<H>::type& indexIn,
-   const typename cxx_qft::field_indices<Z>::type& indexOut1,
-   const typename cxx_qft::field_indices<A>::type& indexOut2
-   ) const
-{
-   Decay_amplitude_type<H,Z,A>::type result;
-   return result;
-}
+// template<>
+// Decay_amplitude_SVV CLASSNAME::calculate_amplitude<H,Z,A>(
+//    const ContextName& context,
+//    const typename cxx_qft::field_indices<H>::type& indexIn,
+//    const typename cxx_qft::field_indices<Z>::type& indexOut1,
+//    const typename cxx_qft::field_indices<A>::type& indexOut2
+//    ) const
+// {
+//    Decay_amplitude_type<H,Z,A>::type result;
+//    return result;
+// }
 
 // special case for H -> photon Z
 template <>
