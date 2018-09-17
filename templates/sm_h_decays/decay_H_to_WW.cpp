@@ -34,7 +34,7 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
       const double ps = 1. / (8. * Pi) * beta(mHOS, mWOS, mWOS);
 
       // matrix element squared
-      const auto mat_elem = effective_coupling<H, W, conj<W>::type>(
+      const auto mat_elem = calculate_amplitude<H, W, conj<W>::type>(
          context, indexIn, indexOut1, indexOut2);
       const auto mat_elem_sq = mat_elem.square();
 

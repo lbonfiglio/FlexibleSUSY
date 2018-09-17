@@ -1787,7 +1787,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             decaysGetters = "", initDecayTable = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
             partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "",
-            effectiveCouplingsSpecializationDecls = "", effectiveCouplingsSpecializationDefs = "",
+            calcAmplitudeSpecializationDecls = "", calcAmplitudeSpecializationDefs = "",
             partialWidthSpecializationDecls = "", partialWidthSpecializationDefs = "",
             smParticleAliases},
            numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
@@ -1805,8 +1805,8 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
            decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
            initDecayTable = Decays`CreateDecayTableInitialization[decayParticles];
-           {effectiveCouplingsSpecializationDecls, effectiveCouplingsSpecializationDefs}
-               = Decays`CreateEffectiveCouplingSpecializations[decaysLists, FlexibleSUSY`FSModelName];
+           {calcAmplitudeSpecializationDecls, calcAmplitudeSpecializationDefs}
+               = Decays`CreateTotalAmplitudeSpecializations[decaysLists, FlexibleSUSY`FSModelName];
            {partialWidthSpecializationDecls, partialWidthSpecializationDefs}
                = Decays`CreatePartialWidthSpecializations[decaysLists, FlexibleSUSY`FSModelName];
            smParticleAliases = Decays`CreateSMParticleAliases[FlexibleSUSY`FSModelName <> "_fields"];
@@ -1818,8 +1818,8 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],
                             "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
-                            "@effectiveCouplingsSpecializationDecls@" -> WrapLines[effectiveCouplingsSpecializationDecls],
-                            "@effectiveCouplingsSpecializationDefs@" -> WrapLines[effectiveCouplingsSpecializationDefs],
+                            "@calcAmplitudeSpecializationDecls@" -> WrapLines[calcAmplitudeSpecializationDecls],
+                            "@calcAmplitudeSpecializationDefs@" -> WrapLines[calcAmplitudeSpecializationDefs],
                             "@partialWidthSpecializationDecls@" -> WrapLines[partialWidthSpecializationDecls],
                             "@partialWidthSpecializationDefs@" -> WrapLines[partialWidthSpecializationDefs],
                             "@decaysListGettersPrototypes@" -> IndentText[decaysListGettersPrototypes],

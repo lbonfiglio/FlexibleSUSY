@@ -102,7 +102,7 @@ private:
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
-   effective_coupling(
+   calculate_amplitude(
       const cxx_qft::@ModelName@_evaluation_context&,
       const typename cxx_qft::field_indices<FieldIn>::type&,
       const typename cxx_qft::field_indices<FieldOut1>::type&,
@@ -130,14 +130,14 @@ double
                   typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2) const
 {
 
-   const auto mat_elem = effective_coupling<FieldIn, FieldOut1, FieldOut2>(
+   const auto mat_elem = calculate_amplitude<FieldIn, FieldOut1, FieldOut2>(
       context, indexIn, indexOut1, indexOut2);
    return mat_elem.square();
 }
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
-@ModelName@_decays::effective_coupling(
+@ModelName@_decays::calculate_amplitude(
    const cxx_qft::@ModelName@_evaluation_context& context,
    const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
    const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
@@ -156,7 +156,7 @@ typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
 
 }
 
-@effectiveCouplingsSpecializationDecls@
+@calcAmplitudeSpecializationDecls@
 
 // generic decay of FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
@@ -182,7 +182,7 @@ double @ModelName@_decays::get_partial_width(
       final_state_symmetry_factor<FieldOut1, FieldOut2>(indexOut1, indexOut2);
 
    // matrix element squared
-   const auto mat_elem = effective_coupling<FieldIn, FieldOut1, FieldOut2>(
+   const auto mat_elem = calculate_amplitude<FieldIn, FieldOut1, FieldOut2>(
       context, indexIn, indexOut1, indexOut2);
    const auto mat_elem_sq = mat_elem.square();
 

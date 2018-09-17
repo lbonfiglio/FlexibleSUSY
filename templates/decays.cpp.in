@@ -105,7 +105,7 @@ double get_alphas(cxx_qft::@ModelName@_evaluation_context const&  context) {
 @create_SM_particle_usings@
 using ContextName = cxx_qft::@ModelName@_evaluation_context;
 
-@effectiveCouplingsSpecializationDefs@
+@calcAmplitudeSpecializationDefs@
 
 unsigned int number_of_active_flavours(double m)
 {

@@ -24,7 +24,7 @@ BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`"
 
 FSParticleDecay::usage="head used for storing details of an particle decay,
 in the format
-   FSParticleDecay[particle, {final state particles}, {diagram 1, diagram 2, ...}]
+   FSParticleDecay[particle, {final state particles}, {{loopOrder, {diagrams}}, {loopOrder, {diagrams}}, ...}]
 ";
 
 IsSupportedDecayParticle::usage="returns True if decays for the given particle are supported.";
@@ -48,7 +48,7 @@ CreateDecaysGetterFunctions::usage="create getters for specific particle decays"
 CreateDecayTableGetterPrototypes::usage="create getter prototypes for C++ decay table.";
 CreateDecayTableGetterFunctions::usage="create getter definitions for C++ decay table.";
 CreateDecayTableInitialization::usage="create C++ initializer for decay table."
-CreateEffectiveCouplingSpecializations::usage="creates specialized functions for higher-order decays.";
+CreateTotalAmplitudeSpecializations::usage="creates specialized functions for higher-order decays.";
 CreatePartialWidthSpecializations::usage="creates specialized functions for particular decays.";
 
 Begin["`Private`"];
@@ -56,6 +56,8 @@ Begin["`Private`"];
 GetInitialState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := particle;
 GetFinalState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := finalState;
 GetDecayDiagrams[FSParticleDecay[particle_, finalState_List, diagrams_List]] := diagrams;
+GetDecayDiagramsAtLoopOrder[FSParticleDecay[particle_, finalState_List, diagrams_List], loopOrder_Integer] :=
+    Last[Flatten[Select[diagrams, (First[#] == loopOrder)&], 1]];
 
 GetDecayTopologies[nProducts_, nLoops_] :=
     (
@@ -277,12 +279,16 @@ GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
            Select[diagrams, IsPossibleNonZeroDiagram]
           ];
 
-GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
-    Module[{nFinalParticles = Length[finalParticles], topologies, diagrams},
-           topologies = GetDecayTopologies[nFinalParticles, 0];
-           diagrams = Flatten[GetContributingDiagramsForDecayGraph[initialParticle, GetFinalStateExternalField /@ finalParticles, #]& /@ topologies, 1];
-           Select[diagrams, IsSupportedDiagram]
+GetContributingGraphsForDecay[initialParticle_, finalParticles_List, maxLoops_Integer] :=
+    Module[{i, nFinalParticles = Length[finalParticles], topologies, diagrams},
+           topologies = Join[Table[{i, GetDecayTopologies[nFinalParticles, i]}, {i, 0, maxLoops}]];
+           diagrams = {#[[1]], Flatten[GetContributingDiagramsForDecayGraph[initialParticle, GetFinalStateExternalField /@ finalParticles, #]& /@ #[[2]], 1]}&
+                      /@ topologies;
+           {#[[1]], Select[#[[2]], IsSupportedDiagram]}& /@ diagrams
           ];
+
+GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
+    GetContributingGraphsForDecay[initialParticle, finalParticles, 1];
 
 (* defines a fixed ordering for final state particles  *)
 (* @todo decide on what this ordering actually will be *)
@@ -315,7 +321,7 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
            concreteFinalStates = OrderFinalState[particle, #] & /@ concreteFinalStates;
            decays = FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates;
-           Select[decays, (GetDecayDiagrams[#] =!= {})&]
+           Select[decays, (GetDecayDiagramsAtLoopOrder[#, 0] =!= {})&]
           ];
 
 GetDecaysForParticle[particle_, n_, allowedFinalStateParticles_List] :=
@@ -411,7 +417,7 @@ GetAllowedGenericFinalStates[particle_?TreeMasses`IsFermion, n_Integer] :=
 
 GetVerticesForDecay[decay_FSParticleDecay] :=
     Module[{diagrams = GetDecayDiagrams[decay]},
-           DeleteDuplicates[Flatten[CXXDiagrams`VerticesForDiagram /@ diagrams, 1]]
+           DeleteDuplicates[Join @@ (Flatten[(CXXDiagrams`VerticesForDiagram /@ Last[#]), 1]& /@ diagrams)]
           ];
 
 GetVerticesForDecays[particleDecays_List] :=
@@ -629,9 +635,9 @@ CreateFieldIndices[particle_String] :=
 CreateFieldIndices[particle_, fieldsNamespace_] :=
     CreateFieldIndices[TreeMasses`CreateFieldClassName[particle, prefixNamespace -> fieldsNamespace]];
 
-CreateEffectiveCouplingFunctionName[] := "effective_coupling";
+CreateTotalAmplitudeFunctionName[] := "calculate_amplitude";
 
-CreateEffectiveCouplingSpecializationDecl[decay_FSParticleDecay, modelName_] :=
+CreateTotalAmplitudeSpecializationDecl[decay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             returnType = "", fieldsNamespace, fieldsList, templatePars = "", args = ""},
            returnType = GetDecayAmplitudeType[initialParticle, finalState];
@@ -642,7 +648,7 @@ CreateEffectiveCouplingSpecializationDecl[decay_FSParticleDecay, modelName_] :=
            args = "const cxx_qft::" <> modelName <> "_evaluation_context&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[#, fieldsNamespace] <> "&")& /@ fieldsList, ", "];
            "template<>\n" <> returnType <> " " <> modelName <> "_decays::" <>
-           CreateEffectiveCouplingFunctionName[] <> templatePars <> "(" <> args <> ") const;"
+           CreateTotalAmplitudeFunctionName[] <> templatePars <> "(" <> args <> ") const;"
           ];
 
 GetHiggsBosonDecays[particleDecays_List] :=
@@ -725,7 +731,7 @@ SelectZZFinalState[decays_List] :=
            result
           ];
 
-CreateHiggsToGluonGluonEffectiveCouplingFunction[hggDecay_FSParticleDecay, modelName_] :=
+CreateHiggsToGluonGluonTotalAmplitudeFunction[hggDecay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[hggDecay], finalState = GetFinalState[hggDecay],
             fieldsList, returnType = "", args = "", templatePars = "", body = ""},
            fieldsList = Join[{initialParticle}, finalState];
@@ -734,12 +740,12 @@ CreateHiggsToGluonGluonEffectiveCouplingFunction[hggDecay_FSParticleDecay, model
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
            templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
            body = returnType <> " result;\nreturn result;\n";
-           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateEffectiveCouplingFunctionName[] <>
+           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateTotalAmplitudeFunctionName[] <>
            templatePars <> "(" <> args <> ") const\n{\n" <>
            TextFormatting`IndentText[body] <> "}\n"
           ];
 
-CreateHiggsToGluonGluonEffectiveCoupling[particleDecays_List, modelName_] :=
+CreateHiggsToGluonGluonTotalAmplitude[particleDecays_List, modelName_] :=
     Module[{higgsDecays, hggDecay, prototype = "", function = ""},
            higgsDecays = GetHiggsBosonDecays[particleDecays];
            If[higgsDecays =!= {},
@@ -747,14 +753,14 @@ CreateHiggsToGluonGluonEffectiveCoupling[particleDecays_List, modelName_] :=
               hggDecay = SelectGluonGluonFinalState[Last[higgsDecays]];
               If[hggDecay =!= {},
                  hggDecay = First[hggDecay];
-                 prototype = CreateEffectiveCouplingSpecializationDecl[hggDecay, modelName];
-                 function  = CreateHiggsToGluonGluonEffectiveCouplingFunction[hggDecay, modelName]
+                 prototype = CreateTotalAmplitudeSpecializationDecl[hggDecay, modelName];
+                 function  = CreateHiggsToGluonGluonTotalAmplitudeFunction[hggDecay, modelName]
                 ];
              ];
            {prototype, function}
           ];
 
-CreateHiggsToPhotonPhotonEffectiveCouplingFunction[hgamgamDecay_FSParticleDecay, modelName_] :=
+CreateHiggsToPhotonPhotonTotalAmplitudeFunction[hgamgamDecay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[hgamgamDecay], finalState = GetFinalState[hgamgamDecay],
             fieldsList, returnType = "", args = "", templatePars = "", body = ""},
            fieldsList = Join[{initialParticle}, finalState];
@@ -763,12 +769,12 @@ CreateHiggsToPhotonPhotonEffectiveCouplingFunction[hgamgamDecay_FSParticleDecay,
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
            templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
            body = returnType <> " result;\nreturn result;\n";
-           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateEffectiveCouplingFunctionName[] <>
+           "template<>\n" <> returnType <> " CLASSNAME::" <> CreateTotalAmplitudeFunctionName[] <>
            templatePars <> "(" <> args <> ") const\n{\n" <>
            TextFormatting`IndentText[body] <> "}\n"
           ];
 
-CreateHiggsToPhotonPhotonEffectiveCoupling[particleDecays_List, modelName_] :=
+CreateHiggsToPhotonPhotonTotalAmplitude[particleDecays_List, modelName_] :=
     Module[{higgsDecays, hgamgamDecay, prototype = "", function = ""},
            higgsDecays = GetHiggsBosonDecays[particleDecays];
            If[higgsDecays =!= {},
@@ -776,17 +782,17 @@ CreateHiggsToPhotonPhotonEffectiveCoupling[particleDecays_List, modelName_] :=
               hgamgamDecay = SelectPhotonPhotonFinalState[Last[higgsDecays]];
               If[hgamgamDecay =!= {},
                  hgamgamDecay = First[hgamgamDecay];
-                 prototype = CreateEffectiveCouplingSpecializationDecl[hgamgamDecay, modelName];
-                 function  = CreateHiggsToPhotonPhotonEffectiveCouplingFunction[hgamgamDecay, modelName]
+                 prototype = CreateTotalAmplitudeSpecializationDecl[hgamgamDecay, modelName];
+                 function  = CreateHiggsToPhotonPhotonTotalAmplitudeFunction[hgamgamDecay, modelName]
                 ];
              ];
            {prototype, function}
           ];
 
-CreateEffectiveCouplingSpecializations[particleDecays_List, modelName_] :=
+CreateTotalAmplitudeSpecializations[particleDecays_List, modelName_] :=
     Module[{specializations},
-           specializations = {CreateHiggsToGluonGluonEffectiveCoupling[particleDecays, modelName],
-                              CreateHiggsToPhotonPhotonEffectiveCoupling[particleDecays, modelName]};
+           specializations = {CreateHiggsToGluonGluonTotalAmplitude[particleDecays, modelName],
+                              CreateHiggsToPhotonPhotonTotalAmplitude[particleDecays, modelName]};
            specializations = Select[specializations, (# =!= {} && # =!= {"", ""})&];
            Utils`StringJoinWithSeparator[#, "\n"]& /@ Transpose[specializations]
           ];
