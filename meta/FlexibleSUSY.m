@@ -2454,6 +2454,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                             "@getPDGCodeFromParticleEnumNoIndex@" -> IndentText[getPDGCodeFromParticleEnumNoIndex],
                             "@getPDGCodeFromParticleEnumIndex@" -> IndentText[getPDGCodeFromParticleEnumIndex],
                             "@setParticleNameFromPDG@" -> IndentText[setParticleNameFromPDG],
+                            "@renormalizationSchemeEnum@" -> "FSRenormalizationScheme::" <> ToString @ FlexibleSUSY`FSRenormalizationScheme,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];

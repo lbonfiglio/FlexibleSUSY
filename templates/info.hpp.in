@@ -22,6 +22,7 @@
 #define @ModelName@_INFO_H
 
 #include "problems.hpp"
+#include "renormalization_scheme.hpp"
 
 #include <array>
 #include <iosfwd>
@@ -37,6 +38,9 @@ namespace @ModelName@_info {
 @inputParameterEnum@
 @extraParameterEnum@
 @gaugeCouplingNormalizationDecls@
+
+   constexpr auto Renormalization_Scheme = @renormalizationSchemeEnum@;
+
    extern const std::array<int, NUMBER_OF_PARTICLES> particle_multiplicities;
    extern const std::array<std::string, NUMBER_OF_PARTICLES> particle_names;
    extern const std::array<std::string, NUMBER_OF_PARTICLES> particle_latex_names;
