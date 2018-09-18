@@ -199,12 +199,28 @@ public:
               std::complex<double> v3)
       : coeff_12_34(v1), coeff_13_24(v2), coeff_14_23(v3) {}
 
+   std::complex<double> value_12_34(int i, int j, int k, int l) const {
+      return coeff_12_34;
+   }
+
+   std::complex<double> value_13_24() const {
+      return coeff_13_24;
+   }
+
+   std::complex<double> value_14_23() const {
+      return coeff_14_23;
+   }
+
    bool isZero() const {
       return is_zero(coeff_12_34) && is_zero(coeff_13_24) &&
          is_zero(coeff_14_23);
    }
 
 private:
+   int vec_1_index;
+   int vec_2_index;
+   int vec_3_index;
+   int vec_4_index;
    std::complex<double> coeff_12_34;
    std::complex<double> coeff_13_24;
    std::complex<double> coeff_14_23;

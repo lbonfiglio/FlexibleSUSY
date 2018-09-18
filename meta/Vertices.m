@@ -982,7 +982,7 @@ CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            resultTypeR = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
 
            DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
-           Parameters`CreateLocalConstRefs[exprL + exprR] <> "\n" <>
+           Parameters`CreateLocalConstRefs[{exprL, exprR}] <> "\n" <>
            "const " <> resultTypeL <> " left = " <>
            Parameters`ExpressionToString[exprL] <> ";\n\n" <>
            "const " <> resultTypeR <> " right = " <>
@@ -1049,7 +1049,51 @@ CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
 
 CreateVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
 
-CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr1234, expr1324, expr1423,
+            resultType1234, resultType1324, resultType1423},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`g[SARAH`lt1, SARAH`lt2] SARAH`g[SARAH`lt3, SARAH`lt4]]
+                              -> FindVertexWithLorentzStructure[Rest[vertex], SARAH`g[SARAH`lt1, SARAH`lt2] SARAH`g[SARAH`lt3, SARAH`lt4]][[1]],
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`g[SARAH`lt1, SARAH`lt3] SARAH`g[SARAH`lt2, SARAH`lt4]]
+                              -> FindVertexWithLorentzStructure[Rest[vertex], SARAH`g[SARAH`lt1, SARAH`lt3] SARAH`g[SARAH`lt2, SARAH`lt4]][[1]],
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`g[SARAH`lt1, SARAH`lt4] SARAH`g[SARAH`lt2, SARAH`lt3]]
+                              -> FindVertexWithLorentzStructure[Rest[vertex], SARAH`g[SARAH`lt1, SARAH`lt4] SARAH`g[SARAH`lt2, SARAH`lt3]][[1]]
+                         };
+
+           expr1234 = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`g[SARAH`lt1, SARAH`lt2] SARAH`g[SARAH`lt3, SARAH`lt4]],
+                                           sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+           expr1324 = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`g[SARAH`lt1, SARAH`lt3] SARAH`g[SARAH`lt2, SARAH`lt4]],
+                                           sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+           expr1423 = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`g[SARAH`lt1, SARAH`lt4] SARAH`g[SARAH`lt2, SARAH`lt3]],
+                                           sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr1234 = SarahToFSVertexConventions[sortedFields, expr1234];
+           expr1324 = SarahToFSVertexConventions[sortedFields, expr1324];
+           expr1423 = SarahToFSVertexConventions[sortedFields, expr1423];
+           expr1234 = TreeMasses`ReplaceDependenciesReverse[expr1234];
+           expr1324 = TreeMasses`ReplaceDependenciesReverse[expr1324];
+           expr1423 = TreeMasses`ReplaceDependenciesReverse[expr1423];
+
+           resultType1234 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+           resultType1324 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+           resultType1423 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[{expr1234, expr1324, expr1423}] <> "\n" <>
+           "const " <> resultType1234 <> " coeff_12_34 = " <>
+           Parameters`ExpressionToString[expr1234] <> ";\n\n" <>
+           "const " <> resultType1324 <> " coeff_13_24 = " <>
+           Parameters`ExpressionToString[expr1324] <> ";\n\n" <>
+           "const " <> resultType1423 <> " coeff_14_23 = " <>
+           Parameters`ExpressionToString[expr1423] <> ";\n\n" <>
+           "return vertex_type(coeff_12_34, coeff_13_24, coeff_14_23);"
+          ];
 
 CreateGGVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
