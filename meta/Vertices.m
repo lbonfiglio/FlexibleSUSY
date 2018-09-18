@@ -1024,7 +1024,7 @@ CreateSSVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
 CreateSSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
 
 CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
-    Module[{sortedIndexedFields, sortedFIelds, indexedFields,
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, expr, resultType},
            sortedIndexedFields = vertex[[1]];
            sortedFields = StripFieldIndices[sortedIndexedFields];
@@ -1051,9 +1051,30 @@ CreateVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
 
 CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
 
-CreateGGSVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+CreateGGVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
 
-CreateGGVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) ->
+                          FindVertexWithLorentzStructure[Rest[vertex], SARAH`Mom[_, _]][[1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(result);"
+          ];
 
 VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
     Module[{sortedFields,
@@ -1079,7 +1100,7 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
                   SVVVertex, CreateSVVVertexFunctionBody[fields, vertex, stripGroupStructure],
                   VVVVertex, CreateVVVVertexFunctionBody[fields, vertex, stripGroupStructure],
                   VVVVVertex, CreateVVVVVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  GGSVertex, CreateGGSVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  GGSVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
                   GGVVertex, CreateGGVVertexFunctionBody[fields, vertex, stripGroupStructure]
                  ]
           ];
