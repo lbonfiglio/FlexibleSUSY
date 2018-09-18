@@ -257,9 +257,11 @@ IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
 
 IsPossibleTreeLevelDecay[decay_FSParticleDecay, useDependences_:False] :=
     Module[{treeLevelDiags = GetDecayDiagramsAtLoopOrder[decay, 0]},
-           GetDecayDiagramsAtLoopOrder[decay, 0] =!= {} &&
-           (And @@ (IsPossibleNonZeroDiagram[#, useDependences]& /@ treeLevelDiags))
+           treeLevelDiags =!= {} && (And @@ (IsPossibleNonZeroDiagram[#, useDependences]& /@ treeLevelDiags))
           ];
+
+IsPossibleOneLoopDecay[decay_FSParticleDecay] :=
+    GetDecayDiagramsAtLoopOrder[decay, 1] =!= {};
 
 ContainsOnlySupportedVertices[diagram_] :=
     Module[{vertices, vertexTypes, unsupportedVertices},
@@ -919,6 +921,47 @@ FillTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, struct
            _, ""
           ];
 
+FillSSSOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Module[{},
+           "// 1-loop amplitude\n"
+          ];
+
+FillSFFOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Module[{},
+           "// 1-loop amplitude\n"
+          ];
+
+FillSSVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Module[{},
+           "// 1-loop amplitude\n"
+          ];
+
+FillSVVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Module[{},
+           "// 1-loop amplitude\n"
+          ];
+
+FillFFSOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Module[{},
+           "// 1-loop amplitude\n"
+          ];
+
+FillFFVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Module[{},
+           "// 1-loop amplitude\n"
+          ];
+
+FillOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
+    Switch[GetDecayAmplitudeType[decay],
+           "Decay_amplitude_SSS", FillSSSOneLoopDecayAmplitudeFormFactors[decay, modelName, structName, paramsStruct],
+           "Decay_amplitude_SFF", FillSFFOneLoopDecayAmplitudeFormFactors[decay, modelName, structName, paramsStruct],
+           "Decay_amplitude_SSV", FillSSVOneLoopDecayAmplitudeFormFactors[decay, modelName, structName, paramsStruct],
+           "Decay_amplitude_SVV", FillSVVOneLoopDecayAmplitudeFormFactors[decay, modelName, structName, paramsStruct],
+           "Decay_amplitude_FFS", FillFFSOneLoopDecayAmplitudeFormFactors[decay, modelName, structName, paramsStruct],
+           "Decay_amplitude_FFV", FillFFVOneLoopDecayAmplitudeFormFactors[decay, modelName, structName, paramsStruct],
+           _, ""
+          ];
+
 CreateTotalAmplitudeSpecializationDef[decay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             returnVar = "result", paramsStruct = "context", returnType = "",
@@ -938,6 +981,9 @@ CreateTotalAmplitudeSpecializationDef[decay_FSParticleDecay, modelName_] :=
            body = body <> ZeroDecayAmplitudeFormFactors[decay, returnVar] <> "\n";
            If[IsPossibleTreeLevelDecay[decay, True],
               body = body <> "// @todo correct prefactors\n" <> FillTreeLevelDecayAmplitudeFormFactors[decay, modelName, returnVar, paramsStruct] <> "\n";
+             ];
+           If[!IsPossibleTreeLevelDecay[decay, True] && IsPossibleOneLoopDecay[decay],
+              body = body <> FillOneLoopDecayAmplitudeFormFactors[decay, modelName, returnVar, paramsStruct] <> "\n";
              ];
            body = body <> "return " <> returnVar <> ";\n";
            "template<>\n" <> returnType <> " CLASSNAME::" <> CreateTotalAmplitudeFunctionName[] <>
