@@ -1084,15 +1084,23 @@ CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            resultType1324 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
            resultType1423 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
 
+           "const int i = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[1]]][[1,1]] - 1] <> ";\n" <>
+           "const int j = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[2]]][[1,1]] - 1] <> ";\n" <>
+           "const int k = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[3]]][[1,1]] - 1] <> ";\n" <>
+           "const int l = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[4]]][[1,1]] - 1] <> ";\n" <>
            DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
            Parameters`CreateLocalConstRefs[{expr1234, expr1324, expr1423}] <> "\n" <>
-           "const " <> resultType1234 <> " coeff_12_34 = " <>
+           "const " <> resultType1234 <> " c1 = " <>
            Parameters`ExpressionToString[expr1234] <> ";\n\n" <>
-           "const " <> resultType1324 <> " coeff_13_24 = " <>
+           "const " <> resultType1324 <> " c2 = " <>
            Parameters`ExpressionToString[expr1324] <> ";\n\n" <>
-           "const " <> resultType1423 <> " coeff_14_23 = " <>
+           "const " <> resultType1423 <> " c3 = " <>
            Parameters`ExpressionToString[expr1423] <> ";\n\n" <>
-           "return vertex_type(coeff_12_34, coeff_13_24, coeff_14_23);"
+           "return vertex_type(i, j, k, l, c1, c2, c3);"
           ];
 
 CreateGGVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=

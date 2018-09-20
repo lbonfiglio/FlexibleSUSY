@@ -22,6 +22,7 @@
 #include "error.hpp"
 #include "numerics2.hpp"
 
+#include <array>
 #include <complex>
 
 namespace flexiblesusy {
@@ -112,19 +113,7 @@ public:
    SSVVertex(std::complex<double> v, int mi, int si )
       : val(v), minuendIndex(mi), subtrahendIndex(si) {}
 
-   std::complex<double> value(int mi, int si) const {
-      if( mi == minuendIndex && si == subtrahendIndex ) {
-         return val;
-      }
-
-      if( mi == subtrahendIndex && si == minuendIndex ) {
-         return -val;
-      }
-
-      throw std::invalid_argument(
-         "SSVVertex: Wrong index combination" );
-      return 0.0;
-   }
+   std::complex<double> value(int mi, int si) const;
 
    bool isZero() const {
       return is_zero(val);
@@ -195,35 +184,36 @@ private:
  */
 class VVVVVertex {
 public:
-   VVVVVertex(std::complex<double> v1, std::complex<double> v2,
-              std::complex<double> v3)
-      : coeff_12_34(v1), coeff_13_24(v2), coeff_14_23(v3) {}
+   /**
+    * Set coefficients of elements of kinematic vector
+    * when vertex is written in the order
+    * V[i] V[j] V[k] V[l].
+    */
+   VVVVVertex(int i, int j, int k, int l,
+              std::complex<double> c1, std::complex<double> c2,
+              std::complex<double> c3);
+   ~VVVVVertex() = default;
+   VVVVVertex(const VVVVVertex&) = default;
+   VVVVVertex(VVVVVertex&&) = default;
+   VVVVVertex& operator=(const VVVVVertex&) = default;
+   VVVVVertex& operator=(VVVVVertex&&) = default;
 
-   std::complex<double> value_12_34(int i, int j, int k, int l) const {
-      return coeff_12_34;
-   }
-
-   std::complex<double> value_13_24() const {
-      return coeff_13_24;
-   }
-
-   std::complex<double> value_14_23() const {
-      return coeff_14_23;
-   }
+   std::complex<double> value_1(int, int, int, int) const;
+   std::complex<double> value_2(int, int, int, int) const;
+   std::complex<double> value_3(int, int, int, int) const;
 
    bool isZero() const {
-      return is_zero(coeff_12_34) && is_zero(coeff_13_24) &&
-         is_zero(coeff_14_23);
+      return is_zero(coefficients[0]) && is_zero(coefficients[1]) &&
+         is_zero(coefficients[2]);
    }
 
 private:
-   int vec_1_index;
-   int vec_2_index;
-   int vec_3_index;
-   int vec_4_index;
-   std::complex<double> coeff_12_34;
-   std::complex<double> coeff_13_24;
-   std::complex<double> coeff_14_23;
+   std::array<int, 4> indices;
+   std::array<std::complex<double>, 3> coefficients;
+
+   bool check_indices_valid(int, int, int, int) const;
+   std::array<int, 4> to_positions_in_ref_order(int, int, int, int) const;
+   std::complex<double> get_coefficient(int, int) const;
 };
 
 /**
