@@ -36,9 +36,12 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
 
    // chiral breaking correctios
    // TODO: probably shouldn't be applied in case of CP-breaking 
-   const double lt = Log(Sqr(mHOS/mtpole));
-   const double lq = Log(Sqr(mdqDR/mHOS));
-   const double deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
+   double deltaH2 = 0.;
+   if(!info::CPViolationInHiggsSector) {
+      const double lt = Log(Sqr(mHOS/mtpole));
+      const double lq = Log(Sqr(mdqDR/mHOS));
+      deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
+   }
 
    const double flux = 1./(2.*mHOS);
    const double phase_space = 1./(8.*Pi) * beta(mHOS, mdqDR, mdqDR);

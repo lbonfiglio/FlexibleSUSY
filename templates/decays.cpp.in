@@ -49,7 +49,7 @@ namespace flexiblesusy {
 
 using namespace cxx_qft;
 using effective_couplings::beta;
-using @ModelName@_info::Renormalization_Scheme;
+namespace info = @ModelName@_info;
 
 void CLASSNAME::set_include_higher_order_corrections(bool flag)
 {
