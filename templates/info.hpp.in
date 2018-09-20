@@ -38,8 +38,8 @@ namespace @ModelName@_info {
 @inputParameterEnum@
 @extraParameterEnum@
 @gaugeCouplingNormalizationDecls@
-
    constexpr auto Renormalization_Scheme = @renormalizationSchemeEnum@;
+   constexpr bool CPViolationInHiggsSector = @CPViolationInHiggsSector@;
 
    extern const std::array<int, NUMBER_OF_PARTICLES> particle_multiplicities;
    extern const std::array<std::string, NUMBER_OF_PARTICLES> particle_names;

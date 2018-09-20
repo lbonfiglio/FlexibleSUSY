@@ -2455,6 +2455,7 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                             "@getPDGCodeFromParticleEnumIndex@" -> IndentText[getPDGCodeFromParticleEnumIndex],
                             "@setParticleNameFromPDG@" -> IndentText[setParticleNameFromPDG],
                             "@renormalizationSchemeEnum@" -> "FSRenormalizationScheme::" <> ToString @ FlexibleSUSY`FSRenormalizationScheme,
+                            "@CPViolationInHiggsSector@" -> CreateCBoolValue @ SA`CPViolationHiggsSector,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
