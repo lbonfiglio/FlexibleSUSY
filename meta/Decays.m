@@ -246,6 +246,13 @@ IsColorInvariantDecay[initialParticle_, finalState_List] :=
            result
           ];
 
+FinalStateContainsInitialState[initialParticle_, finalState_List] :=
+    Module[{containsInitialMultiplet, dim},
+           containsInitialMultiplet = !FreeQ[finalState, initialParticle];
+           dim = TreeMasses`GetDimension[initialParticle];
+           containsInitialMultiplet && dim == 1
+          ];
+
 IsPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
 
 IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
@@ -332,7 +339,8 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
            (* @todo checks on colour and Lorentz structure *)
            isPossibleDecay[finalState_] := (IsPhysicalFinalState[finalState] &&
                                             IsElectricChargeConservingDecay[particle, finalState] &&
-                                            IsColorInvariantDecay[particle, finalState]);
+                                            IsColorInvariantDecay[particle, finalState] &&
+                                            !FinalStateContainsInitialState[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
            concreteFinalStates = OrderFinalState[particle, #] & /@ concreteFinalStates;
            FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates
