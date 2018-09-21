@@ -675,7 +675,7 @@ CreateTotalAmplitudeSpecializationDecl[decay_FSParticleDecay, modelName_] :=
            args = "const cxx_qft::" <> modelName <> "_evaluation_context&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[#, fieldsNamespace] <> "&")& /@ fieldsList, ", "];
            "template<>\n" <> returnType <> " " <> modelName <> "_decays::" <>
-           CreateTotalAmplitudeFunctionName[] <> templatePars <> "(" <> args <> ") const;"
+           CreateTotalAmplitudeFunctionName[] <> templatePars <> "(" <> args <> ") const;\n"
           ];
 
 FillSSSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
