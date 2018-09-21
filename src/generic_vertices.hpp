@@ -166,17 +166,33 @@ private:
  */
 class VVVVertex {
 public:
-   explicit VVVVertex(std::complex<double> v)
-      : val(v) {}
+   /**
+    * Set coefficient of kinematic vector when
+    * vertex is written in the order
+    * V[i] V[j] V[k].
+    */
+   VVVVertex(int i, int j, int k, std::complex<double> c)
+      : vec_0_id(i), vec_1_id(j), vec_2_id(k), val(c)
+      {}
+   ~VVVVertex() = default;
+   VVVVertex(const VVVVertex&) = default;
+   VVVVertex(VVVVertex&&) = default;
+   VVVVertex& operator=(const VVVVertex&) = default;
+   VVVVertex& operator=(VVVVertex&&) = default;
 
-   std::complex<double> value() const { return val; }
+   std::complex<double> value(int, int, int) const;
 
    bool isZero() const {
       return is_zero(val);
    }
 
 private:
+   int vec_0_id;
+   int vec_1_id;
+   int vec_2_id;
    std::complex<double> val;
+
+   int permutation_sign(int, int, int) const;
 };
 
 /**

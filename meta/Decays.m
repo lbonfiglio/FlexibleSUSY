@@ -246,6 +246,13 @@ IsColorInvariantDecay[initialParticle_, finalState_List] :=
            result
           ];
 
+FinalStateContainsInitialState[initialParticle_, finalState_List] :=
+    Module[{containsInitialMultiplet, dim},
+           containsInitialMultiplet = !FreeQ[finalState, initialParticle];
+           dim = TreeMasses`GetDimension[initialParticle];
+           containsInitialMultiplet && dim == 1
+          ];
+
 IsPossibleNonZeroVertex[vertex_] := MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
 
 IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
@@ -320,6 +327,12 @@ OrderFinalState[initialParticle_?TreeMasses`IsScalar, finalParticles_List] :=
             orderedFinalState
           ];
 
+OrderFinalState[initialParticle_, finalParticles_List] :=
+    Module[{orderedFinalState},
+           orderedFinalState = First[Vertices`SortCp[SARAH`Cp[Join[{initialParticle}, finalParticles]]]];
+           Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]]
+          ];
+
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
     Module[{genericFinalStates, finalStateParticlesClassified,
             isPossibleDecay, concreteFinalStates, decays},
@@ -332,7 +345,8 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
            (* @todo checks on colour and Lorentz structure *)
            isPossibleDecay[finalState_] := (IsPhysicalFinalState[finalState] &&
                                             IsElectricChargeConservingDecay[particle, finalState] &&
-                                            IsColorInvariantDecay[particle, finalState]);
+                                            IsColorInvariantDecay[particle, finalState] &&
+                                            !FinalStateContainsInitialState[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
            concreteFinalStates = OrderFinalState[particle, #] & /@ concreteFinalStates;
            FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates
@@ -675,7 +689,7 @@ CreateTotalAmplitudeSpecializationDecl[decay_FSParticleDecay, modelName_] :=
            args = "const cxx_qft::" <> modelName <> "_evaluation_context&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[#, fieldsNamespace] <> "&")& /@ fieldsList, ", "];
            "template<>\n" <> returnType <> " " <> modelName <> "_decays::" <>
-           CreateTotalAmplitudeFunctionName[] <> templatePars <> "(" <> args <> ") const;"
+           CreateTotalAmplitudeFunctionName[] <> templatePars <> "(" <> args <> ") const;\n"
           ];
 
 FillSSSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
@@ -749,7 +763,7 @@ FillFFSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
            finalState = GetFinalState[decay];
            fermion = First[Select[finalState, TreeMasses`IsFermion]];
            fermionPos = First[First[Position[finalState, fermion]]];
-           scalar = First[Select[finalState, TreeMasses`IsScalar]]
+           scalar = First[Select[finalState, TreeMasses`IsScalar]];
            scalarPos = First[First[Position[finalState, scalar]]];
            assignments = assignments <> structName <> ".m_decay = " <> paramsStruct <> ".physical_mass<" <>
                          TreeMasses`CreateFieldClassName[GetInitialState[decay], prefixNamespace -> fieldsNamespace] <>
@@ -828,15 +842,41 @@ ZeroDecayAmplitudeFormFactors[decay_FSParticleDecay /; GetDecayAmplitudeType[dec
     structName <> ".form_factor_p_1 = std::complex<double>(0., 0.);\n" <>
     structName <> ".form_factor_p_2 = std::complex<double>(0., 0.);\n";
 
+GetTreeLevelTwoBodyDecayVertex[decay_FSParticleDecay] :=
+    Module[{treeLevelDiags, vertices = {}},
+           treeLevelDiags = GetDecayDiagramsAtLoopOrder[decay, 0];
+           If[treeLevelDiags =!= {},
+              vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ treeLevelDiags, 1];
+             ];
+           vertices
+          ];
+
+EvaluateTreeLevelTwoBodyDecayVertex[decay_FSParticleDecay, modelName_, indicesName_, paramsStruct_, resultName_:"vertex"] :=
+    Module[{vertexFields, fieldsNamespace, templatePars},
+           vertexFields = GetTreeLevelTwoBodyDecayVertex[decay];
+           If[Length[vertexFields] > 1,
+              Print["Error: more than a single vertex in tree-level decays."];
+              Quit[1];
+             ];
+           If[vertexFields =!= {},
+              vertexFields = First[vertexFields];
+              fieldsNamespace = modelName <> "_fields";
+              templatePars = "<" <>
+                              Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
+                                                            /@ vertexFields, ", "] <> " >";
+              "const auto " <> resultName <> " = cxx_qft::Vertex" <> templatePars <> "::evaluate(" <>
+              indicesName <> ", " <> paramsStruct <> ");\n",
+              ""
+             ]
+          ];
+
 FillSSSTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
            fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
-           vertex = "const auto vertex = cxx_qft::Vertex<" <>
-                    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
-                                                  /@ fieldsList, ", "] <> " >::evaluate(indices, " <> paramsStruct <> ");\n";
+           vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
            assignments = structName <> ".form_factor += vertex.value();\n";
            "// tree-level amplitude\n" <> indices <> vertex <> "\n" <> assignments
           ];
@@ -847,9 +887,7 @@ FillSFFTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
            fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
-           vertex = "const auto vertex = cxx_qft::Vertex<" <>
-                    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
-                                                  /@ fieldsList, ", "] <> " >::evaluate(indices, " <> paramsStruct <> ");\n";
+           vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
            assignments = structName <> ".form_factor_left += vertex.left();\n" <>
                          structName <> ".form_factor_right += vertex.right();\n";
            "// tree-level amplitude\n" <> indices <> vertex <> "\n" <> assignments
@@ -861,9 +899,7 @@ FillSSVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
            fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
-           vertex = "// @todo correct field ordering\nconst auto vertex = cxx_qft::Vertex<" <>
-                    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
-                                                  /@ fieldsList, ", "] <> " >::evaluate(indices, " <> paramsStruct <> ");\n";
+           vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
            assignments = structName <> ".form_factor += vertex.value(0, 1);\n";
            "// tree-level amplitude\n" <> indices <> vertex <> "\n" <> assignments
           ];
@@ -874,9 +910,7 @@ FillSVVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
            fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
-           vertex = "const auto vertex = cxx_qft::Vertex<" <>
-                    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
-                                                  /@ fieldsList, ", "] <> " >::evaluate(indices, " <> paramsStruct <> ");\n";
+           vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
            assignments = structName <> ".form_factor_g += vertex.value();\n";
            "// tree-level amplitude\n" <> indices <> vertex <> "\n" <> assignments
           ];
@@ -887,9 +921,7 @@ FillFFSTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
            fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
-           vertex = "const auto vertex = cxx_qft::Vertex<" <>
-                    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
-                                                  /@ fieldsList, ", "] <> " >::evaluate(indices, " <> paramsStruct <> ");\n";
+           vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
            assignments = structName <> ".form_factor_left += vertex.left();\n" <>
                          structName <> ".form_factor_right += vertex.right();\n";
            "// tree-level amplitude\n" <> indices <> vertex <> "\n" <> assignments
@@ -901,9 +933,7 @@ FillFFVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
            fieldsNamespace = "cxx_qft::" <> modelName <> "_fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
-           vertex = "const auto vertex = cxx_qft::Vertex<" <>
-                    Utils`StringJoinWithSeparator[TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace]&
-                                                  /@ fieldsList, ", "] <> " >::evaluate(indices, " <> paramsStruct <> ");\n";
+           vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
            assignments = structName <> ".form_factor_gam_left += vertex.left();\n" <>
                          structName <> ".form_factor_gam_right += vertex.right();\n";
            "// tree-level amplitude\n" <> indices <> vertex <> "\n" <> assignments
@@ -1404,8 +1434,8 @@ CreateDecayTableGetterPrototypes[decayParticles_List] :=
 
 CreateDecayTableGetterFunctions[decayParticles_List, scope_:"CLASSNAME"] :=
     Module[{i, dims, offsets, rowAssignments, defs = ""},
-           dims = TreeMasses`GetDimension /@ decayParticles;
-           offsets = If[Length[dims] == 1, {0}, Join[{0}, Accumulate[dims[[2;;]]]]];
+           dims = TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles;
+           offsets = If[Length[dims] == 1, {0}, Join[{0}, Accumulate[dims[[1;;-1]]]]];
            rowAssignments = MapIndexed[{decayParticles[[First[#2]]], Table[offsets[[First[#2]]] + i, {i, 0, #1 - 1}]}&, dims];
            defs = (CreateDecayTableEntryGetterFunction[#[[1]], #[[2]], scope] <> "\n\n" <>
                    CreateDecayTableEntryConstGetterFunction[#[[1]], #[[2]], scope])& /@ rowAssignments;
