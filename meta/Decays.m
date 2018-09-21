@@ -1434,8 +1434,8 @@ CreateDecayTableGetterPrototypes[decayParticles_List] :=
 
 CreateDecayTableGetterFunctions[decayParticles_List, scope_:"CLASSNAME"] :=
     Module[{i, dims, offsets, rowAssignments, defs = ""},
-           dims = TreeMasses`GetDimension /@ decayParticles;
-           offsets = If[Length[dims] == 1, {0}, Join[{0}, Accumulate[dims[[2;;]]]]];
+           dims = TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles;
+           offsets = If[Length[dims] == 1, {0}, Join[{0}, Accumulate[dims[[1;;-1]]]]];
            rowAssignments = MapIndexed[{decayParticles[[First[#2]]], Table[offsets[[First[#2]]] + i, {i, 0, #1 - 1}]}&, dims];
            defs = (CreateDecayTableEntryGetterFunction[#[[1]], #[[2]], scope] <> "\n\n" <>
                    CreateDecayTableEntryConstGetterFunction[#[[1]], #[[2]], scope])& /@ rowAssignments;
