@@ -763,7 +763,7 @@ FillFFSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
            finalState = GetFinalState[decay];
            fermion = First[Select[finalState, TreeMasses`IsFermion]];
            fermionPos = First[First[Position[finalState, fermion]]];
-           scalar = First[Select[finalState, TreeMasses`IsScalar]]
+           scalar = First[Select[finalState, TreeMasses`IsScalar]];
            scalarPos = First[First[Position[finalState, scalar]]];
            assignments = assignments <> structName <> ".m_decay = " <> paramsStruct <> ".physical_mass<" <>
                          TreeMasses`CreateFieldClassName[GetInitialState[decay], prefixNamespace -> fieldsNamespace] <>
