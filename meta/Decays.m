@@ -327,6 +327,12 @@ OrderFinalState[initialParticle_?TreeMasses`IsScalar, finalParticles_List] :=
             orderedFinalState
           ];
 
+OrderFinalState[initialParticle_, finalParticles_List] :=
+    Module[{orderedFinalState},
+           orderedFinalState = First[Vertices`SortCp[SARAH`Cp[Join[{initialParticle}, finalParticles]]]];
+           Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]]
+          ];
+
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
     Module[{genericFinalStates, finalStateParticlesClassified,
             isPossibleDecay, concreteFinalStates, decays},
