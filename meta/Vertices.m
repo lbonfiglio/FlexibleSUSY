@@ -850,7 +850,7 @@ CreateVertexData[fields_List, fieldsNamespace_:""] :=
                TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] & /@ fields,
                ", "]] <> ">";
 
-           "template<> struct " <> dataClassName <> "\n" <> "{\n" <>
+           "template<>\nstruct " <> dataClassName <> " {\n" <>
            TextFormatting`IndentText[
                "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
                ";"] <> "\n" <> "};"
@@ -868,7 +868,7 @@ CreateVertex[fields_List, fieldsNamespace_:""] :=
            functionClassName = "Vertex<" <> StringJoin @ Riffle[
            TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] & /@ fields, ", "] <> ">";
 
-           "template<> template <class EvaluationContext> inline\n" <>
+           "template<>\ntemplate <class EvaluationContext>\ninline\n" <>
            functionClassName <> "::vertex_type\n" <>
            functionClassName <> "::evaluate(const indices_type& indices, const EvaluationContext& context)\n" <>
            "{\n" <>
