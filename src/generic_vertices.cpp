@@ -17,6 +17,7 @@
 // ====================================================================
 
 #include "generic_vertices.hpp"
+#include "wrappers.hpp"
 
 #include <stdexcept>
 
@@ -36,6 +37,30 @@ std::complex<double> SSVVertex::value(int mi, int si) const
 
    throw std::invalid_argument(
       "SSVVertex: Wrong index combination" );
+}
+
+std::complex<double> VVVVertex::value(int i, int j, int k) const
+{
+   return permutation_sign(i, j, k) * val;
+}
+
+int VVVVertex::permutation_sign(int i, int j, int k) const
+{
+   if (i == vec_0_id && j == vec_1_id && k == vec_2_id) {
+      return 1;
+   } else if (i == vec_1_id && j == vec_0_id && k == vec_2_id) {
+      return -1;
+   } else if (i == vec_2_id && j == vec_1_id && k == vec_0_id) {
+      return -1;
+   } else if (i == vec_0_id && j == vec_2_id && k == vec_1_id) {
+      return -1;
+   } else if (i == vec_1_id && j == vec_2_id && k == vec_0_id) {
+      return 1;
+   } else if (i == vec_2_id && j == vec_0_id && k == vec_1_id) {
+      return 1;
+   }
+
+   throw std::invalid_argument("VVVVertex: invalid indices");
 }
 
 VVVVVertex::VVVVVertex(int i, int j, int k, int l,

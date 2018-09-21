@@ -1047,7 +1047,35 @@ CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(result);"
           ];
 
-CreateVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] := "";
+CreateVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           "const int i = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[1]]][[1,1]] - 1] <> ";\n" <>
+           "const int j = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[2]]][[1,1]] - 1] <> ";\n" <>
+           "const int k = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[3]]][[1,1]] - 1] <> ";\n" <>
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(i, j, k, result);"
+          ];
 
 CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
