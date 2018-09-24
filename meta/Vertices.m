@@ -48,6 +48,7 @@ ToRotatedField::usage;
 ReplaceUnrotatedFields::usage;
 StripGroupStructure::usage="Removes group generators and Kronecker deltas.";
 StripFieldIndices::usage;
+IsNonZeroVertex::usage="Checks if a vertex vanishes.";
 
 CreateVertexData::usage="";
 CreateVertices::usage="";
@@ -898,6 +899,19 @@ GetIndexedFieldsForVertex[fields_, vertex_] :=
            fOrderingWRTSortedF = sortedFieldsOrdering[[inverseFOrdering]];
 
            sortedIndexedFields[[fOrderingWRTSortedF]]
+          ];
+
+IsNonZeroVertex[fields_List, vertexList_:{}, useDependences_:False] :=
+    Module[{sortedFields, vertex, isNonZero},
+           sortedFields = SortFieldsInCp[fields];
+           If[vertexList =!= {},
+              isNonZero = Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1] =!= {};
+             ];
+           If[!isNonZero,
+              vertex = SARAH`Vertex[sortedFields, UseDependences -> useDependences];
+              isNonZero = MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
+             ];
+           isNonZero
           ];
 
 CreateZeroVertex[fields_?IsSSSVertex] := "return vertex_type(0);";
