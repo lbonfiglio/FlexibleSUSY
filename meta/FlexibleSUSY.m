@@ -3855,6 +3855,13 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
               effectiveCouplings = Get[effectiveCouplingsFileName];
              ];
 
+           If[Head[SARAH`VertexList3] =!= Symbol && Length[SARAH`VertexList3] != 0,
+              Vertices`SetCachedVertices[3, SARAH`VertexList3];
+             ];
+           If[Head[SARAH`VertexList4] =!= Symbol && Length[SARAH`VertexList4] != 0,
+              Vertices`SetCachedVertices[4, SARAH`VertexList4];
+             ];
+
            (* apply user-defined rules *)
            vertexRules = vertexRules /. FlexibleSUSY`FSVertexRules;
 

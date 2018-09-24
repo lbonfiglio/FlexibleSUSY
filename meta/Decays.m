@@ -256,18 +256,7 @@ FinalStateContainsInitialState[initialParticle_, finalState_List] :=
 IsPossibleNonZeroVertex[fields_List, useDependences_:False] :=
     Module[{numFields, cachedVertices = {}},
            numFields = Length[fields];
-           Which[numFields == 3,
-                 If[Head[SARAH`VertexList3] =!= Symbol && Length[SARAH`VertexList3] != 0,
-                    cachedVertices = SARAH`VertexList3;
-                   ];,
-                 numFields == 4,
-                 If[Head[SARAH`VertexList4] =!= Symbol && Length[SARAH`VertexList4] != 0,
-                    cachedVertices = SARAH`VertexList4;
-                   ];,
-                 True,
-                 cachedVertices = {};
-                ];
-          Vertices`IsNonZeroVertex[fields, cachedVertices, useDependences]
+           Vertices`IsNonZeroVertex[fields, Vertices`GetCachedVertices[numFields], useDependences]
          ];
 
 IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=

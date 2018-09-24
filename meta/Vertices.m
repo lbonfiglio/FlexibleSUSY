@@ -48,13 +48,45 @@ ToRotatedField::usage;
 ReplaceUnrotatedFields::usage;
 StripGroupStructure::usage="Removes group generators and Kronecker deltas.";
 StripFieldIndices::usage;
-IsNonZeroVertex::usage="Checks if a vertex vanishes.";
+IsNonZeroVertex::usage="Checks if a vertex may be non-zero.";
+
+SetCachedVertices::usage="";
+GetCachedVertices::usage="";
+ClearCachedVertices::usage="";
 
 CreateVertexData::usage="";
 CreateVertices::usage="";
 VertexFunctionBodyForFields::usage="";
 
 Begin["`Private`"]
+
+(* cached 3-point vertices *)
+cachedVertices[3] = {};
+(* cached 4-point vertices *)
+cachedVertices[4] = {};
+cachedVertices[numFields_] := {};
+
+SetCachedVertices[numFields_Integer, vertices_List] := cachedVertices[numFields] = vertices;
+
+GetCachedVertices[] := Flatten[cachedVertices /@ Cases[DownValues[cachedVertices], (HoldPattern[_[_[x_]]] :> y_) /; IntegerQ[x] :> x]];
+GetCachedVertices[numFields_Integer] := cachedVertices[numFields];
+
+AddToCachedVertices[sarahVertex_] :=
+    Module[{numFields, cached},
+           numFields = Length[sarahVertex[[1]]];
+           cached = cachedVertices[numFields];
+           If[cached === {},
+              cachedVertices[numFields] = {sarahVertex};,
+              cachedVertices[numFields] = Append[cached, sarahVertex];
+             ];
+          ];
+
+ClearCachedVertices[numFields_Integer] := cachedVertices[numFields] = {};
+ClearCachedVertices[] :=
+    (
+     DownValues[cachedVertices] = DeleteCases[DownValues[cachedVertices], (HoldPattern[_[_[x_]]] :> y_) /; IntegerQ[x]];
+     cachedVertices[_] := {};
+    )
 
 VertexTypes[] := FSVertexTypes;
 
@@ -902,16 +934,17 @@ GetIndexedFieldsForVertex[fields_, vertex_] :=
           ];
 
 IsNonZeroVertex[fields_List, vertexList_:{}, useDependences_:False] :=
-    Module[{sortedFields, vertex, isNonZero},
+    Module[{sortedFields, cached, vertex, isNonZero},
            sortedFields = SortFieldsInCp[fields];
            If[vertexList =!= {},
-              isNonZero = Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1] =!= {};
+              cached = DeleteDuplicates[Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1]];
+              If[cached =!= {},
+                 Return[Or @@ (MemberQ[#[[2 ;;]][[All, 1]], Except[0]]& /@ cached)];
+                ];
              ];
-           If[!isNonZero,
-              vertex = SARAH`Vertex[sortedFields, UseDependences -> useDependences];
-              isNonZero = MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]];
-             ];
-           isNonZero
+           vertex = SARAH`Vertex[sortedFields, UseDependences -> useDependences];
+           AddToCachedVertices[vertex];
+           MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]]
           ];
 
 CreateZeroVertex[fields_?IsSSSVertex] := "return vertex_type(0);";
