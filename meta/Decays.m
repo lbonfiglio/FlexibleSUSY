@@ -24,7 +24,8 @@ BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`"
 
 FSParticleDecay::usage="head used for storing details of an particle decay,
 in the format
-   FSParticleDecay[particle, {final state particles}, {{loopOrder, {diagrams}}, {loopOrder, {diagrams}}, ...}]
+   FSParticleDecay[particle, {final state particles}, {{loopOrder, {{topology, {diagrams}}, {topology, {diagrams}}}}, ...}]
+where the topology is encoded as the relevant adjacency matrix.
 ";
 
 IsSupportedDecayParticle::usage="returns True if decays for the given particle are supported.";
@@ -55,11 +56,27 @@ Begin["`Private`"];
 
 GetInitialState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := particle;
 GetFinalState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := finalState;
-GetDecayDiagrams[FSParticleDecay[particle_, finalState_List, diagrams_List]] := diagrams;
-GetDecayDiagramsAtLoopOrder[FSParticleDecay[particle_, finalState_List, diagrams_List], loopOrder_Integer] :=
-    Last[Flatten[Select[diagrams, (First[#] == loopOrder)&], 1]];
+GetDecayTopologiesAndDiagrams[FSParticleDecay[particle_, finalState_List, diagrams_List]] := diagrams;
+GetDecayDiagramsOnly[FSParticleDecay[particle_, finalState_List, diagrams_List]] :=
+    {#[[1]], Flatten[Last /@ #[[2]], 1]}& /@ diagrams;
+GetDecayTopologiesAndDiagramsAtLoopOrder[decay_FSParticleDecay, loopOrder_Integer] :=
+    Module[{toposAndDiags},
+           toposAndDiags = Select[GetDecayTopologiesAndDiagrams[decay], (First[#] == loopOrder)&];
+           If[toposAndDiags =!= {},
+              toposAndDiags = Last[Flatten[toposAndDiags, 1]];
+             ];
+           toposAndDiags
+          ];
+GetDecayDiagramsOnlyAtLoopOrder[decay_FSParticleDecay, loopOrder_Integer] :=
+    Module[{diags},
+           diags = Select[GetDecayDiagramsOnly[decay], (First[#] == loopOrder)&];
+           If[diags =!= {},
+              diags = Last[Flatten[diags, 1]];
+             ];
+           diags
+          ];
 
-GetDecayTopologies[nProducts_, nLoops_] :=
+GetPossibleDecayTopologies[nProducts_, nLoops_] :=
     (
      Print["Error: decay topology with ", nProducts, " particles and ", nLoops, " loops not supported"];
      Quit[1]
@@ -70,7 +87,7 @@ GetDecayTopologies[nProducts_, nLoops_] :=
    vertex 2 = outgoing state
    vertex 3 = outgoing state
    vertex 4 = internal vertex *)
-GetDecayTopologies[2, 0] :=
+GetPossibleDecayTopologies[2, 0] :=
     {
      {{0,0,0,1},
       {0,0,0,1},
@@ -78,7 +95,7 @@ GetDecayTopologies[2, 0] :=
       {1,1,1,0}}
     };
 
-GetDecayTopologies[2, 1] :=
+GetPossibleDecayTopologies[2, 1] :=
     {
      {{0,0,0,1,0,0},
       {0,0,0,0,1,0},
@@ -106,7 +123,7 @@ GetDecayTopologies[2, 1] :=
       {1,0,1,2,0}}
     };
 
-GetDecayTopologies[nProducts_] := Join @@ (GetDecayTopologies[nProducts, #]& /@ {0, 1});
+GetPossibleDecayTopologies[nProducts_] := Join @@ (GetPossibleDecayTopologies[nProducts, #]& /@ {0, 1});
 
 CreateCompleteParticleList[particles_List] := DeleteDuplicates[Join[particles, SARAH`AntiField[#]& /@ particles]];
 
@@ -156,48 +173,6 @@ GetGenericTypeName[p_?TreeMasses`IsScalar] := GenericScalarName[];
 GetGenericTypeName[p_?TreeMasses`IsVector] := GenericVectorName[];
 GetGenericTypeName[p_?TreeMasses`IsFermion] := GenericFermionName[];
 GetGenericTypeName[p_?TreeMasses`IsGhost] := GenericGhostName[];
-
-GetDecaysForParticle[particle_, Infinity, allowedFinalStateParticles_List] :=
-    (
-     Print["Error: number of final state particles must be finite."];
-     Quit[1];
-    )
-
-GetDecaysForParticle[particle_, {Infinity}, allowedFinalStateParticles_List] :=
-    (
-     Print["Error: number of final state particles must be finite."];
-     Quit[1];
-    )
-
-GetDecaysForParticle[particle_, {n_, Infinity}, allowedFinalStateParticles_List] :=
-    (
-     Print["Error: number of final state particles must be finite."];
-     Quit[1];
-    )
-
-GetDecaysForParticle[particle_, {Infinity, n_}, allowedFinalStateParticles_List] :=
-    (
-     Print["Error: number of final state particles must be finite."];
-     Quit[1];
-    )
-
-GetDecaysForParticle[particle_, {Infinity, Infinity}, allowedFinalStateParticles_List] :=
-    (
-     Print["Error: number of final state particles must be finite."];
-     Quit[1];
-    )
-
-GetDecaysForParticle[particle_, maxNumberOfProducts_Integer /; maxNumberOfProducts >= 2,
-                     allowedFinalStateParticles_List] :=
-    GetDecaysForParticle[particle, {2, maxNumberOfProducts}, allowedFinalStateParticles];
-
-GetDecaysForParticle[particle_, {minNumberOfProducts_Integer /; minNumberOfProducts >= 2,
-                                 maxNumberOfProducts_Integer /; maxNumberOfProducts >= 2},
-                                allowedFinalStateParticles_List] :=
-    Module[{i, finalStateSizes},
-           finalStateSizes = Table[{i}, {i, minNumberOfProducts, maxNumberOfProducts}];
-           Flatten[GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes, 1]
-          ];
 
 IsSupportedDecayParticle[particle_] :=
     (
@@ -256,7 +231,7 @@ FinalStateContainsInitialState[initialParticle_, finalState_List] :=
 IsPossibleNonZeroVertex[fields_List, useDependences_:False] :=
     Module[{numFields, cachedVertices = {}},
            numFields = Length[fields];
-           Vertices`IsNonZeroVertex[fields, Vertices`GetCachedVertices[numFields], useDependences]
+           Vertices`IsNonZeroVertex[fields, Vertices`GetCachedVertices[numFields, useDependences], useDependences]
          ];
 
 IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
@@ -266,12 +241,12 @@ IsPossibleNonZeroDiagram[diagram_, useDependences_:False] :=
           ];
 
 IsPossibleTreeLevelDecay[decay_FSParticleDecay, useDependences_:False] :=
-    Module[{treeLevelDiags = GetDecayDiagramsAtLoopOrder[decay, 0]},
+    Module[{treeLevelDiags = GetDecayDiagramsOnlyAtLoopOrder[decay, 0]},
            treeLevelDiags =!= {} && (And @@ (IsPossibleNonZeroDiagram[#, useDependences]& /@ treeLevelDiags))
           ];
 
 IsPossibleOneLoopDecay[decay_FSParticleDecay] :=
-    GetDecayDiagramsAtLoopOrder[decay, 1] =!= {};
+    GetDecayDiagramsOnlyAtLoopOrder[decay, 1] =!= {};
 
 ContainsOnlySupportedVertices[diagram_] :=
     Module[{vertices, vertexTypes, unsupportedVertices},
@@ -300,10 +275,12 @@ GetContributingDiagramsForDecayGraph[initialField_, finalFields_List, graph_] :=
 
 GetContributingGraphsForDecay[initialParticle_, finalParticles_List, maxLoops_Integer] :=
     Module[{i, nFinalParticles = Length[finalParticles], topologies, diagrams},
-           topologies = Join[Table[{i, GetDecayTopologies[nFinalParticles, i]}, {i, 0, maxLoops}]];
-           diagrams = {#[[1]], Flatten[GetContributingDiagramsForDecayGraph[initialParticle, GetFinalStateExternalField /@ finalParticles, #]& /@ #[[2]], 1]}&
+           topologies = Join[Table[{i, GetPossibleDecayTopologies[nFinalParticles, i]}, {i, 0, maxLoops}]];
+           diagrams = {#[[1]], {#, GetContributingDiagramsForDecayGraph[initialParticle, GetFinalStateExternalField /@ finalParticles, #]}& /@ #[[2]]}&
                       /@ topologies;
-           {#[[1]], Select[#[[2]], IsSupportedDiagram]}& /@ diagrams
+           diagrams = {#[[1]], With[{toposAndDiags = #[[2]]}, Select[toposAndDiags, #[[2]] =!= {}&]]}& /@ diagrams;
+           diagrams = DeleteCases[diagrams, {_Integer, {}}];
+           {#[[1]], With[{toposAndDiags = #[[2]]}, {#[[1]], Select[#[[2]], IsSupportedDiagram]}& /@ toposAndDiags]}& /@ diagrams
           ];
 
 GetContributingGraphsForDecay[initialParticle_, finalParticles_List] :=
@@ -336,6 +313,48 @@ OrderFinalState[initialParticle_, finalParticles_List] :=
            Drop[orderedFinalState, First[Position[orderedFinalState, initialParticle]]]
           ];
 
+GetDecaysForParticle[particle_, Infinity, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {Infinity}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {n_, Infinity}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {Infinity, n_}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, {Infinity, Infinity}, allowedFinalStateParticles_List] :=
+    (
+     Print["Error: number of final state particles must be finite."];
+     Quit[1];
+    )
+
+GetDecaysForParticle[particle_, maxNumberOfProducts_Integer /; maxNumberOfProducts >= 2,
+                     allowedFinalStateParticles_List] :=
+    GetDecaysForParticle[particle, {2, maxNumberOfProducts}, allowedFinalStateParticles];
+
+GetDecaysForParticle[particle_, {minNumberOfProducts_Integer /; minNumberOfProducts >= 2,
+                                 maxNumberOfProducts_Integer /; maxNumberOfProducts >= 2},
+                                allowedFinalStateParticles_List] :=
+    Module[{i, finalStateSizes},
+           finalStateSizes = Table[{i}, {i, minNumberOfProducts, maxNumberOfProducts}];
+           Flatten[GetDecaysForParticle[particle, #, allowedFinalStateParticles]& /@ finalStateSizes, 1]
+          ];
+
 GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalStateParticles_List] :=
     Module[{genericFinalStates, finalStateParticlesClassified,
             isPossibleDecay, concreteFinalStates, decays},
@@ -352,7 +371,8 @@ GetDecaysForParticle[particle_, {exactNumberOfProducts_Integer}, allowedFinalSta
                                             !FinalStateContainsInitialState[particle, finalState]);
            concreteFinalStates = Join @@ (GetParticleCombinationsOfType[#, allowedFinalStateParticles, isPossibleDecay]& /@ genericFinalStates);
            concreteFinalStates = OrderFinalState[particle, #] & /@ concreteFinalStates;
-           FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates
+           decays = FSParticleDecay[particle, #, GetContributingGraphsForDecay[particle, #]]& /@ concreteFinalStates;
+           Select[decays, GetDecayTopologiesAndDiagrams[#] =!= {}&]
           ];
 
 GetDecaysForParticle[particle_, n_, allowedFinalStateParticles_List] :=
@@ -447,7 +467,7 @@ GetAllowedGenericFinalStates[particle_?TreeMasses`IsFermion, n_Integer] :=
           ];
 
 GetVerticesForDecay[decay_FSParticleDecay] :=
-    Module[{diagrams = GetDecayDiagrams[decay]},
+    Module[{diagrams = GetDecayDiagramsOnly[decay]},
            DeleteDuplicates[Join @@ (Flatten[(CXXDiagrams`VerticesForDiagram /@ Last[#]), 1]& /@ diagrams)]
           ];
 
@@ -847,7 +867,7 @@ ZeroDecayAmplitudeFormFactors[decay_FSParticleDecay /; GetDecayAmplitudeType[dec
 
 GetTreeLevelTwoBodyDecayVertex[decay_FSParticleDecay] :=
     Module[{treeLevelDiags, vertices = {}},
-           treeLevelDiags = GetDecayDiagramsAtLoopOrder[decay, 0];
+           treeLevelDiags = GetDecayDiagramsOnlyAtLoopOrder[decay, 0];
            If[treeLevelDiags =!= {},
               vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ treeLevelDiags, 1];
              ];

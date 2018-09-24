@@ -60,32 +60,34 @@ VertexFunctionBodyForFields::usage="";
 
 Begin["`Private`"]
 
-(* cached 3-point vertices *)
-cachedVertices[3] = {};
-(* cached 4-point vertices *)
-cachedVertices[4] = {};
-cachedVertices[numFields_] := {};
+(* cached 3-point vertices, with and without dependencies imposed *)
+cachedVertices[3, False] = {};
+cacjedVertices[3, True] = {};
+(* cached 4-point vertices, with and without dependences imposed *)
+cachedVertices[4, False] = {};
+cachedVertices[4, True] = {};
+cachedVertices[numFields_, useDependences_] := {};
 
-SetCachedVertices[numFields_Integer, vertices_List] := cachedVertices[numFields] = vertices;
+SetCachedVertices[numFields_Integer, vertices_List, useDependences_:False] := cachedVertices[numFields, useDependences] = vertices;
 
-GetCachedVertices[] := Flatten[cachedVertices /@ Cases[DownValues[cachedVertices], (HoldPattern[_[_[x_]]] :> y_) /; IntegerQ[x] :> x]];
-GetCachedVertices[numFields_Integer] := cachedVertices[numFields];
+GetCachedVertices[] := Flatten[cachedVertices[#[[1]], #[[2]]]& /@ Cases[DownValues[cachedVertices], (HoldPattern[_[_[l_, u_]]] :> _) /; IntegerQ[l] :> {l, u}]];
+GetCachedVertices[numFields_Integer, useDependences_:False] := cachedVertices[numFields, useDependences];
 
-AddToCachedVertices[sarahVertex_] :=
+AddToCachedVertices[sarahVertex_, useDependences_:False] :=
     Module[{numFields, cached},
            numFields = Length[sarahVertex[[1]]];
-           cached = cachedVertices[numFields];
+           cached = cachedVertices[numFields, useDependences];
            If[cached === {},
-              cachedVertices[numFields] = {sarahVertex};,
-              cachedVertices[numFields] = Append[cached, sarahVertex];
+              cachedVertices[numFields, useDependences] = {sarahVertex};,
+              cachedVertices[numFields, useDependences] = Append[cached, sarahVertex];
              ];
           ];
 
-ClearCachedVertices[numFields_Integer] := cachedVertices[numFields] = {};
+ClearCachedVertices[numFields_Integer, useDependences_:False] := cachedVertices[numFields, useDependences] = {};
 ClearCachedVertices[] :=
     (
-     DownValues[cachedVertices] = DeleteCases[DownValues[cachedVertices], (HoldPattern[_[_[x_]]] :> y_) /; IntegerQ[x]];
-     cachedVertices[_] := {};
+     DownValues[cachedVertices] = DeleteCases[DownValues[cachedVertices], (HoldPattern[_[_[l_, _]]] :> _) /; IntegerQ[l]];
+     cachedVertices[_, _] := {};
     )
 
 VertexTypes[] := FSVertexTypes;
@@ -943,7 +945,7 @@ IsNonZeroVertex[fields_List, vertexList_:{}, useDependences_:False] :=
                 ];
              ];
            vertex = SARAH`Vertex[sortedFields, UseDependences -> useDependences];
-           AddToCachedVertices[vertex];
+           AddToCachedVertices[vertex, useDependences];
            MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]]
           ];
 
