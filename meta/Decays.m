@@ -125,6 +125,29 @@ GetPossibleDecayTopologies[2, 1] :=
 
 GetPossibleDecayTopologies[nProducts_] := Join @@ (GetPossibleDecayTopologies[nProducts, #]& /@ {0, 1});
 
+GetTreeLevelDecayTopologyName[nFinalParticles_Integer] := "tree_level_1_to_" <> ToString[nFinalParticles];
+
+GetOneLoopDecayTopologyName[nFinalParticles_Integer, topology_] :=
+    Module[{pos},
+           pos = Position[GetPossibleDecayTopologies[nFinalParticles, 1], topology];
+           If[pos === {},
+              Print["Error: unknown one-loop topology."];
+              Quit[1];
+             ];
+           pos = First[First[pos]];
+           "one_loop_1_to_" <> ToString[nFinalParticles] <> "_T" <> ToString[pos]
+          ];
+
+GetDecayTopologyName[t_] :=
+    Which[MemberQ[GetPossibleDecayTopologies[2, 0], t],
+          GetTreeLevelDecayTopologyName[2],
+          MemberQ[GetPossibleDecayTopologies[2, 1], t],
+          GetOneLoopDecayTopologyName[2, t],
+          True,
+          Print["Error: unknown decay topology provided"];
+          Quit[1];
+         ];
+
 CreateCompleteParticleList[particles_List] := DeleteDuplicates[Join[particles, SARAH`AntiField[#]& /@ particles]];
 
 GenericScalarName[] := "scalar";
@@ -987,6 +1010,9 @@ FillSSVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, struc
     Module[{},
            "// 1-loop amplitude\n"
           ];
+
+EvaluateDecayDiagramWithTopology[topology_, diagram_] :=
+    GetDecayTopologyName[topology];
 
 FillSVVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{},
