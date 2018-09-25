@@ -123,9 +123,15 @@ GetPossibleDecayTopologies[2, 1] :=
       {1,0,1,2,0}}
     };
 
+IsTreeLevelDecayTopology[t_] := MemberQ[GetPossibleDecayTopologies[2, 0], t];
+IsTreeLevelTwoBodyDecayTopology[t_] := IsTreeLevelDecayTopology[t];
+
+IsOneLoopDecayTopology[t_] := MemberQ[GetPossibleDecayTopologies[2, 1], t];
+IsOneLoopTwoBodyDecayTopology[t_] := IsOneLoopDecayTopology[t];
+
 GetPossibleDecayTopologies[nProducts_] := Join @@ (GetPossibleDecayTopologies[nProducts, #]& /@ {0, 1});
 
-GetTreeLevelDecayTopologyName[nFinalParticles_Integer] := "tree_level_1_to_" <> ToString[nFinalParticles];
+GetTreeLevelDecayTopologyName[nFinalParticles_Integer] := "e" <> ToString[nFinalParticles + 1] <> "_l0_t1";
 
 GetOneLoopDecayTopologyName[nFinalParticles_Integer, topology_] :=
     Module[{pos},
@@ -135,7 +141,7 @@ GetOneLoopDecayTopologyName[nFinalParticles_Integer, topology_] :=
               Quit[1];
              ];
            pos = First[First[pos]];
-           "one_loop_1_to_" <> ToString[nFinalParticles] <> "_T" <> ToString[pos]
+           "e" <> ToString[nFinalParticles + 1] <> "_l1_t" <> ToString[pos]
           ];
 
 GetDecayTopologyName[t_] :=
@@ -996,37 +1002,59 @@ FillTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, struct
            _, ""
           ];
 
+EvaluateOneLoopTwoBodyDecayDiagramWithTopology[decay_, topology_, diagram_] :=
+    Module[{name = GetTopologyName[topology]},
+           "// evaluate graph " <> GetDecayTopologyName[topology] <> "\n"
+          ];
+
+EvaluateDecayDiagramWithTopology[decay_, topology_, diagram_] :=
+    Which[IsOneLoopTwoBodyDecayTopology[topology],
+          EvaluateOneLoopTwoBodyDecayDiagramWithTopology[decay, topology, diagram],
+          True,
+          Print["Error: requested evaluation of unsupported topology."];
+          Quit[1];
+         ];
+
 FillSSSOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{},
-           "// 1-loop amplitude\n"
+    Module[{oneLoopDiags, body = ""},
+           oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
+           (body = body <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #])& /@ oneLoopDiags;
+           "// 1-loop amplitude\n" <> body
           ];
 
 FillSFFOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{},
-           "// 1-loop amplitude\n"
+    Module[{oneLoopDiags, body = ""},
+           oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
+           (body = body <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #])& /@ oneLoopDiags;
+           "// 1-loop amplitude\n" <> body
           ];
 
 FillSSVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{},
-           "// 1-loop amplitude\n"
+    Module[{oneLoopDiags, body = ""},
+           oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
+           (body = body <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #])& /@ oneLoopDiags;
+           "// 1-loop amplitude\n" <> body
           ];
 
-EvaluateDecayDiagramWithTopology[topology_, diagram_] :=
-    GetDecayTopologyName[topology];
-
 FillSVVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{},
-           "// 1-loop amplitude\n"
+    Module[{oneLoopDiags, body = ""},
+           oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
+           (body = body <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #])& /@ oneLoopDiags;
+           "// 1-loop amplitude\n" <> body
           ];
 
 FillFFSOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{},
-           "// 1-loop amplitude\n"
+    Module[{oneLoopDiags, body = ""},
+           oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
+           (body = body <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #])& /@ oneLoopDiags;
+           "// 1-loop amplitude\n" <> body
           ];
 
 FillFFVOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{},
-           "// 1-loop amplitude\n"
+    Module[{oneLoopDiags, body = ""},
+           oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
+           (body = body <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #])& /@ oneLoopDiags;
+           "// 1-loop amplitude\n" <> body
           ];
 
 FillOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
