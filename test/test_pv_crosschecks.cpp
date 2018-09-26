@@ -69,6 +69,16 @@ DEF_FUNC3(  H0 )
 DEF_FUNC3(  F0 )
 DEF_FUNC3(  G0 )
 
+#ifdef ENABLE_LOOPTOOLS
+
+#define DEF_FUNC6(f) DEF_FUNC(f, 6, a[0], a[1], a[2], a[3], a[4], a[5])
+
+DEF_FUNC6(  C0 )
+DEF_FUNC6(  C1 )
+DEF_FUNC6(  C2 )
+
+#endif
+
 map<string, LoopFunc<complex<double>, complex<double> >*> ccfuncs;
 map<string, LoopFunc<        double , complex<double> >*> rcfuncs;
 
@@ -106,6 +116,9 @@ struct Initialize_funcs {
        rcfuncs[  "F0" ] = new   F0 <        double , complex<double> >;
        rcfuncs[  "G0" ] = new   G0 <        double , complex<double> >;
        rcfuncs[  "H0" ] = new   H0 <        double , complex<double> >;
+//       rcfuncs[  "C0" ] = new   C0 <        double , complex<double> >;
+//       rcfuncs[  "C1" ] = new   C1 <        double , complex<double> >;
+//       rcfuncs[  "C2" ] = new   C2 <        double , complex<double> >;
 #endif
        rrfuncs["ReA0" ] = new ReA0 <        double ,         double  >;
        rrfuncs["ReB0" ] = new ReB0 <        double ,         double  >;
