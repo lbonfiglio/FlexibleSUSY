@@ -423,7 +423,8 @@ TEST_SRC += \
 		$(DIR)/test_SM_higgs_loop_corrections.cpp \
 		$(DIR)/test_SM_tree_level_spectrum.cpp \
 		$(DIR)/test_SM_three_loop_spectrum.cpp \
-		$(DIR)/test_SM_two_loop_spectrum.cpp
+		$(DIR)/test_SM_two_loop_spectrum.cpp \
+		$(DIR)/test_SM_FlexibleDecays.cpp
 endif
 
 ifeq ($(WITH_SMHighPrecision),yes)
@@ -870,6 +871,8 @@ $(DIR)/test_SM_beta_functions.x: $(LIBSM)
 $(DIR)/test_SM_effective_couplings.x: $(LIBSM)
 
 $(DIR)/test_SM_gmm2.x: $(LIBSM)
+
+$(DIR)/test_SM_FlexibleDecays.x: $(LIBSM)
 
 $(DIR)/test_SM_higgs_loop_corrections.x: $(LIBSM)
 
