@@ -26,7 +26,7 @@
 //#include "SM_two_scale_model.hpp"
 //#include "SM_a_muon.hpp"
 
-#include "softsusy.h"
+//#include "softsusy.h"
 #include "SM_decays.hpp"
 
 using namespace flexiblesusy;
