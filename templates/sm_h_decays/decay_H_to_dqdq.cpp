@@ -1,6 +1,6 @@
 // template specialization for the H -> Fd Fd case
 
-// TODO: we need to distinguish between scalar and scalar-pseudoscalar-mixture Higgses
+
 template<>
 double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const ContextName& context,
@@ -20,6 +20,9 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double mHOS = context.physical_mass<H>(indexIn);
    const double mdqDR = context.mass<dq>(indexOut1);
    const double mdqOS = context.physical_mass<dq>(indexOut1);
+   BOOST_ASSERT_MSG(is_zero(mdqDR) || is_zero(mdqOS),
+                    "Quarks should not be massless");
+      const auto x = 4.*mdqOS*mdqOS/(mHOS*mHOS);
 
    // TODO: add off-shell decays?
    if (mHOS < 2.*mdqDR) {
@@ -31,8 +34,11 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double Nf = number_of_active_flavours(mHOS);
    const double mtpole = qedqcd.displayPoleMt();
 
-   // higher order corrections in the chiral limit
-   const double deltaqq = calc_deltaqq(alpha_s_red, Nf);
+   const double deltaqqOS = 
+      4./3 * alpha_s_red * calc_DeltaH(sqrt(1. - x)) +
+      calc_deltaqq(alpha_s_red, Nf);
+
+   const double deltaqqDR = calc_deltaqq(alpha_s_red, Nf) + 4./3*alpha_s_red* calc_DeltaH(sqrt(1. - 4.*mdqDR*mdqDR/(mHOS*mHOS)));
 
    // chiral breaking correctios
    // TODO: probably shouldn't be applied in case of CP-breaking 
@@ -44,10 +50,18 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    }
 
    const double flux = 1./(2.*mHOS);
-   const double phase_space = 1./(8.*Pi) * beta(mHOS, mdqDR, mdqDR);
    const double color_factor = 3;
+   const double phase_spaceDR = 1./(8.*Pi) * beta(mHOS, mdqDR, mdqDR);
+   const double phase_spaceOS = 1./(8.*Pi) * beta(mHOS, mdqOS, mdqOS);
+   
+   // DRbar or MSbar coupling
+   const double amp2DR = amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2);
+   const double amp2OS = amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2)* pow(mdqOS / mdqDR, 2);
 
-   return flux * phase_space * color_factor *
-      amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2) *
-      (1. + deltaqq);
+   return flux * color_factor *
+          (
+             // low mass limit
+             (1 - x) * phase_spaceDR * amp2DR * (1. + deltaqqDR + deltaH2) +
+             x * phase_spaceOS * amp2OS  *
+                (1. + deltaqqOS + deltaH2));
 }
