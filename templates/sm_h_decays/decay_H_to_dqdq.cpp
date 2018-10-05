@@ -1,6 +1,5 @@
 // template specialization for the H -> Fd Fd case
 
-
 template<>
 double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const ContextName& context,
@@ -20,9 +19,12 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double mHOS = context.physical_mass<H>(indexIn);
    const double mdqDR = context.mass<dq>(indexOut1);
    const double mdqOS = context.physical_mass<dq>(indexOut1);
-   BOOST_ASSERT_MSG(is_zero(mdqDR) || is_zero(mdqOS),
+   BOOST_ASSERT_MSG(!is_zero(mdqDR) && !is_zero(mdqOS),
                     "Quarks should not be massless");
-      const auto x = 4.*mdqOS*mdqOS/(mHOS*mHOS);
+   const auto xOS = std::pow(mdqOS/mHOS, 2);
+   const auto xDR = std::pow(mdqDR/mHOS, 2);
+   const auto betaOS = sqrt(1. - 4.*xOS);
+   const auto betaDR = sqrt(1. - 4.*xDR);
 
    // TODO: add off-shell decays?
    if (mHOS < 2.*mdqDR) {
@@ -35,10 +37,13 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double mtpole = qedqcd.displayPoleMt();
 
    const double deltaqqOS = 
-      4./3 * alpha_s_red * calc_DeltaH(sqrt(1. - x)) +
+      4./3. * alpha_s_red * calc_DeltaH(betaOS) +
       calc_deltaqq(alpha_s_red, Nf);
 
-   const double deltaqqDR = calc_deltaqq(alpha_s_red, Nf) + 4./3*alpha_s_red* calc_DeltaH(sqrt(1. - 4.*mdqDR*mdqDR/(mHOS*mHOS)));
+   const double deltaqqDR = 
+      2.*(1. - 10.*xDR)/(1-4.*xDR)*(4./3. - log(xDR))*alpha_s_red +
+      4./3. * alpha_s_red * calc_DeltaH(betaDR) +
+      calc_deltaqq(alpha_s_red, Nf);
 
    // chiral breaking correctios
    // TODO: probably shouldn't be applied in case of CP-breaking 
@@ -54,14 +59,24 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double phase_spaceDR = 1./(8.*Pi) * beta(mHOS, mdqDR, mdqDR);
    const double phase_spaceOS = 1./(8.*Pi) * beta(mHOS, mdqOS, mdqOS);
    
-   // DRbar or MSbar coupling
-   const double amp2DR = amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2);
-   const double amp2OS = amplitude_squared<H, bar<dq>::type, dq>(context, indexIn, indexOut1, indexOut2)* pow(mdqOS / mdqDR, 2);
+   // get HBBbar vertex
+   //we don't use amplitude_squared here because we need both this vertex 
+   // both with running and pole masses
+   const auto indices = concatenate(indexIn, indexOut1, indexOut2);
+   const auto HBBbarVertexDR = Vertex<H, bar<dq>::type, dq>::evaluate(indices, context);
+   BOOST_ASSERT_MSG(
+      is_zero(HBBbarVertexDR.left() - HBBbarVertexDR.right()),
+      "Left and right coupling of CP-even Higgs to fermions should be equal");
 
-   return flux * color_factor *
+   const auto amp2DR = std::pow(mHOS, 2) * pow(betaDR, 2) *
+               2.*std::norm(HBBbarVertexDR.left());
+   const auto amp2OS = std::pow(mHOS, 2) * std::pow(betaOS, 2) *
+                2.*std::norm(HBBbarVertexDR.left()) * std::pow(mdqOS / mdqDR, 2);
+
+   return flux * color_factor * 
           (
-             // low mass limit
-             (1 - x) * phase_spaceDR * amp2DR * (1. + deltaqqDR + deltaH2) +
-             x * phase_spaceOS * amp2OS  *
-                (1. + deltaqqOS + deltaH2));
+             // low x limit
+            (1 - 4.*xOS) * phase_spaceDR * amp2DR * (1. + deltaqqDR + deltaH2) +
+            // high x limit
+             4*xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS));
 }
