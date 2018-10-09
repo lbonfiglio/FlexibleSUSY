@@ -417,6 +417,7 @@ ifeq ($(WITH_SM),yes)
 TEST_SRC += \
 		$(DIR)/test_SM_beta_functions.cpp \
 		$(DIR)/test_SM_effective_couplings.cpp \
+		$(DIR)/test_SM_FlexibleDecays.cpp \
 		$(DIR)/test_SM_gmm2.cpp \
 		$(DIR)/test_SM_low_scale_constraint.cpp \
 		$(DIR)/test_SM_one_loop_spectrum.cpp \
@@ -871,6 +872,8 @@ $(DIR)/test_SM_higgs_loop_corrections.x: $(LIBSM)
 $(DIR)/test_SM_low_scale_constraint.x: $(LIBSM)
 
 $(DIR)/test_SM_tree_level_spectrum.x: $(LIBSM)
+
+$(DIR)/test_SM_FlexibleDecays.x: $(LIBSM)
 
 $(DIR)/test_SM_one_loop_spectrum.x: $(LIBSM)
 
