@@ -52,6 +52,8 @@ public:
    const_iterator end() const noexcept { return decay_table.end(); }
    const_iterator cend() const noexcept { return decay_table.end(); }
 
+   std::size_t size() const noexcept { return decay_table.size(); }
+
    void clear();
    void print(std::ostream&) const;
 

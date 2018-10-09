@@ -97,6 +97,7 @@ CreateSingleBetaFunctionDecl[betaFun_List] :=
 CreateSingleBetaFunctionDefs[betaFun_List, templateFile_String, sarahTraces_List] :=
     Module[{b, para, type, paraStr, typeStr, files = {},
             inputFile, outputFile,
+            traceArgsOneLoop, traceArgsTwoLoop, traceArgsThreeLoop, traceArgsFourLoop,
             localDeclOneLoop, localDeclTwoLoop, localDeclThreeLoop, localDeclFourLoop,
             betaOneLoop, betaTwoLoop, betaThreeLoop, betaFourLoop},
            For[b = 1, b <= Length[betaFun], b++,
@@ -113,10 +114,18 @@ CreateSingleBetaFunctionDefs[betaFun_List, templateFile_String, sarahTraces_List
                {localDeclTwoLoop, betaTwoLoop} = CreateBetaFunction[betaFun[[b]], 2, sarahTraces];
                {localDeclThreeLoop, betaThreeLoop} = CreateBetaFunction[betaFun[[b]], 3, sarahTraces];
                {localDeclFourLoop, betaFourLoop}   = CreateBetaFunction[betaFun[[b]], 4, sarahTraces];
+               traceArgsOneLoop = If[localDeclOneLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
+               traceArgsTwoLoop = If[localDeclTwoLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
+               traceArgsThreeLoop = If[localDeclThreeLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
+               traceArgsFourLoop = If[localDeclFourLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
                WriteOut`ReplaceInFiles[{{inputFile, outputFile}},
                      { "@ModelName@"     -> FlexibleSUSY`FSModelName,
                        "@parameterType@" -> typeStr,
                        "@parameterName@" -> paraStr,
+                       "@traceArgsOneLoop@" -> traceArgsOneLoop,
+                       "@traceArgsTwoLoop@" -> traceArgsTwoLoop,
+                       "@traceArgsThreeLoop@" -> traceArgsThreeLoop,
+                       "@traceArgsFourLoop@" -> traceArgsFourLoop,
                        "@localDeclOneLoop@" -> WrapLines[IndentText[localDeclOneLoop]],
                        "@localDeclTwoLoop@" -> WrapLines[IndentText[localDeclTwoLoop]],
                        "@localDeclThreeLoop@" -> WrapLines[IndentText[localDeclThreeLoop]],

@@ -58,25 +58,25 @@ IsDiagramSupported[field_,vertexCorrectionGraph,diagram_] :=
   Module[{photonEmitter,exchangeParticle},
     photonEmitter = diagram[[4,3]]; (* Edge between vertices 4 and 6 (3rd edge of vertex 4) *)
     exchangeParticle = diagram[[4,2]]; (* Edge between vertices 4 and 5 (2nd edge of vertex 4) *)
-    
+
     If[diagram[[6]] =!= {TreeMasses`GetPhoton[],CXXDiagrams`LorentzConjugate[photonEmitter],photonEmitter},
        Return[False]];
     If[TreeMasses`IsFermion[photonEmitter] && TreeMasses`IsScalar[exchangeParticle],
        Return[True]];
     If[TreeMasses`IsFermion[exchangeParticle] && TreeMasses`IsScalar[photonEmitter],
        Return[True]];
-    
+
     Return[False];
   ]
 
-EDMCreateInterfaceFunctionForField[field_,gTaggedDiagrams_List] :=
+EDMCreateInterfaceFunctionForField[field_,gTaggedDiagrams_List, fieldsNamespace_:""] :=
   Module[{prototype,definition,numberOfIndices = CXXDiagrams`NumberOfFieldIndices[field]},
     prototype = "double calculate_edm_" <> TreeMasses`CreateFieldClassName[field] <>
                  "(" <> If[TreeMasses`GetDimension[field] =!= 1,
                            " int generationIndex, ",
                            " "] <>
                  "const " <> FlexibleSUSY`FSModelName <> "_mass_eigenstates& model );";
-                 
+
     definition = "double calculate_edm_" <> TreeMasses`CreateFieldClassName[field] <>
                  "(" <> If[TreeMasses`GetDimension[field] =!= 1,
                            " int generationIndex, ",
@@ -85,7 +85,7 @@ EDMCreateInterfaceFunctionForField[field_,gTaggedDiagrams_List] :=
                  "{\n" <>
                  IndentText[
                    FlexibleSUSY`FSModelName <> "_mass_eigenstates model_ = model;\n" <>
-                   "EvaluationContext context{ model_ };\n" <>
+                   FlexibleSUSY`FSModelName <> "_evaluation_context context{ model_ };\n" <>
                    "std::array<int, " <> ToString @ numberOfIndices <>
                      "> indices = {" <>
                        If[TreeMasses`GetDimension[field] =!= 1,
@@ -97,46 +97,45 @@ EDMCreateInterfaceFunctionForField[field_,gTaggedDiagrams_List] :=
                              StringJoin @ Riffle[Table[" 0", {numberOfIndices}], ","] <> " ",
                              ""]
                          ] <> "};\n\n" <>
-                                 
+
                    "double val = 0.0;\n\n" <>
-                   "using namespace cxx_qft::fields;\n\n" <>
-                   
-                   StringJoin @ Riffle[("val += " <> ToString @ # <> "::value(indices, context);") & /@ 
-                     Flatten[CXXEvaluatorsForFieldAndDiagramsFromGraph[field,#[[2]],#[[1]]] & /@ gTaggedDiagrams],
+
+                   StringJoin @ Riffle[("val += " <> ToString @ # <> "::value(indices, context);") & /@
+                     Flatten[CXXEvaluatorsForFieldAndDiagramsFromGraph[field,#[[2]],#[[1]], fieldsNamespace] & /@ gTaggedDiagrams],
                                        "\n"] <> "\n\n" <>
-                   
+
                    "return val;"
                  ] <> "\n}";
-    
+
     {prototype, definition}
   ];
 
-CXXEvaluatorsForFieldAndDiagramsFromGraph[field_,diagrams_,graph_] :=
-  CXXEvaluatorForFieldAndDiagramFromGraph[field,#,graph] & /@ diagrams
-CXXEvaluatorForFieldAndDiagramFromGraph[field_,diagram_,vertexCorrectionGraph] := 
+CXXEvaluatorsForFieldAndDiagramsFromGraph[field_,diagrams_,graph_, fieldsNamespace_:""] :=
+  CXXEvaluatorForFieldAndDiagramFromGraph[field,#,graph, fieldsNamespace] & /@ diagrams
+CXXEvaluatorForFieldAndDiagramFromGraph[field_,diagram_,vertexCorrectionGraph, fieldsNamespace_:""] :=
   Module[{photonEmitter,exchangeParticle},
     photonEmitter = diagram[[4,3]]; (* Edge between vertices 4 and 6 (3rd edge of vertex 4) *)
     exchangeParticle = diagram[[4,2]]; (* Edge between vertices 4 and 5 (2nd edge of vertex 4) *)
-    
+
     If[diagram[[6]] =!= {TreeMasses`GetPhoton[],CXXDiagrams`LorentzConjugate[photonEmitter],photonEmitter},
        Return["(unknown diagram)"]];
     If[TreeMasses`IsFermion[photonEmitter] && TreeMasses`IsScalar[exchangeParticle],
-       Return[CXXEvaluatorFS[field,photonEmitter,exchangeParticle]]];
+       Return[CXXEvaluatorFS[field,photonEmitter,exchangeParticle, fieldsNamespace]]];
     If[TreeMasses`IsFermion[exchangeParticle] && TreeMasses`IsScalar[photonEmitter],
-       Return[CXXEvaluatorSF[field,photonEmitter,exchangeParticle]]];
-    
+       Return[CXXEvaluatorSF[field,photonEmitter,exchangeParticle, fieldsNamespace]]];
+
     Return["(unknown diagram)"];
   ]
 
-CXXEvaluatorFS[field_,photonEmitter_,exchangeParticle_] :=
-  "EDMVertexCorrectionFS<" <> TreeMasses`CreateFieldClassName[field] <> ", " <>
-  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
-  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
+CXXEvaluatorFS[field_,photonEmitter_,exchangeParticle_, fieldsNamespace_:""] :=
+  "EDMVertexCorrectionFS<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> fieldsNamespace] <> ", " <>
+  TreeMasses`CreateFieldClassName[photonEmitter, prefixNamespace -> fieldsNamespace] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle, prefixNamespace -> fieldsNamespace] <> ">"
 
-CXXEvaluatorSF[field_,photonEmitter_,exchangeParticle_] :=
-  "EDMVertexCorrectionSF<" <> TreeMasses`CreateFieldClassName[field] <> ", " <>
-  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
-  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
+CXXEvaluatorSF[field_,photonEmitter_,exchangeParticle_, fieldsNamespace_:""] :=
+  "EDMVertexCorrectionSF<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> fieldsNamespace] <> ", " <>
+  TreeMasses`CreateFieldClassName[photonEmitter, prefixNamespace -> fieldsNamespace] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle, prefixNamespace -> fieldsNamespace] <> ">"
 
 End[];
 EndPackage[];

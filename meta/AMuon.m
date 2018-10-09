@@ -62,22 +62,22 @@ AMuonContributingDiagramsForGraph[graph_] :=
   Module[{diagrams},
     diagrams = CXXDiagrams`FeynmanDiagramsOfType[graph,
          {1 -> AMuonGetMuon[], 2 -> SARAH`AntiField[AMuonGetMuon[]], 3 -> TreeMasses`GetPhoton[]}];
-         
+
     Select[diagrams,IsDiagramSupported[graph,#] &]
  ]
- 
+
 IsDiagramSupported[vertexCorrectionGraph,diagram_] :=
   Module[{photonEmitter,exchangeParticle},
     photonEmitter = diagram[[4,3]]; (* Edge between vertices 4 and 6 (3rd edge of vertex 4) *)
     exchangeParticle = diagram[[4,2]]; (* Edge between vertices 4 and 5 (2nd edge of vertex 4) *)
-    
+
     If[diagram[[6]] =!= {TreeMasses`GetPhoton[],CXXDiagrams`LorentzConjugate[photonEmitter],photonEmitter},
        Return[False]];
     If[TreeMasses`IsFermion[photonEmitter] && TreeMasses`IsScalar[exchangeParticle],
        Return[True]];
     If[TreeMasses`IsFermion[exchangeParticle] && TreeMasses`IsScalar[photonEmitter],
        Return[True]];
-    
+
     Return[False];
   ]
 
@@ -88,11 +88,11 @@ AMuonCreateMuonPhysicalMass[] := "return context.model.get_physical().M" <>
                                 ""] <>
                              ";"
 
-AMuonCreateCalculation[gTaggedDiagrams_List] :=
+AMuonCreateCalculation[gTaggedDiagrams_List, fieldsNamespace_:""] :=
   Module[{muon = AMuonGetMuon[], cxxMuonIndex = GetCXXMuonIndex[],
           calculation,numberOfIndices},
     numberOfIndices = CXXDiagrams`NumberOfFieldIndices[muon];
-    
+
     "std::array<int, " <> ToString @ numberOfIndices <>
     "> indices = {" <>
       If[cxxMuonIndex =!= Null,
@@ -105,39 +105,40 @@ AMuonCreateCalculation[gTaggedDiagrams_List] :=
             StringJoin @ Riffle[Table[" 0", {numberOfIndices}], ","] <> " ",
             ""]
         ] <> "};\n\n" <>
-                                 
-    StringJoin @ Riffle[("val += " <> ToString @ # <> "::value(indices, context);") & /@ 
-      Flatten[CXXEvaluatorsForDiagramsFromGraph[#[[2]],#[[1]]] & /@ gTaggedDiagrams],
+
+    StringJoin @ Riffle[("val += " <> ToString @ # <> "::value(indices, context);") & /@
+      Flatten[CXXEvaluatorsForDiagramsFromGraph[#[[2]],#[[1]], fieldsNamespace] & /@ gTaggedDiagrams],
                                        "\n"]
   ];
 
-CXXEvaluatorsForDiagramsFromGraph[diagrams_,graph_] :=
-  CXXEvaluatorForDiagramFromGraph[#,graph] & /@ diagrams
-CXXEvaluatorForDiagramFromGraph[diagram_,vertexCorrectionGraph] := 
+CXXEvaluatorsForDiagramsFromGraph[diagrams_,graph_, fieldsNamespace_:""] :=
+  CXXEvaluatorForDiagramFromGraph[#,graph, fieldsNamespace] & /@ diagrams;
+
+CXXEvaluatorForDiagramFromGraph[diagram_,vertexCorrectionGraph, fieldsNamespace_:""] :=
   Module[{photonEmitter,exchangeParticle},
     photonEmitter = diagram[[4,3]]; (* Edge between vertices 4 and 6 (3rd edge of vertex 4) *)
     exchangeParticle = diagram[[4,2]]; (* Edge between vertices 4 and 5 (2nd edge of vertex 4) *)
-    
+
     If[diagram[[6]] =!= {TreeMasses`GetPhoton[],CXXDiagrams`LorentzConjugate[photonEmitter],photonEmitter},
        Return["(unknown diagram)"]];
     If[TreeMasses`IsFermion[photonEmitter] && TreeMasses`IsScalar[exchangeParticle],
-       Return[CXXEvaluatorFS[photonEmitter,exchangeParticle]]];
+       Return[CXXEvaluatorFS[photonEmitter,exchangeParticle, fieldsNamespace]]];
     If[TreeMasses`IsFermion[exchangeParticle] && TreeMasses`IsScalar[photonEmitter],
-       Return[CXXEvaluatorSF[photonEmitter,exchangeParticle]]];
-    
+       Return[CXXEvaluatorSF[photonEmitter,exchangeParticle, fieldsNamespace]]];
+
     Return["(unknown diagram)"];
   ]
 
-CXXEvaluatorFS[photonEmitter_,exchangeParticle_] :=
+CXXEvaluatorFS[photonEmitter_,exchangeParticle_, fieldsNamespace_:""] :=
   "AMuonVertexCorrectionFS<" <>
-  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
-  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
+  TreeMasses`CreateFieldClassName[photonEmitter, prefixNamespace -> fieldsNamespace] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle, prefixNamespace -> fieldsNamespace] <> ">"
 
-CXXEvaluatorSF[photonEmitter_,exchangeParticle_] :=
-  "AMuonVertexCorrectionSF<" <> 
-  TreeMasses`CreateFieldClassName[photonEmitter] <> ", " <>
-  TreeMasses`CreateFieldClassName[exchangeParticle] <> ">"
-  
+CXXEvaluatorSF[photonEmitter_,exchangeParticle_, fieldsNamespace_:""] :=
+  "AMuonVertexCorrectionSF<" <>
+  TreeMasses`CreateFieldClassName[photonEmitter, prefixNamespace -> fieldsNamespace] <> ", " <>
+  TreeMasses`CreateFieldClassName[exchangeParticle, prefixNamespace -> fieldsNamespace] <> ">"
+
 GetMinMass[particle_] :=
     Module[{dim = TreeMasses`GetDimension[particle],
             mStr = CConversion`ToValidCSymbolString[FlexibleSUSY`M[particle]],
@@ -162,4 +163,3 @@ AMuonGetMSUSY[] :=
 
 End[];
 EndPackage[];
-

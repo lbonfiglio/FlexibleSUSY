@@ -18,6 +18,7 @@ LIBFLEXI_SRC := \
 		$(DIR)/dilog.cpp \
 		$(DIR)/dilogc.f \
 		$(DIR)/effective_couplings.cpp \
+		$(DIR)/generic_vertices.cpp \
 		$(DIR)/global_thread_pool.cpp \
 		$(DIR)/gsl_utils.cpp \
 		$(DIR)/gsl_vector.cpp \
@@ -58,6 +59,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/database.hpp \
 		$(DIR)/decay.hpp \
 		$(DIR)/decay_amplitudes.hpp \
+		$(DIR)/decays_loop_corrections.hpp \
 		$(DIR)/derivative.hpp \
 		$(DIR)/dilog.hpp \
 		$(DIR)/effective_couplings.hpp \
@@ -66,8 +68,10 @@ LIBFLEXI_HDR := \
 		$(DIR)/error.hpp \
 		$(DIR)/ew_input.hpp \
 		$(DIR)/ewsb_solver.hpp \
+		$(DIR)/field_traits.hpp \
 		$(DIR)/fixed_point_iterator.hpp \
 		$(DIR)/functors.hpp \
+		$(DIR)/generic_vertices.hpp \
 		$(DIR)/global_thread_pool.hpp \
 		$(DIR)/gsl.hpp \
 		$(DIR)/gsl_utils.hpp \

@@ -16,59 +16,20 @@
 // <http://www.gnu.org/licenses/>.
 // ====================================================================
 
-// File generated at @DateAndTime@
+#ifndef FIELD_TRAITS_H
+#define FIELD_TRAITS_H
 
-#ifndef @ModelName@_CXX_FIELDS_H
-#define @ModelName@_CXX_FIELDS_H
-
-#include "multiindex.hpp"
-
-#include <array>
-
-#include <boost/array.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/version.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/vector_c.hpp>
-
-#include <boost/range/iterator_range.hpp>
-
-#include <boost/fusion/include/copy.hpp>
-#include <boost/fusion/include/move.hpp>
-#include <boost/fusion/adapted/boost_array.hpp>
+#include <type_traits>
 
 namespace flexiblesusy {
 
 namespace cxx_qft {
-
-template<class Field>
-struct field_indices {
-   using type = std::array<int, Field::numberOfFieldIndices>;
-};
-
-namespace fields {
 
 enum class ParticleType {
    scalar,
    fermion,
    vector,
    ghost
-};
-
-template<typename Field>
-struct is_fermion {
-   static constexpr bool value = Field::particle_type == ParticleType::fermion;
-};
-
-template<typename Field>
-struct is_vector {
-   static constexpr bool value = Field::particle_type == ParticleType::vector;
-};
-
-template<typename Field>
-struct is_scalar {
-   static constexpr bool value = Field::particle_type == ParticleType::scalar;
 };
 
 template<typename Field>
@@ -167,82 +128,41 @@ struct remove_lorentz_conjugation<conj<Field>> {
    using type = Field;
 };
 
-@CXXDiagrams_Fields@
+template <class Field>
+struct is_scalar : public std::false_type {};
 
-} // namespace fields
+template <class Field>
+struct is_scalar<bar<Field> > : public is_scalar<Field> {};
 
-using fields::bar;
-using fields::conj;
-using fields::remove_lorentz_conjugation;
+template <class Field>
+struct is_scalar<conj<Field> > : public is_scalar<Field> {};
 
-namespace detail {
+template <class Field>
+struct is_fermion : public std::false_type {};
 
-template<class Begin, class End>
-decltype(
-   boost::make_iterator_range(
-      multiindex<Begin, End>::begin(),
-      multiindex<Begin, End>::end()
-      )
-   )
-make_index_range( void )
-{
-   using index = multiindex<Begin, End>;
+template <class Field>
+struct is_fermion<bar<Field> > : public is_fermion<Field> {};
 
-   return boost::make_iterator_range(
-      index::begin(), index::end()
-      );
-}
+template <class Field>
+struct is_fermion<conj<Field> > : public is_fermion<Field> {};
 
-} // namespace detail
+template <class Field>
+struct is_vector : public std::false_type {};
 
-template<class Field>
-typename std::enable_if<
-  Field::numberOfGenerations != 1,
-  bool
->::type
-isSMField(const typename field_indices<Field>::type& indices)
-{
-   boost::array<bool, Field::numberOfGenerations> sm_flags;
+template <class Field>
+struct is_vector<bar<Field> > : public is_vector<Field> {};
 
-#if BOOST_VERSION >= 105800
-   boost::fusion::move(typename Field::sm_flags(), sm_flags);
-#else
-   boost::fusion::copy(typename Field::sm_flags(), sm_flags);
-#endif
+template <class Field>
+struct is_vector<conj<Field> > : public is_vector<Field> {};
 
-   return sm_flags[indices[0]];
-}
+template <class Field>
+struct is_ghost : public std::false_type {};
 
-template<class Field>
-typename std::enable_if<
-  Field::numberOfGenerations == 1,
-  bool
->::type
-isSMField(const typename field_indices<Field>::type &)
-{
-   return boost::mpl::at_c<
-      typename Field::sm_flags,
-      0
-      >::type::value;
-}
+template <class Field>
+struct is_ghost<bar<Field> > : public is_ghost<Field> {};
 
-template<class ObjectWithIndexBounds>
-struct index_bounds {
-   using type = typename ObjectWithIndexBounds::index_bounds;
-};
-
-template<class ObjectWithIndexBounds>
-decltype(detail::make_index_range<
-  typename ObjectWithIndexBounds::index_bounds::first,
-  typename ObjectWithIndexBounds::index_bounds::second
->())
-index_range( void )
-{
-  return detail::make_index_range<
-    typename ObjectWithIndexBounds::index_bounds::first,
-    typename ObjectWithIndexBounds::index_bounds::second
-  >();
-}
+template <class Field>
+struct is_ghost<conj<Field> > : public is_ghost<Field> {};
 
 } // namespace cxx_qft
 

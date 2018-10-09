@@ -16,7 +16,13 @@
 // <http://www.gnu.org/licenses/>.
 // ====================================================================
 
+#ifndef DECAY_AMPLITUDES_H
+#define DECAY_AMPLITUDES_H
+
+#include "field_traits.hpp"
+
 #include <complex>
+#include <limits>
 
 namespace flexiblesusy {
 
@@ -28,7 +34,7 @@ struct Decay_amplitude_SSS {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
-   std::complex<double> matrix_element{};
+   std::complex<double> form_factor{};
 
    double square() const;
 };
@@ -41,7 +47,8 @@ struct Decay_amplitude_SSV {
    double m_decay{0.};
    double m_scalar{0.};
    double m_vector{0.};
-   std::complex<double> matrix_element{};
+   double massless_vector_threshold{std::numeric_limits<double>::epsilon()};
+   std::complex<double> form_factor{};
 
    double square() const;
 };
@@ -54,8 +61,13 @@ struct Decay_amplitude_SVV {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
-   std::complex<double> M1{};
-   std::complex<double> M2{};
+   double massless_vector_threshold{std::numeric_limits<double>::epsilon()};
+   std::complex<double> form_factor_g{};
+   std::complex<double> form_factor_11{};
+   std::complex<double> form_factor_12{};
+   std::complex<double> form_factor_21{};
+   std::complex<double> form_factor_22{};
+   std::complex<double> form_factor_eps{};
 
    double square() const;
 };
@@ -68,8 +80,8 @@ struct Decay_amplitude_SFF {
    double m_decay{0.};
    double m_out_1{0.};
    double m_out_2{0.};
-   std::complex<double> matrix_element_left{};
-   std::complex<double> matrix_element_right{};
+   std::complex<double> form_factor_left{};
+   std::complex<double> form_factor_right{};
 
    double square() const;
 };
@@ -82,8 +94,8 @@ struct Decay_amplitude_FFS {
    double m_decay{0.};
    double m_fermion{0.};
    double m_scalar{0.};
-   std::complex<double> matrix_element_left{};
-   std::complex<double> matrix_element_right{};
+   std::complex<double> form_factor_left{};
+   std::complex<double> form_factor_right{};
 
    double square() const;
 };
@@ -96,12 +108,114 @@ struct Decay_amplitude_FFV {
    double m_decay{0.};
    double m_fermion{0.};
    double m_vector{0.};
-   std::complex<double> matrix_element_gam_1{};
-   std::complex<double> matrix_element_gam_2{};
-   std::complex<double> matrix_element_p_1{};
-   std::complex<double> matrix_element_p_2{};
+   double massless_vector_threshold{std::numeric_limits<double>::epsilon()};
+   std::complex<double> form_factor_gam_left{};
+   std::complex<double> form_factor_gam_right{};
+   std::complex<double> form_factor_p_1{};
+   std::complex<double> form_factor_p_2{};
 
    double square() const;
+};
+
+namespace detail {
+
+template <class Field_in, class Field_out_1, class Field_out_2,
+          class Amplitude_type = void>
+struct Two_body_decay_amplitude_type { };
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_scalar<Field_out_1>::value &&
+                           cxx_qft::is_scalar<Field_out_2>::value>::type > {
+   using type = Decay_amplitude_SSS;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_scalar<Field_out_1>::value &&
+                           cxx_qft::is_vector<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_SSV;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_vector<Field_out_1>::value &&
+                           cxx_qft::is_scalar<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_SSV;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_vector<Field_out_1>::value &&
+                           cxx_qft::is_vector<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_SVV;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_scalar<Field_in>::value &&
+                           cxx_qft::is_fermion<Field_out_1>::value &&
+                           cxx_qft::is_fermion<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_SFF;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_fermion<Field_out_1>::value &&
+                           cxx_qft::is_scalar<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_FFS;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_scalar<Field_out_1>::value &&
+                           cxx_qft::is_fermion<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_FFS;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_fermion<Field_out_1>::value &&
+                           cxx_qft::is_vector<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_FFV;
+};
+
+template <class Field_in, class Field_out_1, class Field_out_2>
+struct Two_body_decay_amplitude_type<
+   Field_in, Field_out_1, Field_out_2,
+   typename std::enable_if<cxx_qft::is_fermion<Field_in>::value &&
+                           cxx_qft::is_vector<Field_out_1>::value &&
+                           cxx_qft::is_fermion<Field_out_2>::value>::type> {
+   using type = Decay_amplitude_FFV;
+};
+
+} // namespace detail
+
+/**
+ * @class Decay_amplitude_type
+ * @brief helper class to determine amplitude type for a given set of fields
+ */
+template <class... Fields>
+struct Decay_amplitude_type {
+   using type =
+      typename std::enable_if<
+      sizeof...(Fields) == 3,
+      typename detail::Two_body_decay_amplitude_type<Fields...>::type >::type;
 };
 
 template <typename Amplitude>
@@ -111,3 +225,5 @@ double square_amplitude(const Amplitude& a)
 }
 
 } // namespace flexiblesusy
+
+#endif

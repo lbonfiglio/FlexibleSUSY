@@ -134,9 +134,9 @@ struct lorentz_momentum_diff
 };
 struct lorentz_inverse_metric {};
 
-struct generic_context : EvaluationContext
+struct generic_context : @ModelName@_evaluation_context
 {
-  using EvaluationContext::EvaluationContext;
+  using @ModelName@_evaluation_context::@ModelName@_evaluation_context;
  
   template<class ...Fields>
   std::complex<double> vertex( 

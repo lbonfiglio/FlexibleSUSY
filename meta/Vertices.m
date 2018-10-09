@@ -28,16 +28,9 @@ BeginPackage["Vertices`", {
     "CConversion`",
     "LatticeUtils`"}]
 
-FSVertexTypes = { ScalarVertex, ChiralVertex, MomentumDifferenceVertex, InverseMetricVertex };
-
+FSVertexTypes = { SSSVertex, SSSSVertex, FFSVertex, FFVVertex, SSVVertex, SSVVVertex, SVVVertex, VVVVertex, VVVVVertex, GGSVertex, GGVVertex };
 VertexTypes::usage="";
 VertexTypeForFields::usage="Returns the vertex type for a vertex with a given list of fields.";
-
-LoadVerticesIfNecessary::usage="";
-
-CreateVertexData::usage="";
-CreateVertices::usage="";
-VertexFunctionBodyForFields::usage="";
 
 VertexRules::usage;
 ToCpPattern::usage="ToCpPattern[cp] converts field indices inside cp to patterns, e.g. ToCpPattern[Cp[bar[UFd[{gO1}]], Sd[{gI1}], Glu[{1}]][PL]] === Cp[bar[UFd[{gO1_}]], Sd[{gI1_}], Glu[{1}]][PL].";
@@ -55,39 +48,97 @@ ToRotatedField::usage;
 ReplaceUnrotatedFields::usage;
 StripGroupStructure::usage="Removes group generators and Kronecker deltas.";
 StripFieldIndices::usage;
+IsNonZeroVertex::usage="Checks if a vertex may be non-zero.";
+
+SetCachedVertices::usage="";
+GetCachedVertices::usage="";
+ClearCachedVertices::usage="";
+
+CreateVertexData::usage="";
+CreateVertices::usage="";
+VertexFunctionBodyForFields::usage="";
 
 Begin["`Private`"]
 
-VertexTypes[] := FSVertexTypes;
+(* cached 3-point vertices, with and without dependencies imposed *)
+cachedVertices[3, False] = {};
+cacjedVertices[3, True] = {};
+(* cached 4-point vertices, with and without dependences imposed *)
+cachedVertices[4, False] = {};
+cachedVertices[4, True] = {};
+cachedVertices[numFields_, useDependences_] := {};
 
-IsScalarVertex[fields_List] :=
-    Module[{scalarCount, ghostCount},
-           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsVector] != 0,
-              Return[False];
+SetCachedVertices[numFields_Integer, vertices_List, useDependences_:False] := cachedVertices[numFields, useDependences] = vertices;
+
+GetCachedVertices[] := Flatten[cachedVertices[#[[1]], #[[2]]]& /@ Cases[DownValues[cachedVertices], (HoldPattern[_[_[l_, u_]]] :> _) /; IntegerQ[l] :> {l, u}]];
+GetCachedVertices[numFields_Integer, useDependences_:False] := cachedVertices[numFields, useDependences];
+
+AddToCachedVertices[sarahVertex_, useDependences_:False] :=
+    Module[{numFields, cached},
+           numFields = Length[sarahVertex[[1]]];
+           cached = cachedVertices[numFields, useDependences];
+           If[cached === {},
+              cachedVertices[numFields, useDependences] = {sarahVertex};,
+              cachedVertices[numFields, useDependences] = Append[cached, sarahVertex];
              ];
-           scalarCount = Count[fields, _?TreeMasses`IsScalar];
-           ghostCount = Count[fields, _?TreeMasses`IsGhost];
-           Or[(scalarCount == 3 && ghostCount == 0),
-              (scalarCount == 1 && ghostCount == 2),
-              (scalarCount == 4 && ghostCount == 0)]
           ];
 
-IsChiralVertex[fields_List] :=
-    Module[{fermionCount, scalarCount, vectorCount},
-           If[Count[fields, _?TreeMasses`IsGhost] != 0,
+ClearCachedVertices[numFields_Integer, useDependences_:False] := cachedVertices[numFields, useDependences] = {};
+ClearCachedVertices[] :=
+    (
+     DownValues[cachedVertices] = DeleteCases[DownValues[cachedVertices], (HoldPattern[_[_[l_, _]]] :> _) /; IntegerQ[l]];
+     cachedVertices[_, _] := {};
+    )
+
+VertexTypes[] := FSVertexTypes;
+
+IsSSSVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsVector]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsScalar] == 3
+          ];
+
+IsSSSSVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsVector]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsScalar] == 4
+          ];
+
+IsFFSVertex[fields_List] :=
+    Module[{fermionCount},
+           If[Count[fields, _?TreeMasses`IsGhost]  != 0 ||
+              Count[fields, _?TreeMasses`IsVector] != 0,
               Return[False];
              ];
            fermionCount = Count[fields, _?TreeMasses`IsFermion];
            If[fermionCount != 2,
               Return[False];
              ];
-           scalarCount = Count[fields, _?TreeMasses`IsScalar];
-           vectorCount = Count[fields, _?TreeMasses`IsVector];
-           Or[scalarCount == 1 && vectorCount == 0,
-              scalarCount == 0 && vectorCount == 1]
+           Count[fields, _?TreeMasses`IsScalar] == 1
           ];
 
-IsMomentumDifferenceVertex[fields_List] :=
+IsFFVVertex[fields_List] :=
+    Module[{fermionCount},
+           If[Count[fields, _?TreeMasses`IsGhost]  != 0 ||
+              Count[fields, _?TreeMasses`IsScalar] != 0,
+              Return[False];
+             ];
+           fermionCount = Count[fields, _?TreeMasses`IsFermion];
+           If[fermionCount != 2,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 1
+          ];
+
+IsSSVVertex[fields_List] :=
     Module[{scalarCount, vectorCount},
            If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
               Return[False];
@@ -97,20 +148,83 @@ IsMomentumDifferenceVertex[fields_List] :=
            scalarCount == 2 && vectorCount == 1
           ];
 
-IsInverseMetricVertex[fields_List] :=
+IsSVVVertex[fields_List] :=
     Module[{scalarCount, vectorCount},
            If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
               Return[False];
              ];
            scalarCount = Count[fields, _?TreeMasses`IsScalar];
            vectorCount = Count[fields, _?TreeMasses`IsVector];
-           (vectorCount == 2) && (scalarCount == 1 || scalarCount == 2)
+           vectorCount == 2 && scalarCount == 1
           ];
 
-VertexTypeForFields[fields_List /; IsScalarVertex[fields]] := ScalarVertex;
-VertexTypeForFields[fields_List /; IsChiralVertex[fields]] := ChiralVertex;
-VertexTypeForFields[fields_List /; IsMomentumDifferenceVertex[fields]] := MomentumDifferenceVertex;
-VertexTypeForFields[fields_List /; IsInverseMetricVertex[fields]] := InverseMetricVertex;
+IsSSVVVertex[fields_List] :=
+    Module[{scalarCount, vectorCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 || Count[fields, _?TreeMasses`IsGhost] != 0,
+              Return[False];
+             ];
+           scalarCount = Count[fields, _?TreeMasses`IsScalar];
+           vectorCount = Count[fields, _?TreeMasses`IsVector];
+           vectorCount == 2 && scalarCount == 2
+          ];
+
+IsVVVVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsScalar]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 3
+          ];
+
+IsVVVVVertex[fields_List] :=
+    Module[{},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsScalar]  != 0 ||
+              Count[fields, _?TreeMasses`IsGhost]   != 0,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 4
+          ];
+
+IsGGSVertex[fields_List] :=
+    Module[{ghostCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsVector]  != 0,
+              Return[False];
+             ];
+           ghostCount = Count[fields, _?TreeMasses`IsGhost];
+           If[ghostCount != 2,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsScalar] == 1
+          ];
+
+IsGGVVertex[fields_List] :=
+    Module[{ghostCount},
+           If[Count[fields, _?TreeMasses`IsFermion] != 0 ||
+              Count[fields, _?TreeMasses`IsScalar]  != 0,
+              Return[False];
+             ];
+           ghostCount = Count[fields, _?TreeMasses`IsGhost];
+           If[ghostCount != 2,
+              Return[False];
+             ];
+           Count[fields, _?TreeMasses`IsVector] == 1
+          ];
+
+VertexTypeForFields[fields_List /; IsSSSVertex[fields]] := SSSVertex;
+VertexTypeForFields[fields_List /; IsSSSSVertex[fields]] := SSSSVertex;
+VertexTypeForFields[fields_List /; IsFFSVertex[fields]] := FFSVertex;
+VertexTypeForFields[fields_List /; IsFFVVertex[fields]] := FFVVertex;
+VertexTypeForFields[fields_List /; IsSSVVertex[fields]] := SSVVertex;
+VertexTypeForFields[fields_List /; IsSSVVVertex[fields]] := SSVVVertex;
+VertexTypeForFields[fields_List /; IsSVVVertex[fields]] := SVVVertex;
+VertexTypeForFields[fields_List /; IsVVVVertex[fields]] := VVVVertex;
+VertexTypeForFields[fields_List /; IsVVVVVertex[fields]] := VVVVVertex;
+VertexTypeForFields[fields_List /; IsGGSVertex[fields]] := GGSVertex;
+VertexTypeForFields[fields_List /; IsGGVVertex[fields]] := GGVVertex;
 VertexTypeForFields[fields_List] := "UnknownVertexType" <> ToString[fields];
 
 (* There is a sign ambiguity when SARAH`Vertex[] factors an SSV-type
@@ -765,31 +879,31 @@ LoadVerticesIfNecessary[] :=
        SARAH`MakeCouplingLists;
       ];
 
-CreateVertexData[fields_List] :=
+CreateVertexData[fields_List, fieldsNamespace_:""] :=
     Module[{dataClassName,indexBounds,parsedVertex},
            dataClassName = "VertexData<" <> StringJoin[Riffle[
-               TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] & /@ fields,
+               TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] & /@ fields,
                ", "]] <> ">";
 
-           "template<> struct " <> dataClassName <> "\n" <> "{\n" <>
+           "template<>\nstruct " <> dataClassName <> " {\n" <>
            TextFormatting`IndentText[
                "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
                ";"] <> "\n" <> "};"
           ];
 
 (* Returns the necessary c++ code corresponding to the vertices that need to be calculated. *)
-CreateVertices[vertices_List] :=
-    StringJoin @\[NonBreakingSpace]Riffle[CreateVertex[#] & /@ DeleteDuplicates[vertices], "\n\n"]
+CreateVertices[vertices_List, fieldsNamespace_:""] :=
+    StringJoin @\[NonBreakingSpace]Riffle[CreateVertex[#, fieldsNamespace] & /@ DeleteDuplicates[vertices], "\n\n"]
 
 (* Creates the actual c++ code for a vertex with given fields.
  You should never need to change this code! *)
-CreateVertex[fields_List] :=
+CreateVertex[fields_List, fieldsNamespace_:""] :=
     Module[{parsedVertex, functionClassName},
            LoadVerticesIfNecessary[];
            functionClassName = "Vertex<" <> StringJoin @ Riffle[
-           TreeMasses`CreateFieldClassName[#, prefixNamespace -> "fields"] & /@ fields, ", "] <> ">";
+           TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] & /@ fields, ", "] <> ">";
 
-           "template<> template <class EvaluationContext> inline\n" <>
+           "template<>\ntemplate <class EvaluationContext>\ninline\n" <>
            functionClassName <> "::vertex_type\n" <>
            functionClassName <> "::evaluate(const indices_type& indices, const EvaluationContext& context)\n" <>
            "{\n" <>
@@ -821,15 +935,29 @@ GetIndexedFieldsForVertex[fields_, vertex_] :=
            sortedIndexedFields[[fOrderingWRTSortedF]]
           ];
 
-CreateZeroVertex[fields_?IsScalarVertex] := "return vertex_type(0);";
-CreateZeroVertex[fields_?IsChiralVertex] := "return vertex_type(0, 0);";
-CreateZeroVertex[fields_?IsMomentumDifferenceVertex] :=
+IsNonZeroVertex[fields_List, vertexList_:{}, useDependences_:False] :=
+    Module[{sortedFields, cached, vertex, isNonZero},
+           sortedFields = SortFieldsInCp[fields];
+           If[vertexList =!= {},
+              cached = DeleteDuplicates[Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1]];
+              If[cached =!= {},
+                 Return[Or @@ (MemberQ[#[[2 ;;]][[All, 1]], Except[0]]& /@ cached)];
+                ];
+             ];
+           vertex = SARAH`Vertex[sortedFields, UseDependences -> useDependences];
+           AddToCachedVertices[vertex, useDependences];
+           MemberQ[vertex[[2 ;;]][[All, 1]], Except[0]]
+          ];
+
+CreateZeroVertex[fields_?IsSSSVertex] := "return vertex_type(0);";
+CreateZeroVertex[fields_?IsFFSVertex] := "return vertex_type(0, 0);";
+CreateZeroVertex[fields_?IsSSVVertex] :=
     "return vertex_type(0, " <>
     StringJoin[Riffle[
         ToString /@ Flatten[Position[fields,
                                      field_ /; TreeMasses`IsScalar[field] || TreeMasses`IsGhost[field],
                                      {1}, Heads -> False] - 1], ", "]] <> ");";
-CreateZeroVertex[fields_?IsInverseMetricVertex] := "return vertex_type(0);";
+CreateZeroVertex[fields_?IsSVVVertex] := "return vertex_type(0);";
 
 (* Creates local declarations of field indices, whose values are taken
    from the elements of `arrayName'.
@@ -903,7 +1031,7 @@ CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            resultTypeR = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
 
            DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
-           Parameters`CreateLocalConstRefs[exprL + exprR] <> "\n" <>
+           Parameters`CreateLocalConstRefs[{exprL, exprR}] <> "\n" <>
            "const " <> resultTypeL <> " left = " <>
            Parameters`ExpressionToString[exprL] <> ";\n\n" <>
            "const " <> resultTypeR <> " right = " <>
@@ -911,7 +1039,7 @@ CreateChiralVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
            "return vertex_type(left, right);"
           ];
 
-CreateMomentumDifferenceVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+CreateSSVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
     Module[{sortedIndexedFields, sortedFields, indexedFields,
             incomingScalar, outgoingScalar, vertexRules,
             expr, resultType},
@@ -942,8 +1070,8 @@ CreateMomentumDifferenceVertexFunctionBody[fields_, vertex_, stripGroupStructure
            "return vertex_type(result, minuend_index, subtrahend_index);"
           ];
 
-CreateInverseMetricVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
-    Module[{sortedIndexedFields, sortedFIelds, indexedFields,
+CreateSSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
             vertexRules, expr, resultType},
            sortedIndexedFields = vertex[[1]];
            sortedFields = StripFieldIndices[sortedIndexedFields];
@@ -966,11 +1094,143 @@ CreateInverseMetricVertexFunctionBody[fields_, vertex_, stripGroupStructureRules
            "return vertex_type(result);"
           ];
 
+CreateSVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(result);"
+          ];
+
+CreateVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           "const int i = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[1]]][[1,1]] - 1] <> ";\n" <>
+           "const int j = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[2]]][[1,1]] - 1] <> ";\n" <>
+           "const int k = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[3]]][[1,1]] - 1] <> ";\n" <>
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(i, j, k, result);"
+          ];
+
+CreateVVVVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr1234, expr1324, expr1423,
+            resultType1234, resultType1324, resultType1423},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`g[SARAH`lt1, SARAH`lt2] SARAH`g[SARAH`lt3, SARAH`lt4]]
+                              -> FindVertexWithLorentzStructure[Rest[vertex], SARAH`g[SARAH`lt1, SARAH`lt2] SARAH`g[SARAH`lt3, SARAH`lt4]][[1]],
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`g[SARAH`lt1, SARAH`lt3] SARAH`g[SARAH`lt2, SARAH`lt4]]
+                              -> FindVertexWithLorentzStructure[Rest[vertex], SARAH`g[SARAH`lt1, SARAH`lt3] SARAH`g[SARAH`lt2, SARAH`lt4]][[1]],
+                          (SARAH`Cp @@ sortedIndexedFields)[SARAH`g[SARAH`lt1, SARAH`lt4] SARAH`g[SARAH`lt2, SARAH`lt3]]
+                              -> FindVertexWithLorentzStructure[Rest[vertex], SARAH`g[SARAH`lt1, SARAH`lt4] SARAH`g[SARAH`lt2, SARAH`lt3]][[1]]
+                         };
+
+           expr1234 = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`g[SARAH`lt1, SARAH`lt2] SARAH`g[SARAH`lt3, SARAH`lt4]],
+                                           sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+           expr1324 = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`g[SARAH`lt1, SARAH`lt3] SARAH`g[SARAH`lt2, SARAH`lt4]],
+                                           sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+           expr1423 = CanonicalizeCoupling[(SARAH`Cp @@ fields)[SARAH`g[SARAH`lt1, SARAH`lt4] SARAH`g[SARAH`lt2, SARAH`lt3]],
+                                           sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr1234 = SarahToFSVertexConventions[sortedFields, expr1234];
+           expr1324 = SarahToFSVertexConventions[sortedFields, expr1324];
+           expr1423 = SarahToFSVertexConventions[sortedFields, expr1423];
+           expr1234 = TreeMasses`ReplaceDependenciesReverse[expr1234];
+           expr1324 = TreeMasses`ReplaceDependenciesReverse[expr1324];
+           expr1423 = TreeMasses`ReplaceDependenciesReverse[expr1423];
+
+           resultType1234 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+           resultType1324 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+           resultType1423 = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           "const int i = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[1]]][[1,1]] - 1] <> ";\n" <>
+           "const int j = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[2]]][[1,1]] - 1] <> ";\n" <>
+           "const int k = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[3]]][[1,1]] - 1] <> ";\n" <>
+           "const int l = " <>
+           ToString[Position[indexedFields, sortedIndexedFields[[4]]][[1,1]] - 1] <> ";\n" <>
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[{expr1234, expr1324, expr1423}] <> "\n" <>
+           "const " <> resultType1234 <> " c1 = " <>
+           Parameters`ExpressionToString[expr1234] <> ";\n\n" <>
+           "const " <> resultType1324 <> " c2 = " <>
+           Parameters`ExpressionToString[expr1324] <> ";\n\n" <>
+           "const " <> resultType1423 <> " c3 = " <>
+           Parameters`ExpressionToString[expr1423] <> ";\n\n" <>
+           "return vertex_type(i, j, k, l, c1, c2, c3);"
+          ];
+
+CreateGGVVertexFunctionBody[fields_, vertex_, stripGroupStructureRules_] :=
+    Module[{sortedIndexedFields, sortedFields, indexedFields,
+            vertexRules, expr, resultType},
+           sortedIndexedFields = vertex[[1]];
+           sortedFields = StripFieldIndices[sortedIndexedFields];
+           indexedFields = GetIndexedFieldsForVertex[fields, vertex];
+
+           vertexRules = {(SARAH`Cp @@ sortedIndexedFields) ->
+                          FindVertexWithLorentzStructure[Rest[vertex], SARAH`Mom[_, _]][[1]]};
+
+           expr = CanonicalizeCoupling[SARAH`Cp @@ fields,
+                                       sortedFields, sortedIndexedFields] /. vertexRules /. stripGroupStructureRules;
+
+           expr = SarahToFSVertexConventions[sortedFields, expr];
+           expr = TreeMasses`ReplaceDependenciesReverse[expr];
+
+           resultType = CConversion`CreateCType[CConversion`ScalarType[CConversion`complexScalarCType]];
+
+           DeclareIndices[StripLorentzIndices /@ indexedFields, "indices"] <>
+           Parameters`CreateLocalConstRefs[expr] <> "\n" <>
+           "const " <> resultType <> " result = " <>
+           Parameters`ExpressionToString[expr] <> ";\n\n" <>
+           "return vertex_type(result);"
+          ];
+
 VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
     Module[{sortedFields,
             vertex, vertexType = VertexTypeForFields[fields],
             stripGroupStructure = {SARAH`Lam[__] -> 2, SARAH`fSU3[__] -> 1}},
-
            sortedFields = SortFieldsInCp[fields];
 
            vertex = Select[vertexList, StripFieldIndices[#[[1]]] === sortedFields &, 1];
@@ -982,10 +1242,17 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List] :=
            vertex = vertex[[1]];
 
            Switch[vertexType,
-                  ScalarVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  ChiralVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  MomentumDifferenceVertex, CreateMomentumDifferenceVertexFunctionBody[fields, vertex, stripGroupStructure],
-                  InverseMetricVertex, CreateInverseMetricVertexFunctionBody[fields, vertex, stripGroupStructure]
+                  SSSVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SSSSVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  FFSVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  FFVVertex, CreateChiralVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SSVVertex, CreateSSVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SSVVVertex, CreateSSVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  SVVVertex, CreateSVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  VVVVertex, CreateVVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  VVVVVertex, CreateVVVVVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  GGSVertex, CreateScalarVertexFunctionBody[fields, vertex, stripGroupStructure],
+                  GGVVertex, CreateGGVVertexFunctionBody[fields, vertex, stripGroupStructure]
                  ]
           ];
 

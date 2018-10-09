@@ -1106,7 +1106,19 @@ FindVEV[gauge_] :=
               Print["Error: could not find VEV for gauge eigenstate ", gauge];
               Quit[1];
              ];
-           vev[[1]]
+           First[vev]
+          ];
+
+(* returns VEV normalization w.r.t. the corresponding gauge eigenstate *)
+FindVEVNormalization[gauge_] :=
+    Module[{result, vev},
+           vev = Cases[SARAH`DEFINITION[FlexibleSUSY`FSEigenstates][SARAH`VEVs],
+                       {_,{v_,n_},{gauge,m_},{p_,_},___} | {_,{v_,n_},{s_,_},{gauge,m_},___} :> Abs[n/m]];
+           If[vev === {},
+              Print["Error: could not find VEV for gauge eigenstate ", gauge];
+              Quit[1];
+             ];
+           First[vev]
           ];
 
 GetDimOfVEV[vev_] :=
@@ -1220,22 +1232,28 @@ WriteModelSLHAClass[massMatrices_List, files_List] :=
                           } ];
           ];
 
-(* Returns a list of three-component lists where the information is
-   stored which VEV corresponds to which Tadpole eq.
+(* Returns a list of four-component lists where the information is
+   stored which VEV corresponds to which Tadpole eq. and the
+   normalization w.r.t. the corresponding scalar field (last element).
 
    Example: MRSSM
-   It[] := CreateVEVToTadpoleAssociation[]
-   Out[] = {{hh, 1, vd}, {hh, 2, vu}, {hh, 4, vS}, {hh, 3, vT}}
+   In[] := CreateVEVToTadpoleAssociation[]
+   Out[] = {{hh, 1, vd, 1}, {hh, 2, vu, 1}, {hh, 4, vS, 1}, {hh, 3, vT, 1}}
  *)
 CreateVEVToTadpoleAssociation[] :=
-    Module[{association, vev},
-           vevs = Cases[SARAH`DEFINITION[FlexibleSUSY`FSEigenstates][SARAH`VEVs],
-                        {_,{v_,_},{s_,_},{p_,_},___} :> {v,s,p}];
+    Module[{association, vs, vevs, norms, i},
+           vs = Cases[SARAH`DEFINITION[FlexibleSUSY`FSEigenstates][SARAH`VEVs],
+                      {_,{v_,_},{s_,_},{p_,_},___} :> {v,s,p}];
+           (* find VEVs associtated to the scalar/pseudoscalar gauge eigenstates *)
            vevs = Flatten @
-                  Join[ExpandVEVIndices[FindVEV[#]]& /@ Transpose[vevs][[3]],
-                       ExpandVEVIndices[FindVEV[#]]& /@ Transpose[vevs][[2]]];
+                  Join[ExpandVEVIndices[FindVEV[#]]& /@ Transpose[vs][[3]],
+                       ExpandVEVIndices[FindVEV[#]]& /@ Transpose[vs][[2]]];
+           (* find corresponding norms *)
+           norms = Flatten @
+                  Join[Table[FindVEVNormalization[#], {i,GetDimOfVEV[FindVEV[#]]}]& /@ Transpose[vs][[3]],
+                       Table[FindVEVNormalization[#], {i,GetDimOfVEV[FindVEV[#]]}]& /@ Transpose[vs][[2]]];
            association = CreateHiggsToEWSBEqAssociation[];
-           {#[[1]], #[[2]], vevs[[#[[2]]]]}& /@ association
+           {#[[1]], #[[2]], vevs[[#[[2]]]], norms[[#[[2]]]]}& /@ association
           ];
 
 GetRenormalizationScheme[] :=
@@ -1768,7 +1786,10 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
             decaysListGettersPrototypes = "", decaysListGettersFunctions = "",
             decaysGetters = "", initDecayTable = "",
             decaysCalculationPrototypes = "", decaysCalculationFunctions = "",
-            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = ""},
+            partialWidthCalculationPrototypes = "", partialWidthCalculationFunctions = "",
+            calcAmplitudeSpecializationDecls = "", calcAmplitudeSpecializationDefs = "",
+            partialWidthSpecializationDecls = "", partialWidthSpecializationDefs = "",
+            smParticleAliases},
            numberOfDecayParticles = Plus @@ (TreeMasses`GetDimensionWithoutGoldstones /@ decayParticles);
            decaysLists = {#, Decays`GetDecaysForParticle[#, maxFinalStateParticles, finalStateParticles]}& /@ decayParticles;
            decaysVertices = DeleteDuplicates[Flatten[Permutations /@ Flatten[Decays`GetVerticesForDecays[Last[#]]& /@ decaysLists, 1], 1]];
@@ -1779,42 +1800,37 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decaysLists];
            decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
            partialWidthCalculationPrototypes = Decays`CreatePartialWidthCalculationPrototypes[decaysLists];
-           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists];
+           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists, FlexibleSUSY`FSModelName <> "_fields"];
+           decaysGetters = Decays`CreateDecaysGetterFunctions[decayParticles];
            decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
            decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
            initDecayTable = Decays`CreateDecayTableInitialization[decayParticles];
+           {calcAmplitudeSpecializationDecls, calcAmplitudeSpecializationDefs}
+               = Decays`CreateTotalAmplitudeSpecializations[decaysLists, FlexibleSUSY`FSModelName];
+           {partialWidthSpecializationDecls, partialWidthSpecializationDefs}
+               = Decays`CreatePartialWidthSpecializations[decaysLists, FlexibleSUSY`FSModelName];
+           smParticleAliases = Decays`CreateSMParticleAliases[FlexibleSUSY`FSModelName <> "_fields"];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
-                            "@decaysGetters@" -> IndentText[decaysGetters],
+                            "@decaysGetters@" -> IndentText[WrapLines[decaysGetters]],
                             "@decaysCalculationPrototypes@" -> IndentText[decaysCalculationPrototypes],
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
                             "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],
                             "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
+                            "@calcAmplitudeSpecializationDecls@" -> WrapLines[calcAmplitudeSpecializationDecls],
+                            "@calcAmplitudeSpecializationDefs@" -> WrapLines[calcAmplitudeSpecializationDefs],
+                            "@partialWidthSpecializationDecls@" -> WrapLines[partialWidthSpecializationDecls],
+                            "@partialWidthSpecializationDefs@" -> WrapLines[partialWidthSpecializationDefs],
                             "@decaysListGettersPrototypes@" -> IndentText[decaysListGettersPrototypes],
                             "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],
                             "@numberOfDecayParticles@" -> ToString[numberOfDecayParticles],
-                             (* todo: what about pseudoscalar higgs *)
-                            "@HiggsBosonName@" -> TreeMasses`CreateFieldClassName[TreeMasses`GetHiggsBoson[]],
-                            "@WBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetWBoson[]],
-                            "@ZBosonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetZBoson[]],
-                            "@GluonName@"      -> TreeMasses`CreateFieldClassName[TreeMasses`GetGluon[]],
-                            "@PhotonName@"     -> TreeMasses`CreateFieldClassName[TreeMasses`GetPhoton[]],
-                             "@DownQuarkName@"     -> TreeMasses`CreateFieldClassName[
-                                 If[Length[TreeMasses`GetSMDownQuarks[]] === 1,
-                                    TreeMasses`GetSMDownQuarks[][[1]],
-                                    Quit[1]
-                                 ]
-                             ],
-                             "@UpQuarkName@"     -> TreeMasses`CreateFieldClassName[
-                                If[Length[TreeMasses`GetSMUpQuarks[]] === 1,
-                                   TreeMasses`GetSMUpQuarks[][[1]],
-                                   Quit[1]
-                                ]
-                             ],
+                            "@create_SM_particle_usings@" -> smParticleAliases,
+                            "@gs_name@" -> ToString[TreeMasses`GetStrongCoupling[]],
                             Sequence @@ GeneralReplacementRules[]
                           } ];
+
            decaysVertices
           ];
 
@@ -1994,21 +2010,34 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
 
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,files_List] :=
-  Module[{fields, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, unitCharge,
+  Module[{fields, fieldsNamespace, fieldStructDefinitions, namedFieldAliases, lorentzSelfConjugateFieldDefs,
+          fieldsByTypeDecls, defineFieldTraits, nPointFunctions, vertexRules, vertexData, cxxVertices, massFunctions, physicalMassFunctions, unitCharge,
           strongCoupling},
-    fields = CXXDiagrams`CreateFields[];
-    vertexData = StringJoin @ Riffle[Vertices`CreateVertexData /@
+    fields = TreeMasses`GetParticles[];
+    fieldsNamespace = FlexibleSUSY`FSModelName <> "_fields";
+    fieldStructDefinitions = CXXDiagrams`CreateFieldStructs[fields];
+    namedFieldAliases = CXXDiagrams`CreateNamedFieldAliases[];
+    lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[fields, fieldsNamespace];
+    fieldsByTypeDecls = CXXDiagrams`CreateFieldTypeLists[fields];
+    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields, fieldsNamespace];
+    vertexData = StringJoin @ Riffle[Vertices`CreateVertexData[#, fieldsNamespace]& /@
                                        DeleteDuplicates[vertices], "\n\n"];
-    cxxVertices = Vertices`CreateVertices[vertices];
-    massFunctions = CXXDiagrams`CreateMassFunctions[];
+    cxxVertices = Vertices`CreateVertices[vertices, fieldsNamespace];
+    massFunctions = CXXDiagrams`CreateMassFunctions[fieldsNamespace];
+    physicalMassFunctions = CXXDiagrams`CreatePhysicalMassFunctions[fieldsNamespace];
     unitCharge = CXXDiagrams`CreateUnitCharge[];
     strongCoupling = CXXDiagrams`CreateStrongCoupling[];
 
     WriteOut`ReplaceInFiles[files,
-                            {"@CXXDiagrams_Fields@"          -> fields,
-                             "@CXXDiagrams_VertexData@"      -> vertexData,
-                             "@CXXDiagrams_Vertices@"        -> cxxVertices,
+                            {"@fieldStructDefinitions@"          -> fieldStructDefinitions,
+                             "@namedFieldAliases@"           -> namedFieldAliases,
+                             "@lorentzSelfConjugateFieldDefs@" -> lorentzSelfConjugateFieldDefs,
+                             "@fieldsByTypeDecls@" -> fieldsByTypeDecls,
+                             "@defineFieldTraits@"           -> defineFieldTraits,
+                             "@CXXDiagrams_VertexData@"      -> WrapLines[vertexData],
+                             "@CXXDiagrams_Vertices@"        -> WrapLines[cxxVertices],
                              "@CXXDiagrams_MassFunctions@"   -> massFunctions,
+                             "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              Sequence @@ GeneralReplacementRules[]
@@ -2017,28 +2046,30 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
 
 (* Write the EDM c++ files *)
 WriteEDMClass[edmFields_List,files_List] :=
-  Module[{graphs,diagrams,vertices,
-          interfacePrototypes,interfaceDefinitions},
-    graphs = EDM`EDMContributingGraphs[];
-    diagrams = Outer[EDM`EDMContributingDiagramsForFieldAndGraph,edmFields,graphs,1];
+    Module[{i, fieldsNamespace, graphs,diagrams,vertices,
+            interfacePrototypes,interfaceDefinitions},
+           fieldsNamespace = FlexibleSUSY`FSModelName <> "_fields";
+           graphs = EDM`EDMContributingGraphs[];
+           diagrams = Outer[EDM`EDMContributingDiagramsForFieldAndGraph,edmFields,graphs,1];
+           vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,2],1];
 
-    vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,2],1];
+           {interfacePrototypes,interfaceDefinitions} =
+               If[diagrams === {},
+                  {"",""},
+                  Print["arg = ", Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams}]];
+                  StringJoin @@@
+                      (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@
+                          Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams, Table[fieldsNamespace, {i, 1, Length[edmFields]}]}]])
+                 ];
 
-    {interfacePrototypes,interfaceDefinitions} =
-      If[diagrams === {},
-         {"",""},
-         StringJoin @@@
-          (Riffle[#, "\n\n"] & /@ Transpose[EDM`EDMCreateInterfaceFunctionForField @@@
-            Transpose[{edmFields,Transpose[{graphs,#}] & /@ diagrams}]])];
+           WriteOut`ReplaceInFiles[files,
+                                   {"@EDM_InterfacePrototypes@"       -> interfacePrototypes,
+                                    "@EDM_InterfaceDefinitions@"      -> interfaceDefinitions,
+                                    Sequence @@ GeneralReplacementRules[]
+                                   }];
 
-    WriteOut`ReplaceInFiles[files,
-                            {"@EDM_InterfacePrototypes@"       -> interfacePrototypes,
-                             "@EDM_InterfaceDefinitions@"      -> interfaceDefinitions,
-                             Sequence @@ GeneralReplacementRules[]
-                            }];
-
-    vertices
-  ]
+           vertices
+          ];
 
 (* Write the AMuon c++ files *)
 WriteAMuonClass[files_List] :=
@@ -2053,7 +2084,7 @@ WriteAMuonClass[files_List] :=
       vertices = Flatten[CXXDiagrams`VerticesForDiagram /@ Flatten[diagrams,1],1];
 
       muonPhysicalMass = AMuon`AMuonCreateMuonPhysicalMass[];
-      calculation = AMuon`AMuonCreateCalculation @ Transpose[{graphs,diagrams}];
+      calculation = AMuon`AMuonCreateCalculation[Transpose[{graphs,diagrams}], FlexibleSUSY`FSModelName <> "_fields"];
 
       getMSUSY = AMuon`AMuonGetMSUSY[];
 
@@ -2151,7 +2182,7 @@ ExampleDecaysIncludes[] :=
                                                                      "decays_problems.hpp"}, "\n"];
 
 ExampleCalculateDecaysForModel[] := FlexibleSUSY`FSModelName <>
-"_decays decays(std::get<0>(models), true);
+"_decays decays(std::get<0>(models), qedqcd, true);
 if (spectrum_generator_settings.get(Spectrum_generator_settings::calculate_decays)) {
    decays.calculate_decays();
 }";
@@ -2166,7 +2197,7 @@ if (show_decays) {
 }";
 
 ExampleCalculateCmdLineDecays[] :=
-    FlexibleSUSY`FSModelName <> "_decays decays(model, true);\ndecays.calculate_decays();";
+    FlexibleSUSY`FSModelName <> "_decays decays(model, qedqcd, true);\ndecays.calculate_decays();";
 
 WriteExampleCmdLineOutput[enableDecays_] :=
     If[enableDecays,
@@ -2245,7 +2276,13 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
             numberOfSpectrumEntries, putSpectrum, setInputParameters,
             numberOfObservables, putObservables,
             inputPars, outPars, requestedObservables, defaultSolverType,
-            solverIncludes = "", runEnabledSolvers = ""},
+            solverIncludes = "", runEnabledSolvers = "",
+            decaysData = "", calculateDecaysVirtualFunc = "", calculateSpectrumDecaysPrototype = "",
+            calculateSpectrumDecaysFunction = "", calculateModelDecaysPrototype = "",
+            calculateModelDecaysFunction = "", fillDecaysSLHA = "", getDecaysVirtualFunc = "",
+            getSpectrumDecays = "", putDecaysPrototype = "", putDecaysFunction = "",
+            mathlinkDecaysCalculationFunction = "", loadCalculateDecaysFunction = "",
+            calculateDecaysMessages = "", calculateDecaysExample = ""},
            inputPars = {#[[1]], #[[3]]}& /@ inputParameters;
            numberOfInputParameters = Total[CConversion`CountNumberOfEntries[#[[2]]]& /@ inputPars];
            numberOfInputParameterRules = FSMathLink`GetNumberOfInputParameterRules[inputPars];
@@ -2268,6 +2305,25 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
               defaultSolverType = "-1",
               defaultSolverType = GetBVPSolverSLHAOptionKey[FlexibleSUSY`FSBVPSolvers[[1]]];
              ];
+           If[FlexibleSUSY`FSCalculateDecays,
+              decaysData = FlexibleSUSY`FSModelName <> "_decays decays{};              ///< decays";
+              getDecaysVirtualFunc = FSMathLink`CreateSpectrumDecaysGetterInterface[FlexibleSUSY`FSModelName];
+              getSpectrumDecays = CreateSpectrumDecaysGetter[FlexibleSUSY`FSModelName];
+              calculateDecaysVirtualFunc = FSMathLink`CreateSpectrumDecaysInterface[];
+              {calculateSpectrumDecaysPrototype, calculateSpectrumDecaysFunction} =
+                  FSMathLink`CreateSpectrumDecaysCalculation[FlexibleSUSY`FSModelName];
+              {calculateModelDecaysPrototype, calculateModelDecaysFunction} =
+                  FSMathLink`CreateModelDecaysCalculation[];
+              fillDecaysSLHA = FSMathLink`FillDecaysSLHAData[];
+              {putDecaysPrototype, putDecaysFunction} = FSMathLink`PutDecays[FlexibleSUSY`FSModelName];
+              mathlinkDecaysCalculationFunction = FSMathLink`CreateMathLinkDecaysCalculation[FlexibleSUSY`FSModelName];
+              loadCalculateDecaysFunction = "FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays = LibraryFunctionLoad[lib" <>
+                                            FlexibleSUSY`FSModelName <> ", \"FS" <> FlexibleSUSY`FSModelName <>
+                                            "CalculateDecays\", LinkObject, LinkObject];\n";
+              calculateDecaysMessages = "\n" <> "FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays::error = \"`1`\";\n" <>
+                                        "FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays::warning = \"`1`\";\n";
+              calculateDecaysExample = "decays      = FS" <> FlexibleSUSY`FSModelName <> "CalculateDecays[handle];\n";
+             ];
            WriteOut`ReplaceInFiles[files,
                           { "@numberOfInputParameters@" -> ToString[numberOfInputParameters],
                             "@numberOfInputParameterRules@" -> ToString[numberOfInputParameterRules],
@@ -2283,6 +2339,21 @@ WriteMathLink[inputParameters_List, extraSLHAOutputBlocks_List, files_List] :=
                             "@solverIncludes@" -> solverIncludes,
                             "@runEnabledSolvers@" -> runEnabledSolvers,
                             "@defaultSolverType@" -> defaultSolverType,
+                            "@calculateDecaysVirtualFunc@" -> IndentText[calculateDecaysVirtualFunc],
+                            "@calculateSpectrumDecaysPrototype@" -> IndentText[calculateSpectrumDecaysPrototype],
+                            "@calculateSpectrumDecaysFunction@" -> calculateSpectrumDecaysFunction,
+                            "@calculateModelDecaysPrototype@" -> IndentText[calculateModelDecaysPrototype],
+                            "@calculateModelDecaysFunction@" -> calculateModelDecaysFunction,
+                            "@decaysData@" -> IndentText[decaysData],
+                            "@fillDecaysSLHA@" -> IndentText[fillDecaysSLHA],
+                            "@getDecaysVirtualFunc@" -> IndentText[getDecaysVirtualFunc],
+                            "@getSpectrumDecays@" -> IndentText[getSpectrumDecays],
+                            "@putDecaysPrototype@" -> IndentText[putDecaysPrototype],
+                            "@putDecaysFunction@" -> putDecaysFunction,
+                            "@mathlinkDecaysCalculationFunction@" -> mathlinkDecaysCalculationFunction,
+                            "@loadCalculateDecaysFunction@" -> loadCalculateDecaysFunction,
+                            "@calculateDecaysMessages@" -> calculateDecaysMessages,
+                            "@calculateDecaysExample@" -> calculateDecaysExample,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
@@ -2383,6 +2454,8 @@ WriteModelInfoClass[massMatrices_List, betaFun_List, inputParameters_List, extra
                             "@getPDGCodeFromParticleEnumNoIndex@" -> IndentText[getPDGCodeFromParticleEnumNoIndex],
                             "@getPDGCodeFromParticleEnumIndex@" -> IndentText[getPDGCodeFromParticleEnumIndex],
                             "@setParticleNameFromPDG@" -> IndentText[setParticleNameFromPDG],
+                            "@renormalizationSchemeEnum@" -> "FSRenormalizationScheme::" <> ToString @ FlexibleSUSY`FSRenormalizationScheme,
+                            "@CPViolationInHiggsSector@" -> CreateCBoolValue @ SA`CPViolationHiggsSector,
                             Sequence @@ GeneralReplacementRules[]
                           } ];
           ];
@@ -3293,8 +3366,7 @@ Options[MakeFlexibleSUSY] :=
 
 MakeFlexibleSUSY[OptionsPattern[]] :=
     Module[{nPointFunctions, runInputFile, initialGuesserInputFile,
-            edmVertices, aMuonVertices, edmFields,
-            cxxQFTTemplateDir, cxxQFTOutputDir, cxxQFTFiles,
+            edmVertices, aMuonVertices, edmFields, cxxQFTFiles,
             susyBetaFunctions, susyBreakingBetaFunctions,
             numberOfSusyParameters, anomDim,
             inputParameters (* list of 3-component lists of the form {name, block, type} *),
@@ -3754,10 +3826,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                  FlexibleSUSY`DecayParticles = { TreeMasses`GetHiggsBoson[] }; (* or, e.g., TreeMasses`GetParticles[] *);
                 ];
 
-              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, (!TreeMasses`IsGhost[#] &&
-                                                                                 !TreeMasses`IsMassless[#] &&
-                                                                                 TreeMasses`GetDimensionWithoutGoldstones[#] > 0)&];
+              FlexibleSUSY`DecayParticles = Select[FlexibleSUSY`DecayParticles, Decays`IsSupportedDecayParticle];
+
               If[FlexibleSUSY`DecayParticles === {},
+                 Print["Warning: no supported particles to calculate decays for were found."];
+                 Print["   Generation of decays code will be skipped."];
                  FlexibleSUSY`FSCalculateDecays = False;
                 ,
                 decaysSLHAIncludeFiles = {FlexibleSUSY`FSModelName <> "_decays.hpp", "decays_problems.hpp"};
@@ -3780,6 +3853,13 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                   vertexRuleFileName],
               vertexRules = Get[vertexRuleFileName];
               effectiveCouplings = Get[effectiveCouplingsFileName];
+             ];
+
+           If[Head[SARAH`VertexList3] =!= Symbol && Length[SARAH`VertexList3] != 0,
+              Vertices`SetCachedVertices[3, SARAH`VertexList3];
+             ];
+           If[Head[SARAH`VertexList4] =!= Symbol && Length[SARAH`VertexList4] != 0,
+              Vertices`SetCachedVertices[4, SARAH`VertexList4];
              ];
 
            (* apply user-defined rules *)
@@ -4242,19 +4322,14 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                               {FileNameJoin[{$flexiblesusyTemplateDir, "a_muon.cpp.in"}],
                                FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_a_muon.cpp"}]}}];
 
-           cxxQFTTemplateDir = FileNameJoin[{$flexiblesusyTemplateDir, "cxx_qft"}];
-           cxxQFTOutputDir = FileNameJoin[{FSOutputDir, "cxx_qft"}];
-           cxxQFTFiles = {{FileNameJoin[{cxxQFTTemplateDir, "qft.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_qft.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "fields.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "vertices.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "generic_calculations.hpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_generic_calculations.hpp"}]}};
-
-           If[DirectoryQ[cxxQFTOutputDir] === False,
-              CreateDirectory[cxxQFTOutputDir]];
+           cxxQFTFiles = {{FileNameJoin[{$flexiblesusyTemplateDir, "qft.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_qft.hpp"}]},
+                          {FileNameJoin[{$flexiblesusyTemplateDir, "fields.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
+                          {FileNameJoin[{$flexiblesusyTemplateDir, "vertices.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
+                          {FileNameJoin[{$flexiblesusyTemplateDir, "generic_calculations.hpp.in"}],
+                           FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_generic_calculations.hpp"}]}};
 
            WriteCXXDiagramClass[
              DeleteDuplicates @ Join[

@@ -21,6 +21,8 @@
 /**
  * @file @ModelName@_decays.hpp
  *
+ * @brief contains class for calculating particle decays
+ *
  * This file was generated at @DateAndTime@ with FlexibleSUSY
  * @FlexibleSUSYVersion@ (git commit: @FlexibleSUSYGitCommit@) and SARAH @SARAHVersion@ .
  */
@@ -30,19 +32,44 @@
 
 #include "@ModelName@_decay_table.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
-#include "cxx_qft/@ModelName@_qft.hpp"
+#include "@ModelName@_qft.hpp"
 
+#include "decay_amplitudes.hpp"
+#include "decays_loop_corrections.hpp"
 #include "decays_problems.hpp"
+#include "effective_couplings.hpp"
+#include "lowe.h"
 
 namespace flexiblesusy {
 
-class @ModelName@_mass_eigenstates;
+template <typename Field1, typename Field2>
+double
+final_state_symmetry_factor(typename cxx_qft::field_indices<Field1>::type const& idx1,
+                            typename cxx_qft::field_indices<Field2>::type const& idx2)
+{
+   if (std::is_same<Field1, Field2>::value) {
+      // TODO: we also compare if (potential) color indices are the same,
+      //       this might cause problems if someone accidentaly initializes them
+      //       differently
+      if (boost::range::equal(idx1, idx2)) {
+         return 0.5;
+      }
+   }
+   return 1.;
+}
 
 class @ModelName@_decays {
 public:
    @ModelName@_decays() = default;
-   explicit @ModelName@_decays(const @ModelName@_mass_eigenstates&);
-   @ModelName@_decays(@ModelName@_mass_eigenstates const& model, bool);
+   @ModelName@_decays(const @ModelName@_mass_eigenstates& model_, softsusy::QedQcd const& qedqcd_)
+      : model(model_)
+      , qedqcd(qedqcd_)
+      {}
+   @ModelName@_decays(const @ModelName@_mass_eigenstates& model_, softsusy::QedQcd const& qedqcd_, bool corrections)
+      : model(model_)
+      , qedqcd(qedqcd_)
+      , include_higher_order_corrections(corrections)
+      {}
    @ModelName@_decays(const @ModelName@_decays&) = default;
    @ModelName@_decays(@ModelName@_decays&&) = default;
    ~@ModelName@_decays() = default;
@@ -50,7 +77,8 @@ public:
    @ModelName@_decays& operator=(@ModelName@_decays&&) = default;
 
    void set_include_higher_order_corrections(bool);
-   void set_model(const @ModelName@_mass_eigenstates&);
+   void set_loop_corrections(const Decays_loop_corrections&);
+   const Decays_loop_corrections& get_loop_corrections() const;
    const @ModelName@_decay_table& get_decay_table() const;
    const Decays_problems& get_problems() const;
 
@@ -65,27 +93,83 @@ public:
 
 private:
    @ModelName@_mass_eigenstates model{};
+   softsusy::QedQcd qedqcd{};
    bool include_higher_order_corrections{true};
    bool run_to_decay_particle_scale{true};
    @ModelName@_decay_table decay_table{};
+   Decays_loop_corrections loop_corrections{};
    Decays_problems problems{};
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
-   std::complex<double> effective_coupling(
-      const @ModelName@_mass_eigenstates& model,
-      const typename cxx_qft::field_indices<FieldIn>::type& indexIn,
-      const typename cxx_qft::field_indices<FieldOut1>::type& indexOut1,
-      const typename cxx_qft::field_indices<FieldOut2>::type& indexOut2) const {
-      return 0.;
-   }
+   typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
+   calculate_amplitude(
+      const cxx_qft::@ModelName@_evaluation_context&,
+      const typename cxx_qft::field_indices<FieldIn>::type&,
+      const typename cxx_qft::field_indices<FieldOut1>::type&,
+      const typename cxx_qft::field_indices<FieldOut2>::type&) const;
+
+   template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+   double amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<FieldIn>::type const& indexIn,
+                  typename cxx_qft::field_indices<FieldOut1>::type const& indexOut1,
+                  typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2) const;
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
-      const cxx_qft::EvaluationContext&,
+      const cxx_qft::@ModelName@_evaluation_context&,
       typename cxx_qft::field_indices<FieldIn>::type const&,
       typename cxx_qft::field_indices<FieldOut1>::type const&,
       typename cxx_qft::field_indices<FieldOut2>::type const&) const;
 };
+
+@calcAmplitudeSpecializationDecls@
+
+template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+double
+@ModelName@_decays::amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
+                  typename cxx_qft::field_indices<FieldIn>::type const& indexIn,
+                  typename cxx_qft::field_indices<FieldOut1>::type const& indexOut1,
+                  typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2) const
+{
+
+   const auto mat_elem = calculate_amplitude<FieldIn, FieldOut1, FieldOut2>(
+      context, indexIn, indexOut1, indexOut2);
+   return mat_elem.square();
+}
+
+// generic decay of FieldIn -> FieldOut1 FieldOut2
+template<typename FieldIn, typename FieldOut1, typename FieldOut2>
+double @ModelName@_decays::get_partial_width(
+   const cxx_qft::@ModelName@_evaluation_context& context,
+   typename cxx_qft::field_indices<FieldIn>::type const& indexIn,
+   typename cxx_qft::field_indices<FieldOut1>::type const& indexOut1,
+   typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2
+   ) const
+{
+   using effective_couplings::beta;
+
+   // onshell masses
+   const double mIn = context.physical_mass<FieldIn>(indexIn);
+   const double mOut1 = context.physical_mass<FieldOut1>(indexOut1);
+   const double mOut2 = context.physical_mass<FieldOut2>(indexOut2);
+
+   // phase space without symmetry factor
+   const double ps = 1./(8.*Pi) * beta(mIn, mOut1, mOut2);
+
+   // phase space symmetry factor
+   const double ps_symmetry =
+      final_state_symmetry_factor<FieldOut1, FieldOut2>(indexOut1, indexOut2);
+
+   // matrix element squared
+   const auto mat_elem = calculate_amplitude<FieldIn, FieldOut1, FieldOut2>(
+      context, indexIn, indexOut1, indexOut2);
+   const auto mat_elem_sq = mat_elem.square();
+
+   // flux * phase space factor * symmetry factor * matrix element^2
+   return 0.5 * ps * ps_symmetry * mat_elem_sq / mIn;
+}
+
+@partialWidthSpecializationDecls@
 
 } // namespace flexiblesusy
 
