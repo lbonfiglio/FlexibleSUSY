@@ -1,4 +1,5 @@
-// special case for H -> Fu Fu
+// template specialization for the H -> Fu Fu case
+
 template<>
 double CLASSNAME::get_partial_width<H,bar<uq>::type,uq>(
    const ContextName& context,
