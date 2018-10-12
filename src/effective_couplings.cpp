@@ -66,7 +66,7 @@ double beta(double sqrtS, double m1, double m2)
    if(m1 + m2 >= sqrtS) {
       return 0.0;
    }
-   return std::sqrt(1 - Sqr((m1+m2)/sqrtS)) * (1 - Sqr((m1-m2)/sqrtS));
+   return std::sqrt(1.0 - Sqr((m1+m2)/sqrtS)) * (1.0 - Sqr((m1-m2)/sqrtS));
 }
 
 std::complex<double> scalar_diphoton_fermion_loop(
