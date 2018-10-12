@@ -19,6 +19,9 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double mHOS = context.physical_mass<H>(indexIn);
    const double mdqDR = context.mass<dq>(indexOut1);
    const double mdqOS = context.physical_mass<dq>(indexOut1);
+//    std::cout << std::setprecision(15) << mHOS << ' ' << mdqDR << ' ' << mdqOS << ' ' << 
+//    MODELPARAMETER(v) << ' ' <<  get_alphas(context)<< ' ' << 
+//    qedqcd.displayPoleMt() << std::endl;
    BOOST_ASSERT_MSG(!is_zero(mdqDR) && !is_zero(mdqOS),
                     "Quarks should not be massless");
    const auto xOS = std::pow(mdqOS/mHOS, 2);
@@ -37,11 +40,9 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double mtpole = qedqcd.displayPoleMt();
 
    const double deltaqqOS = 
-      4./3. * alpha_s_red * calc_DeltaH(betaOS) +
-      calc_deltaqq(alpha_s_red, Nf);
-
+      4./3. * alpha_s_red * calc_DeltaH(betaOS);
    const double deltaqqDR = 
-      2.*(1. - 10.*xDR)/(1-4.*xDR)*(4./3. - log(xDR))*alpha_s_red +
+      2.*(1. - 10.*xDR)/(1-4.*xDR)*(4./3. - std::log(xDR))*alpha_s_red +
       4./3. * alpha_s_red * calc_DeltaH(betaDR) +
       calc_deltaqq(alpha_s_red, Nf);
 
@@ -49,8 +50,8 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    // TODO: probably shouldn't be applied in case of CP-breaking 
    double deltaH2 = 0.;
    if(!info::CPViolationInHiggsSector) {
-      const double lt = Log(Sqr(mHOS/mtpole));
-      const double lq = Log(Sqr(mdqDR/mHOS));
+      const double lt = std::log(Sqr(mHOS/mtpole));
+      const double lq = std::log(Sqr(mdqDR/mHOS));
       deltaH2 = Sqr(alpha_s_red) * (1.57 - 2.0/3.0*lt + 1.0/9.0*Sqr(lq));
    }
 
@@ -68,15 +69,27 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
       is_zero(HBBbarVertexDR.left() - HBBbarVertexDR.right()),
       "Left and right coupling of CP-even Higgs to fermions should be equal");
 
-   const auto amp2DR = std::pow(mHOS, 2) * pow(betaDR, 2) *
+   const auto amp2DR = std::pow(mHOS, 2) * std::pow(betaDR, 2) *
                2.*std::norm(HBBbarVertexDR.left());
    const auto amp2OS = std::pow(mHOS, 2) * std::pow(betaOS, 2) *
                 2.*std::norm(HBBbarVertexDR.left()) * std::pow(mdqOS / mdqDR, 2);
 
+/*
+std::cout << "dilog " <<
+dilog((1.-4.*xOS)/(1.+4.*xOS)) << '\n';
+std::cout << "kurwa " <<
+std::abs(HBBbarVertexDR.left()) << ' ' 
+<< (mdqDR/MODELPARAMETER(v)) << '\n' <<
+MODELPARAMETER(Yd) <<  ' ' <<
+beta(mHOS, mdqOS, mdqOS) <<
+std::endl;
+
+      std::cout << calc_DeltaH(betaOS) << std::endl;
+*/
    return flux * color_factor * 
           (
              // low x limit
             (1 - 4.*xOS) * phase_spaceDR * amp2DR * (1. + deltaqqDR + deltaH2) +
             // high x limit
-             4*xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS));
+            4*xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS));
 }
