@@ -187,18 +187,16 @@ CreateParticleAliases[particles_, namespace_:""] :=
 
 CreateSMParticleAliases[namespace_:""] :=
     Module[{smParticlesToAlias},
-           smParticlesToAlias = {TreeMasses`GetHiggsBoson[],
-                                 TreeMasses`GetPseudoscalarHiggsBoson[],
-                                 TreeMasses`GetWBoson[], TreeMasses`GetZBoson[],
-                                 TreeMasses`GetGluon[], TreeMasses`GetPhoton[],
-                                 TreeMasses`GetDownLepton[1] /. field_[generation_] :> field,
-                                 TreeMasses`GetUpQuark[1] /. field_[generation_] :> field,
-                                 TreeMasses`GetDownQuark[1] /.field_[generation_] :> field
-                                };
+           smParticlesToAlias = Select[{TreeMasses`GetHiggsBoson[],
+                                        TreeMasses`GetPseudoscalarHiggsBoson[],
+                                        TreeMasses`GetWBoson[], TreeMasses`GetZBoson[],
+                                        TreeMasses`GetGluon[], TreeMasses`GetPhoton[],
+                                        TreeMasses`GetDownLepton[1] /. field_[generation_] :> field,
+                                        TreeMasses`GetUpQuark[1] /. field_[generation_] :> field,
+                                        TreeMasses`GetDownQuark[1] /.field_[generation_] :> field
+                                       }, (# =!= Null)&];
            CreateParticleAliases[smParticlesToAlias, namespace]
           ];
-
-CheckModelParticleContent[]
 
 GetGenericTypeName[p_?TreeMasses`IsScalar] := GenericScalarName[];
 GetGenericTypeName[p_?TreeMasses`IsVector] := GenericVectorName[];
@@ -1281,7 +1279,6 @@ CreateIncludedPartialWidthSpecialization[decay_FSParticleDecay, modelName_] :=
                               SimplifiedName[initialParticle] <> "_to_" <>
                               StringJoin[SimplifiedName[# /. SARAH`bar|Susyno`LieGroups`conj -> Identity]& /@ finalState] <>
                               ".cpp\"";
-           Print[GetFinalState[decay]];
            {declaration, includeStatement}
           ];
 
@@ -1465,21 +1462,21 @@ CreateDecayTableEntryGetterName[particle_] :=
 
 CreateDecayTableEntryGetterPrototype[particle_] :=
     Module[{dim},
-           dim = TreeMasses`GetDimension[particle];
+           dim = TreeMasses`GetDimensionWithoutGoldstones[particle];
            "Decays_list& " <> CreateDecayTableEntryGetterName[particle] <> "(" <>
            If[dim > 1, "int", ""] <> ");"
           ];
 
 CreateDecayTableEntryConstGetterPrototype[particle_] :=
     Module[{dim},
-           dim = TreeMasses`GetDimension[particle];
+           dim = TreeMasses`GetDimensionWithoutGoldstones[particle];
            "const Decays_list& " <> CreateDecayTableEntryGetterName[particle] <> "(" <>
            If[dim > 1, "int", ""] <> ") const;"
           ];
 
 CreateDecayTableEntryGetterFunctionBody[particle_, rows_List] :=
     Module[{i, dim, idxName = "gI1", errMsg = "", body = ""},
-           dim = TreeMasses`GetDimension[particle];
+           dim = TreeMasses`GetDimensionWithoutGoldstones[particle];
            If[dim != Length[rows],
               Print["Error: number of rows (", Length[rows], ") does not match size of"];
               Print["    ", particle, " multiplet."];
@@ -1503,7 +1500,7 @@ CreateDecayTableEntryGetterFunctionBody[particle_, rows_List] :=
 
 CreateDecayTableEntryGetterFunction[particle_, rows_List, scope_:"CLASSNAME"] :=
     Module[{dim, body},
-           dim = TreeMasses`GetDimension[particle];
+           dim = TreeMasses`GetDimensionWithoutGoldstones[particle];
            body = CreateDecayTableEntryGetterFunctionBody[particle, rows];
            "Decays_list& " <> scope <> If[scope != "", "::", ""] <>
            CreateDecayTableEntryGetterName[particle] <> "(" <>
@@ -1513,7 +1510,7 @@ CreateDecayTableEntryGetterFunction[particle_, rows_List, scope_:"CLASSNAME"] :=
 
 CreateDecayTableEntryConstGetterFunction[particle_, rows_List, scope_:"CLASSNAME"] :=
     Module[{dim, body},
-           dim = TreeMasses`GetDimension[particle];
+           dim = TreeMasses`GetDimensionWithoutGoldstones[particle];
            body = CreateDecayTableEntryGetterFunctionBody[particle, rows];
            "const Decays_list& " <> scope <> If[scope != "", "::", ""] <>
            CreateDecayTableEntryGetterName[particle] <> "(" <>
