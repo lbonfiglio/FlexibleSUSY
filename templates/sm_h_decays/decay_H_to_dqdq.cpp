@@ -19,9 +19,6 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const double mHOS = context.physical_mass<H>(indexIn);
    const double mdqDR = context.mass<dq>(indexOut1);
    const double mdqOS = context.physical_mass<dq>(indexOut1);
-//    std::cout << std::setprecision(15) << mHOS << ' ' << mdqDR << ' ' << mdqOS << ' ' << 
-//    MODELPARAMETER(v) << ' ' <<  get_alphas(context)<< ' ' << 
-//    qedqcd.displayPoleMt() << std::endl;
    BOOST_ASSERT_MSG(!is_zero(mdqDR) && !is_zero(mdqOS),
                     "Quarks should not be massless");
    const auto xOS = std::pow(mdqOS/mHOS, 2);
@@ -74,18 +71,6 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const auto amp2OS = std::pow(mHOS, 2) * std::pow(betaOS, 2) *
                 2.*std::norm(HBBbarVertexDR.left()) * std::pow(mdqOS / mdqDR, 2);
 
-/*
-std::cout << "dilog " <<
-dilog((1.-4.*xOS)/(1.+4.*xOS)) << '\n';
-std::cout << "kurwa " <<
-std::abs(HBBbarVertexDR.left()) << ' ' 
-<< (mdqDR/MODELPARAMETER(v)) << '\n' <<
-MODELPARAMETER(Yd) <<  ' ' <<
-beta(mHOS, mdqOS, mdqOS) <<
-std::endl;
-
-      std::cout << calc_DeltaH(betaOS) << std::endl;
-*/
    return flux * color_factor * 
           (
              // low x limit

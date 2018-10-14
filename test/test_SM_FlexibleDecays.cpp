@@ -41,7 +41,16 @@ BOOST_AUTO_TEST_CASE( test_SM_FlexibleDecays )
    softsusy::QedQcd qedqcd;
    SM_decays decays(m, qedqcd, true);
 
-   BOOST_CHECK_SMALL (std::abs(decays.partial_width_hh_to_barFdFd(m, 2, 2) - 2.6116941719488652E-003), 1e-15);
-   std::cout << std::setprecision(15) << decays.partial_width_hh_to_VWpconjVWp(m) << '\n';
-   std::cout << std::setprecision(15) << decays.partial_width_hh_to_VZVZ(m) << '\n';
+   BOOST_CHECK_SMALL(std::abs(decays.partial_width_hh_to_barFdFd(m, 2, 2) -
+                              2.6118180765322455E-003),
+                     1e-15);
+   BOOST_CHECK_SMALL(std::abs(decays.partial_width_hh_to_barFeFe(m, 2, 2) -
+                              2.6800741077127161E-004),
+                     1e-15);
+   // std::cout << std::setprecision(15) <<
+   // decays.partial_width_hh_to_barFdFd(m, 2, 2) << ' ' << 
+   //  decays.partial_width_hh_to_barFeFe(m, 2, 2) << std::endl;
+   // BOOST_CHECK_SMALL (std::abs(decays.partial_width_hh_to_VWpconjVWp(m)), 1e-15);
+   // std::cout << std::setprecision(15) << decays.partial_width_hh_to_VWpconjVWp(m) << '\n';
+   // std::cout << std::setprecision(15) << decays.partial_width_hh_to_VZVZ(m) << '\n';
 }

@@ -166,6 +166,7 @@ SimplifiedName[Susyno`LieGroups`conj[particle_]] :=
 SimplifiedName[SARAH`bar[particle_]] :=
     SARAH`bar[SimplifiedName[particle]];
 
+SimplifiedName[particle_?TreeMasses`IsSMLepton] := "lep";
 SimplifiedName[particle_?TreeMasses`IsSMDownQuark] := "dq";
 SimplifiedName[particle_?TreeMasses`IsSMUpQuark] := "uq";
 SimplifiedName[particle_ /; TreeMasses`GetHiggsBoson[] =!= Null && particle === TreeMasses`GetHiggsBoson[]] := "H";
@@ -190,6 +191,7 @@ CreateSMParticleAliases[namespace_:""] :=
                                  TreeMasses`GetPseudoscalarHiggsBoson[],
                                  TreeMasses`GetWBoson[], TreeMasses`GetZBoson[],
                                  TreeMasses`GetGluon[], TreeMasses`GetPhoton[],
+                                 TreeMasses`GetDownLepton[1] /. field_[generation_] :> field,
                                  TreeMasses`GetUpQuark[1] /. field_[generation_] :> field,
                                  TreeMasses`GetDownQuark[1] /.field_[generation_] :> field
                                 };
@@ -1112,6 +1114,15 @@ SelectDownQuarkDownQuarkFinalState[decays_List] :=
            result
           ];
 
+SelectChargedLeptonChargedLeptonFinalState[decays_List] :=
+    Module[{chargedLeptonSymbol, result = {}},
+       chargedLeptonSymbol = TreeMasses`GetDownLepton[1] /. field_[generation_] :> field;
+       If[chargedLeptonSymbol =!= Null,
+          result = SelectDecayByFinalState[{chargedLeptonSymbol, SARAH`AntiField[chargedLeptonSymbol]}, decays];
+       ];
+       result
+    ];
+
 SelectGluonGluonFinalState[decays_List] :=
     Module[{gluonSymbol = TreeMasses`GetGluon[], result = {}},
            If[gluonSymbol =!= Null,
@@ -1270,6 +1281,7 @@ CreateIncludedPartialWidthSpecialization[decay_FSParticleDecay, modelName_] :=
                               SimplifiedName[initialParticle] <> "_to_" <>
                               StringJoin[SimplifiedName[# /. SARAH`bar|Susyno`LieGroups`conj -> Identity]& /@ finalState] <>
                               ".cpp\"";
+           Print[GetFinalState[decay]];
            {declaration, includeStatement}
           ];
 
@@ -1398,6 +1410,15 @@ CreateHiggsToDownQuarkDownQuarkPartialWidth[{higgsSymbol_, decaysList_}, modelNa
              ];
            {declaration, function}
           ];
+CreateHiggsToChargedLeptonChargedLeptonPartialWidth[{higgsSymbol_, decaysList_}, modelName_] :=
+    Module[{decay, declaration = "", function = ""},
+       decay = SelectChargedLeptonChargedLeptonFinalState[decaysList];
+       If[decay =!= {},
+          decay = First[decay];
+          {declaration, function} = CreateIncludedPartialWidthSpecialization[decay, modelName];
+       ];
+       {declaration, function}
+    ];
 
 CreateHiggsDecayPartialWidthSpecializations[particleDecays_, modelName_] :=
     Module[{higgsDecays, specializations = {}},
@@ -1411,7 +1432,8 @@ CreateHiggsDecayPartialWidthSpecializations[particleDecays_, modelName_] :=
                                  CreateHiggsToZPhotonPartialWidth[higgsDecays, modelName],
                                  CreateHiggsToHiggsHiggsPartialWidth[higgsDecays, modelName],
                                  CreateHiggsToUpQuarkUpQuarkPartialWidth[higgsDecays, modelName],
-                                 CreateHiggsToDownQuarkDownQuarkPartialWidth[higgsDecays, modelName]};
+                                 CreateHiggsToDownQuarkDownQuarkPartialWidth[higgsDecays, modelName],
+                                 CreateHiggsToChargedLeptonChargedLeptonPartialWidth[higgsDecays, modelName]};
              ];
            specializations
           ];
