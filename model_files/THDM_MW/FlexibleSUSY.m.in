@@ -1,0 +1,125 @@
+
+FSModelName = "@CLASSNAME@";
+FSEigenstates = SARAH`EWSB;
+FSDefaultSARAHModel = "THDM_MW";
+
+OnlyLowEnergyFlexibleSUSY = True;
+
+(* input parameters *)
+
+MINPAR = {
+    {1,  Lambda1IN},
+    {2,  Lambda2IN},
+    {3,  Lambda3IN},
+    {4,  Lambda4IN},
+    {5,  Lambda5IN},
+    {6,  Lambda6IN},
+    {7,  Lambda7IN},
+    {8,  M122IN},
+    {10, TanBeta},
+    {11, etaIN},
+    {12, xiEIN},
+    {13, xiDIN},
+    {14, xiUIN}
+};
+
+IMMINPAR = {
+    {1, ImLambda5IN},
+    {2, ImLambda6IN},
+    {3, ImLambda7IN},
+    {4, ImxiEIN},
+    {5, ImxiDIN},
+    {6, ImxiUIN}
+};
+
+EXTPAR = {
+    {0, Qin}
+};
+
+RealParameters = {Lambda1IN, Lambda2IN, Lambda3IN, Lambda4IN, M112, M222};
+
+EWSBOutputParameters = { M112, M222, Im[M122] };
+
+SUSYScale = Qin;
+
+SUSYScaleFirstGuess = Qin;
+
+SUSYScaleInput = {
+    {Lambda1, Lambda1IN},
+    {Lambda2, Lambda2IN},
+    {Lambda3, Lambda3IN},
+    {Lambda4, Lambda4IN},
+    {Lambda5, Lambda5IN + I ImLambda5IN},
+    {Lambda6, Lambda6IN + I ImLambda6IN},
+    {Lambda7, Lambda7IN + I ImLambda7IN},
+    {Re[M122],   M122IN},
+    {eta,         etaIN}
+};
+
+LowScale = LowEnergyConstant[MZ];
+
+LowScaleFirstGuess = LowEnergyConstant[MZ];
+
+
+(* Yukawa - Proportionality Factors *)
+
+xiE = xiEIN + I ImxiEIN;
+xiD = xiDIN + I ImxiDIN;
+xiU = xiUIN + I ImxiUIN;
+
+
+LowScaleInput = {
+
+   {v1, 2 MZMSbar / Sqrt[GUTNormalization[g1]^2 g1^2 + g2^2] Cos[ArcTan[TanBeta]]},
+   {v2, 2 MZMSbar / Sqrt[GUTNormalization[g1]^2 g1^2 + g2^2] Sin[ArcTan[TanBeta]]},
+
+   {Ye[1,1], ((LowEnergyConstant[yeSM] * LowEnergyConstant[vSM])/(v1 + xiE * (Exp[- I eta]) * v2))},
+   {Ye[2,2], ((LowEnergyConstant[ymSM] * LowEnergyConstant[vSM])/(v1 + xiE * (Exp[- I eta]) * v2))},
+   {Ye[3,3], ((LowEnergyConstant[ylSM] * LowEnergyConstant[vSM])/(v1 + xiE * (Exp[- I eta]) * v2))},
+   {Yd[1,1], ((LowEnergyConstant[ydSM] * LowEnergyConstant[vSM])/(v1 + xiD * (Exp[- I eta]) * v2))},
+   {Yd[2,2], ((LowEnergyConstant[ysSM] * LowEnergyConstant[vSM])/(v1 + xiD * (Exp[- I eta]) * v2))},
+   {Yd[3,3], ((LowEnergyConstant[ybSM] * LowEnergyConstant[vSM])/(v1 + xiD * (Exp[- I eta]) * v2))},
+   {Yu[1,1], ((LowEnergyConstant[yuSM] * LowEnergyConstant[vSM])/(v2 + Conjugate[xiU * (Exp[- I eta])] * v1))},
+   {Yu[2,2], ((LowEnergyConstant[ycSM] * LowEnergyConstant[vSM])/(v2 + Conjugate[xiU * (Exp[- I eta])] * v1))},
+   {Yu[3,3], ((LowEnergyConstant[ytSM] * LowEnergyConstant[vSM])/(v2 + Conjugate[xiU * (Exp[- I eta])] * v1))},
+
+   {epsE[1,1], xiE * (Exp[- I eta]) * Ye[1,1]},
+   {epsE[2,2], xiE * (Exp[- I eta]) * Ye[2,2]},
+   {epsE[3,3], xiE * (Exp[- I eta]) * Ye[3,3]},
+   {epsD[1,1], xiD * (Exp[- I eta]) * Yd[1,1]},
+   {epsD[2,2], xiD * (Exp[- I eta]) * Yd[2,2]},
+   {epsD[3,3], xiD * (Exp[- I eta]) * Yd[3,3]},
+   {epsU[1,1], Conjugate[xiU * (Exp[- I eta])] * Yu[1,1]},
+   {epsU[2,2], Conjugate[xiU * (Exp[- I eta])] * Yu[2,2]},
+   {epsU[3,3], Conjugate[xiU * (Exp[- I eta])] * Yu[3,3]}
+
+};
+
+
+
+InitialGuessAtLowScale = {
+   {v1, LowEnergyConstant[vev] Cos[ArcTan[TanBeta]]},
+   {v2, LowEnergyConstant[vev] Sin[ArcTan[TanBeta]]},
+   {Ye[1,1], -LowEnergyConstant[yeSM] / Cos[ArcTan[TanBeta]]},
+   {Ye[2,2], -LowEnergyConstant[ymSM] / Cos[ArcTan[TanBeta]]},
+   {Ye[3,3], -LowEnergyConstant[ylSM] / Cos[ArcTan[TanBeta]]},
+   {Yd[1,1], -LowEnergyConstant[ydSM] / Cos[ArcTan[TanBeta]]},
+   {Yd[2,2], -LowEnergyConstant[ysSM] / Cos[ArcTan[TanBeta]]},
+   {Yd[3,3], -LowEnergyConstant[ybSM] / Cos[ArcTan[TanBeta]]},
+   {Yu[1,1], -LowEnergyConstant[yuSM] / Sin[ArcTan[TanBeta]]},
+   {Yu[2,2], -LowEnergyConstant[ycSM] / Sin[ArcTan[TanBeta]]},
+   {Yu[3,3], -LowEnergyConstant[ytSM] / Sin[ArcTan[TanBeta]]}
+};
+
+DefaultPoleMassPrecision = MediumPrecision;
+HighPoleMassPrecision    = {hh, Ah, Hpm};
+MediumPoleMassPrecision  = {};
+LowPoleMassPrecision     = {};
+
+ExtraSLHAOutputBlocks = {
+   {EFFHIGGSCOUPLINGS, NoScale,
+           {{1, FlexibleSUSYObservable`CpHiggsPhotonPhoton},
+            {2, FlexibleSUSYObservable`CpHiggsGluonGluon},
+            {3, FlexibleSUSYObservable`CpPseudoScalarPhotonPhoton},
+            {4, FlexibleSUSYObservable`CpPseudoScalarGluonGluon} } }
+};
