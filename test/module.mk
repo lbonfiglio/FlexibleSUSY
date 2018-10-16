@@ -385,6 +385,8 @@ TEST_SH += \
 endif
 
 ifeq ($(WITH_MSSM),yes)
+TEST_SRC += \
+		$(DIR)/test_MSSM_FlexibleDecays.cpp
 TEST_SH += \
 		$(DIR)/test_MSSM_stable_ewsb_failure.sh \
 		$(DIR)/test_standalone.sh
