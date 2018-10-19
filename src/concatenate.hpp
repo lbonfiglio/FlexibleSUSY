@@ -2,7 +2,7 @@
 #define H_FS_CONCATENATE
 
 #include <type_traits>
-
+namespace flexiblesusy {
 namespace detail
 {
 template<class T> 
@@ -85,5 +85,6 @@ concatenate( Args &&...args )
   return result;
 }
 
+}
 #endif
 

@@ -18,6 +18,7 @@
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/adapted/boost_array.hpp>
 
+namespace flexiblesusy {
 namespace detail
 {
 template<class End, class Location>
@@ -209,15 +210,16 @@ public:
   static multiindex end()
   { return impl::end(); }
 };
+}
 
 namespace std
 {
   template<class Begin, class End>
-  struct iterator_traits<multiindex<Begin, End>>
+  struct iterator_traits<flexiblesusy::multiindex<Begin, End>>
   {
     using difference_type = std::ptrdiff_t;
     using value_type = typename std::decay<decltype(
-      *std::declval<multiindex<Begin, End>>() )
+      *std::declval<flexiblesusy::multiindex<Begin, End>>() )
     >::type;
     using pointer = const value_type *;
     using reference = const value_type &;
