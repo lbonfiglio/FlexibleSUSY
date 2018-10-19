@@ -330,6 +330,8 @@ TEST_SRC += \
 endif
 
 ifeq ($(WITH_CMSSMNoFV),yes)
+TEST_SRC += \
+		$(DIR)/test_CMSSMNoFV_FlexibleDecays.cpp
 TEST_SH += \
 		$(DIR)/test_CMSSMNoFV_profile.sh
 endif
@@ -856,6 +858,8 @@ $(DIR)/test_NUTNMSSM_spectrum.x: $(LIBNUTNMSSM)
 $(DIR)/test_CMSSMNoFV_beta_functions.x: $(LIBCMSSM) $(LIBCMSSMNoFV)
 
 $(DIR)/test_CMSSMNoFV_tree_level_spectrum.x: $(LIBCMSSM) $(LIBCMSSMNoFV)
+
+$(DIR)/test_CMSSMNoFV_FlexibleDecays.x: $(LIBCMSSM) $(LIBCMSSMNoFV)
 
 $(DIR)/test_CMSSMNoFV_two_loop_spectrum.x: $(LIBCMSSMNoFV)
 
