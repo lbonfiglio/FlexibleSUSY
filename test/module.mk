@@ -186,6 +186,7 @@ endif
 
 ifeq ($(WITH_MRSSM2),yes)
 TEST_SRC += \
+		$(DIR)/test_MRSSM2_FlexibleDecays.cpp \
 		$(DIR)/test_MRSSM2_gmm2.cpp
 endif
 
@@ -762,6 +763,8 @@ $(DIR)/test_sfermions.x: $(LIBCMSSM)
 $(DIR)/test_CMSSM_database.x: $(LIBCMSSM)
 
 $(DIR)/test_CMSSM_gluino.sh: $(RUN_SOFTPOINT_EXE)
+
+$(DIR)/test_MRSSM2_FlexibleDecays.x: $(LIBMRSSM2)
 
 $(DIR)/test_MRSSM2_gmm2.x: $(LIBMRSSM2)
 
