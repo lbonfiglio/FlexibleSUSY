@@ -109,23 +109,15 @@ void setup_CMSSM_const(CMSSM<Two_scale>& m,
    const double BMu = Sqr(2.0 * susyMu);
    const double scale = Electroweak_constants::MZ;
 
-   DoubleMatrix Yu_SS(3,3), Yd_SS(3,3), Ye_SS(3,3);
-   Yu_SS(3,3) = 165.0   * root2 / (vev * sinBeta);
-   Yd_SS(3,3) = 2.9     * root2 / (vev * cosBeta);
-   Ye_SS(3,3) = 1.77699 * root2 / (vev * cosBeta);
-   DoubleMatrix ID(3, 3), mm0_SS(3, 3);
-   for (int i=1; i<=3; i++) ID(i, i) = 1.0;
-   mm0_SS = ID * sqr(m0);
-
    Eigen::Matrix<double,3,3> Yu(Eigen::Matrix<double,3,3>::Zero()),
       Yd(Eigen::Matrix<double,3,3>::Zero()),
       Ye(Eigen::Matrix<double,3,3>::Zero()),
       mm0(Eigen::Matrix<double,3,3>::Zero());
-   Yu(0,0) = 165.0   * root2 / (vev * sinBeta);
-   Yu(1,1) = 165.0   * root2 / (vev * sinBeta);
+   Yu(0,0) = 0.002   * root2 / (vev * sinBeta);
+   Yu(1,1) = 1.28   * root2 / (vev * sinBeta);
    Yu(2,2) = 165.0   * root2 / (vev * sinBeta);
-   Yd(0,0) = 0.9     * root2 / (vev * cosBeta);
-   Yd(1,1) = 1.9     * root2 / (vev * cosBeta);
+   Yd(0,0) = 0.1     * root2 / (vev * cosBeta);
+   Yd(1,1) = 4.2     * root2 / (vev * cosBeta);
    Yd(2,2) = 2.9     * root2 / (vev * cosBeta);
    Ye(0,0) = 5.11e-4 * root2 / (vev * cosBeta);
    Ye(1,1) = 0.105 * root2 / (vev * cosBeta);
