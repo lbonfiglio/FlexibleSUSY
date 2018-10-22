@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 (* :Copyright:
 
    ====================================================================
@@ -41,6 +43,8 @@ CreatePhysicalMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
 NumberOfFieldIndices::usage="";
+FieldInfo::usage="";
+includeLorentzIndices::usage="";
 
 Begin["`Private`"];
 
@@ -322,7 +326,6 @@ CreateUnitCharge[] :=
               Total[NumberOfFieldIndices /@ {photon,electron,electron}]] <>
             "> indices = " <>
               "concatenate(photon_indices, electron_indices, electron_indices);\n\n") <>
-
          TextFormatting`IndentText @ vertexBody <> "\n" <>
          "}"
   ]

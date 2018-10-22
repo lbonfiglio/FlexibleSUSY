@@ -18,10 +18,18 @@
 
 // File generated at @DateAndTime@
 
+/**
+ * @file cxx_qft/@ModelName@_vertices.hpp
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ and SARAH @SARAHVersion@ .
+ */
+
 #ifndef @ModelName@_CXXQFT_VERTICES_H
 #define @ModelName@_CXXQFT_VERTICES_H
 
 #include "concatenate.hpp"
+
 #include "error.hpp"
 #include "generic_vertices.hpp"
 #include "numerics2.hpp"

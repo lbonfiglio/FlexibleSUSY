@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 (* :Copyright:
 
    ====================================================================
@@ -99,8 +101,10 @@ EDMCreateInterfaceFunctionForField[field_,gTaggedDiagrams_List, fieldsNamespace_
                          ] <> "};\n\n" <>
 
                    "double val = 0.0;\n\n" <>
-
-                   StringJoin @ Riffle[("val += " <> ToString @ # <> "::value(indices, context);") & /@
+                   
+(*                   "using namespace " <> FlexibleSUSY`FSModelName <> "_cxx_diagrams::" <> FlexibleSUSY`FSModelName <> "_fields;\n\n" <> *)
+                   
+                   StringJoin @ Riffle[("val += " <> ToString @ # <> "::value(indices, context);") & /@ 
                      Flatten[CXXEvaluatorsForFieldAndDiagramsFromGraph[field,#[[2]],#[[1]], fieldsNamespace] & /@ gTaggedDiagrams],
                                        "\n"] <> "\n\n" <>
 

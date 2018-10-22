@@ -18,8 +18,15 @@
 
 // File generated at @DateAndTime@
 
-#ifndef @ModelName@_CXX_FIELDS_H
-#define @ModelName@_CXX_FIELDS_H
+/**
+ * @file cxx_qft/@ModelName@_fields.hpp
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ and SARAH @SARAHVersion@ .
+ */
+
+#ifndef @ModelName@_CXXQFT_FIELDS_H
+#define @ModelName@_CXXQFT_FIELDS_H
 
 #include "field_traits.hpp"
 #include "multiindex.hpp"
@@ -32,9 +39,7 @@
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/vector_c.hpp>
-
 #include <boost/range/iterator_range.hpp>
-
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/adapted/boost_array.hpp>

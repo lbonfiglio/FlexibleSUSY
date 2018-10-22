@@ -30,6 +30,9 @@
 
 #include "cxx_qft/@ModelName@_qft.hpp"
 
+#include "wrappers.hpp"
+#include "numerics2.hpp"
+
 #define INPUTPARAMETER(p) context.model.get_input().p
 #define MODELPARAMETER(p) context.model.get_##p()
 #define DERIVEDPARAMETER(p) context.model.p()
@@ -259,6 +262,8 @@ double calculate_a_muon_impl(@ModelName@_mass_eigenstates& model)
 
    @ModelName@_context_base context{ model };
    double val = 0.0;
+   
+   using namespace @ModelName@_cxx_diagrams::@ModelName@_fields;
 
 @AMuon_Calculation@
 
