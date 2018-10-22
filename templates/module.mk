@@ -2,9 +2,10 @@ DIR          := templates
 MODNAME      := templates
 
 BASE_TEMPLATES := \
-		$(DIR)/qft.hpp.in \
-		$(DIR)/vertices.hpp.in \
-		$(DIR)/fields.hpp.in \
+		$(DIR)/cxx_qft/qft.hpp.in \
+		$(DIR)/cxx_qft/fields.hpp.in \
+		$(DIR)/cxx_qft/vertices.hpp.in \
+		$(DIR)/cxx_qft/context_base.hpp.in \
 		$(DIR)/a_muon.hpp.in \
 		$(DIR)/a_muon.cpp.in \
 		$(DIR)/convergence_tester.hpp.in \

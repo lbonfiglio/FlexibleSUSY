@@ -18,8 +18,15 @@
 
 // File generated at @DateAndTime@
 
-#ifndef @ModelName@_CXX_FIELDS_H
-#define @ModelName@_CXX_FIELDS_H
+/**
+ * @file cxx_qft/@ModelName@_fields.hpp
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ and SARAH @SARAHVersion@ .
+ */
+
+#ifndef @ModelName@_CXXQFT_FIELDS_H
+#define @ModelName@_CXXQFT_FIELDS_H
 
 #include "field_traits.hpp"
 #include "multiindex.hpp"
@@ -32,16 +39,14 @@
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/vector_c.hpp>
-
 #include <boost/range/iterator_range.hpp>
-
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/adapted/boost_array.hpp>
 
 namespace flexiblesusy {
 
-namespace cxx_qft {
+namespace @ModelName@_cxx_diagrams {
 
 namespace @ModelName@_fields {
 
@@ -50,10 +55,6 @@ namespace @ModelName@_fields {
 @fieldsByTypeDecls@
 } // namespace @ModelName@_fields
 
-@lorentzSelfConjugateFieldDefs@
-
-@defineFieldTraits@
-
 template<class Field>
 struct field_indices {
    using type = std::array<int, Field::numberOfFieldIndices>;
@@ -61,21 +62,27 @@ struct field_indices {
 
 namespace detail {
 
-template<class Begin, class End>
-decltype(
-   boost::make_iterator_range(
-      multiindex<Begin, End>::begin(),
-      multiindex<Begin, End>::end()
-      )
-   )
-make_index_range( void )
-{
-   using index = multiindex<Begin, End>;
+template<class Field>
+struct number_of_field_indices {
+   static constexpr int value =
+      std::tuple_size<typename field_indices<Field>::type>::value;
+   using type = boost::mpl::int_<value>;
+};
 
-   return boost::make_iterator_range(
-      index::begin(), index::end()
-      );
-}
+template<class Sequence>
+struct total_number_of_field_indices {
+   using type = typename boost::mpl::fold<
+      Sequence,
+      boost::mpl::int_<0>,
+      boost::mpl::plus<
+         boost::mpl::_1,
+         number_of_field_indices<
+            boost::mpl::_2
+            >
+         >
+      >::type;
+   static constexpr int value = type::value;
+};
 
 } // namespace detail
 
@@ -110,25 +117,15 @@ isSMField(const typename field_indices<Field>::type &)
       >::type::value;
 }
 
-template<class ObjectWithIndexBounds>
-struct index_bounds {
-   using type = typename ObjectWithIndexBounds::index_bounds;
-};
+} // namespace @ModelName@_cxx_diagrams
 
-template<class ObjectWithIndexBounds>
-decltype(detail::make_index_range<
-  typename ObjectWithIndexBounds::index_bounds::first,
-  typename ObjectWithIndexBounds::index_bounds::second
->())
-index_range( void )
-{
-  return detail::make_index_range<
-    typename ObjectWithIndexBounds::index_bounds::first,
-    typename ObjectWithIndexBounds::index_bounds::second
-  >();
-}
+namespace field_traits {
 
-} // namespace cxx_qft
+@lorentzSelfConjugateFieldDefs@
+
+@defineFieldTraits@
+
+} // namespace field_traits
 
 } // namespace flexiblesusy
 

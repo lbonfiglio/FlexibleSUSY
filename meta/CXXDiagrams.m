@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 (* :Copyright:
 
    ====================================================================
@@ -41,6 +43,8 @@ CreatePhysicalMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
 NumberOfFieldIndices::usage="";
+FieldInfo::usage="";
+includeLorentzIndices::usage="";
 
 Begin["`Private`"];
 
@@ -109,8 +113,8 @@ CreateFieldStruct[field_] :=
             particleType = "", particleColorRep = "", particleMassless = "",
             indexBounds = "", numGenerations = "", smFlags = "", numIndices = "",
             electricCharge = "", conjugateField = "", body = ""},
-           particleType = "static constexpr auto particle_type = ParticleType::" <> ParticleTypeAsString[field] <> ";";
-           particleColorRep = "static constexpr auto color_rep = ParticleColorRep::" <> ParticleColorRepAsString[field] <> ";";
+           particleType = "static constexpr auto particle_type = field_traits::ParticleType::" <> ParticleTypeAsString[field] <> ";";
+           particleColorRep = "static constexpr auto color_rep = field_traits::ParticleColorRep::" <> ParticleColorRepAsString[field] <> ";";
            particleMassless = "static constexpr auto massless = " <> If[TreeMasses`IsMassless[field], "true", "false"] <> ";";
            indexBounds = CreateFieldIndexBoundsDefinition[field];
            numGenerations = "static constexpr int numberOfGenerations = " <> ToString @ TreeMasses`GetDimension[field] <> ";";
@@ -252,7 +256,7 @@ CreateMassFunctions[fieldsNamespace_:""] :=
              numberOfIndices = Length @ fieldInfo[[5]];
 
              "template<> inline\n" <>
-             "double " <> FlexibleSUSY`FSModelName <> "_evaluation_context::mass_impl<" <>
+             "double " <> FlexibleSUSY`FSModelName <> "_context_base::mass_impl<" <>
                TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] <>
              ">(const std::array<int, " <> ToString @ numberOfIndices <>
              ">&" <> If[TreeMasses`GetDimension[#] === 1, "", " indices"] <> ") const\n" <>
@@ -271,7 +275,7 @@ CreatePhysicalMassFunctions[fieldsNamespace_:""] :=
              numberOfIndices = Length @ fieldInfo[[5]];
 
              "template<> inline\n" <>
-             "double " <> FlexibleSUSY`FSModelName <> "_evaluation_context::physical_mass_impl<" <>
+             "double " <> FlexibleSUSY`FSModelName <> "_context_base::physical_mass_impl<" <>
                TreeMasses`CreateFieldClassName[#, prefixNamespace -> fieldsNamespace] <>
              ">(const std::array<int, " <> ToString @ numberOfIndices <>
              ">&" <> If[TreeMasses`GetDimension[#] === 1, "", " indices"] <> ") const\n" <>
@@ -290,7 +294,7 @@ CreateUnitCharge[] :=
          numberOfElectronIndices = NumberOfFieldIndices[electron];
          numberOfPhotonIndices = NumberOfFieldIndices[photon];
 
-         "static FFSVertex unit_charge(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
+         "static FFSVertex unit_charge(const " <> FlexibleSUSY`FSModelName <> "_context_base& context)\n" <>
          "{\n" <>
          TextFormatting`IndentText["using vertex_type = FFSVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @
@@ -322,7 +326,6 @@ CreateUnitCharge[] :=
               Total[NumberOfFieldIndices /@ {photon,electron,electron}]] <>
             "> indices = " <>
               "concatenate(photon_indices, electron_indices, electron_indices);\n\n") <>
-
          TextFormatting`IndentText @ vertexBody <> "\n" <>
          "}"
   ]
@@ -337,7 +340,7 @@ CreateStrongCoupling[] :=
          numberOfdownquarkIndices = NumberOfFieldIndices[downquark];
          numberOfgluonIndices = NumberOfFieldIndices[gluon];
 
-         "static FFSVertex strong_coupling(const " <> FlexibleSUSY`FSModelName <> "_evaluation_context& context)\n" <>
+         "static FFSVertex strong_coupling(const " <> FlexibleSUSY`FSModelName <> "_context_base& context)\n" <>
          "{\n" <>
          TextFormatting`IndentText["using vertex_type = FFSVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @

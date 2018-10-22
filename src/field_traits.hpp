@@ -23,7 +23,7 @@
 
 namespace flexiblesusy {
 
-namespace cxx_qft {
+namespace field_traits {
 
 enum class ParticleType {
    scalar,
@@ -164,7 +164,7 @@ struct is_ghost<bar<Field> > : public is_ghost<Field> {};
 template <class Field>
 struct is_ghost<conj<Field> > : public is_ghost<Field> {};
 
-} // namespace cxx_qft
+} // namespace field_traits
 
 } // namespace flexiblesusy
 
