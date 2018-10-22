@@ -11,8 +11,9 @@
 #include "SM_decays.hpp"
 
 // #include "wrappers.hpp"
-// #include "lowe.h"
+#include "lowe.h"
 // #include "standard_model.hpp"
+// TODO: remove before release
 #include <iomanip>
 
 using namespace flexiblesusy;
@@ -41,6 +42,8 @@ BOOST_AUTO_TEST_CASE( test_SM_FlexibleDecays )
    softsusy::QedQcd qedqcd;
    SM_decays decays(m, qedqcd, true);
 
+   // ------------ tree-level decays ----------------------------------------
+
    // h -> b bbar
    BOOST_CHECK_CLOSE_FRACTION(decays.partial_width_hh_to_barFdFd(m, 2, 2),
                               2.6118180765322455E-003, 2e-15);
@@ -52,7 +55,10 @@ BOOST_AUTO_TEST_CASE( test_SM_FlexibleDecays )
                               8.4705126919250480E-004, 1e-14);
    // h -> Z Z
    BOOST_CHECK_CLOSE_FRACTION(decays.partial_width_hh_to_VZVZ(m),
-                              9.4231401208556083E-005, 1e-14);
+                              9.4231401208556083E-005, 2e-14);
+
+   // ------------ loop-induces decays --------------------------------------
+
    // h -> gluon gluon
    // BOOST_CHECK_CLOSE_FRACTION(decays.partial_width_hh_to_VGVG(m), , 1e-15);
    // h -> gamma gamma
