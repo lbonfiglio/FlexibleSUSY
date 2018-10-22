@@ -44,8 +44,8 @@ namespace flexiblesusy {
 
 template <typename Field1, typename Field2>
 double
-final_state_symmetry_factor(typename cxx_qft::field_indices<Field1>::type const& idx1,
-                            typename cxx_qft::field_indices<Field2>::type const& idx2)
+final_state_symmetry_factor(typename @ModelName@_cxx_diagrams::field_indices<Field1>::type const& idx1,
+                            typename @ModelName@_cxx_diagrams::field_indices<Field2>::type const& idx2)
 {
    if (std::is_same<Field1, Field2>::value) {
       // TODO: we also compare if (potential) color indices are the same,
@@ -103,33 +103,33 @@ private:
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    typename Decay_amplitude_type<FieldIn, FieldOut1, FieldOut2>::type
    calculate_amplitude(
-      const cxx_qft::@ModelName@_evaluation_context&,
-      const typename cxx_qft::field_indices<FieldIn>::type&,
-      const typename cxx_qft::field_indices<FieldOut1>::type&,
-      const typename cxx_qft::field_indices<FieldOut2>::type&) const;
+      const @ModelName@_cxx_diagrams::@ModelName@_context_base&,
+      const typename @ModelName@_cxx_diagrams::field_indices<FieldIn>::type&,
+      const typename @ModelName@_cxx_diagrams::field_indices<FieldOut1>::type&,
+      const typename @ModelName@_cxx_diagrams::field_indices<FieldOut2>::type&) const;
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
-   double amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
-                  typename cxx_qft::field_indices<FieldIn>::type const& indexIn,
-                  typename cxx_qft::field_indices<FieldOut1>::type const& indexOut1,
-                  typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2) const;
+   double amplitude_squared(@ModelName@_cxx_diagrams::@ModelName@_context_base const& context,
+                  typename @ModelName@_cxx_diagrams::field_indices<FieldIn>::type const& indexIn,
+                  typename @ModelName@_cxx_diagrams::field_indices<FieldOut1>::type const& indexOut1,
+                  typename @ModelName@_cxx_diagrams::field_indices<FieldOut2>::type const& indexOut2) const;
 
    template<typename FieldIn, typename FieldOut1, typename FieldOut2>
    double get_partial_width(
-      const cxx_qft::@ModelName@_evaluation_context&,
-      typename cxx_qft::field_indices<FieldIn>::type const&,
-      typename cxx_qft::field_indices<FieldOut1>::type const&,
-      typename cxx_qft::field_indices<FieldOut2>::type const&) const;
+      const @ModelName@_cxx_diagrams::@ModelName@_context_base&,
+      typename @ModelName@_cxx_diagrams::field_indices<FieldIn>::type const&,
+      typename @ModelName@_cxx_diagrams::field_indices<FieldOut1>::type const&,
+      typename @ModelName@_cxx_diagrams::field_indices<FieldOut2>::type const&) const;
 };
 
 @calcAmplitudeSpecializationDecls@
 
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double
-@ModelName@_decays::amplitude_squared(cxx_qft::@ModelName@_evaluation_context const& context,
-                  typename cxx_qft::field_indices<FieldIn>::type const& indexIn,
-                  typename cxx_qft::field_indices<FieldOut1>::type const& indexOut1,
-                  typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2) const
+@ModelName@_decays::amplitude_squared(@ModelName@_cxx_diagrams::@ModelName@_context_base const& context,
+                  typename @ModelName@_cxx_diagrams::field_indices<FieldIn>::type const& indexIn,
+                  typename @ModelName@_cxx_diagrams::field_indices<FieldOut1>::type const& indexOut1,
+                  typename @ModelName@_cxx_diagrams::field_indices<FieldOut2>::type const& indexOut2) const
 {
 
    const auto mat_elem = calculate_amplitude<FieldIn, FieldOut1, FieldOut2>(
@@ -140,10 +140,10 @@ double
 // generic decay of FieldIn -> FieldOut1 FieldOut2
 template<typename FieldIn, typename FieldOut1, typename FieldOut2>
 double @ModelName@_decays::get_partial_width(
-   const cxx_qft::@ModelName@_evaluation_context& context,
-   typename cxx_qft::field_indices<FieldIn>::type const& indexIn,
-   typename cxx_qft::field_indices<FieldOut1>::type const& indexOut1,
-   typename cxx_qft::field_indices<FieldOut2>::type const& indexOut2
+   const @ModelName@_cxx_diagrams::@ModelName@_context_base& context,
+   typename @ModelName@_cxx_diagrams::field_indices<FieldIn>::type const& indexIn,
+   typename @ModelName@_cxx_diagrams::field_indices<FieldOut1>::type const& indexOut1,
+   typename @ModelName@_cxx_diagrams::field_indices<FieldOut2>::type const& indexOut2
    ) const
 {
    using effective_couplings::beta;

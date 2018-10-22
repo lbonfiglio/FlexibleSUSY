@@ -18,50 +18,20 @@
 
 // File generated at @DateAndTime@
 
-#ifndef @ModelName@_CXX_QFT_H
-#define @ModelName@_CXX_QFT_H
+/**
+ * @file cxx_qft/@ModelName@_qft.hpp
+ *
+ * This file was generated at @DateAndTime@ with FlexibleSUSY
+ * @FlexibleSUSYVersion@ and SARAH @SARAHVersion@ .
+ */
 
-#include "../@ModelName@_mass_eigenstates.hpp"
+#ifndef @ModelName@_CXXQFT_QFT_H
+#define @ModelName@_CXXQFT_QFT_H
 
+#include "multiindex.hpp"
+
+#include "@ModelName@_context_base.hpp"
 #include "@ModelName@_fields.hpp"
-
-namespace flexiblesusy {
-
-namespace cxx_qft {
-
-struct @ModelName@_evaluation_context {
-   const @ModelName@_mass_eigenstates& model;
-
-   @ModelName@_evaluation_context( const @ModelName@_mass_eigenstates &m )
-      : model( m ) {}
-
-   template<class Field>
-   double mass(const typename field_indices<Field>::type& indices) const
-      {
-         using CleanField = typename remove_lorentz_conjugation<Field>::type;
-         return mass_impl<CleanField>(indices);
-      }
-   template<class Field>
-   double physical_mass(const typename field_indices<Field>::type& indices) const
-      {
-         using CleanField = typename remove_lorentz_conjugation<Field>::type;
-         return physical_mass_impl<CleanField>(indices);
-      }
-
-private:
-   template<class Field>
-   double mass_impl(const typename field_indices<Field>::type& indices) const;
-   template<class Field>
-   double physical_mass_impl(const typename field_indices<Field>::type& indices) const;
-};
-
-@CXXDiagrams_MassFunctions@
-@CXXDiagrams_PhysicalMassFunctions@
-} // namespace cxx_qft
-
-} // namespace flexiblesusy
-
 #include "@ModelName@_vertices.hpp"
 
 #endif
-

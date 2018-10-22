@@ -3,9 +3,9 @@
 template <>
 double CLASSNAME::get_partial_width<H, bar<lep>::type, lep>(
    const ContextName& context,
-   typename cxx_qft::field_indices<H>::type const& indexIn,
-   typename cxx_qft::field_indices<bar<lep>::type>::type const& indexOut1,
-   typename cxx_qft::field_indices<lep>::type const& indexOut2) const
+   typename field_indices<H>::type const& indexIn,
+   typename field_indices<bar<lep>::type>::type const& indexOut1,
+   typename field_indices<lep>::type const& indexOut2) const
 {
    using effective_couplings::beta;
 

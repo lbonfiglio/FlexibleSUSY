@@ -2017,9 +2017,9 @@ WriteCXXDiagramClass[vertices_List,files_List] :=
     fieldsNamespace = FlexibleSUSY`FSModelName <> "_fields";
     fieldStructDefinitions = CXXDiagrams`CreateFieldStructs[fields];
     namedFieldAliases = CXXDiagrams`CreateNamedFieldAliases[];
-    lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[fields, fieldsNamespace];
+    lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[fields, FlexibleSUSY`FSModelName <> "_cxx_diagrams::" <> fieldsNamespace];
     fieldsByTypeDecls = CXXDiagrams`CreateFieldTypeLists[fields];
-    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields, fieldsNamespace];
+    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[fields, FlexibleSUSY`FSModelName <> "_cxx_diagrams::" <> fieldsNamespace];
     vertexData = StringJoin @ Riffle[Vertices`CreateVertexData[#, fieldsNamespace]& /@
                                        DeleteDuplicates[vertices], "\n\n"];
     cxxVertices = Vertices`CreateVertices[vertices, fieldsNamespace];
@@ -4331,6 +4331,8 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "vertices.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
+                          {FileNameJoin[{cxxQFTTemplateDir, "context_base.hpp.in"}],
+                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_context_base.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "generic_calculations.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_generic_calculations.hpp"}]}};
 

@@ -27,7 +27,7 @@
 
 namespace flexiblesusy
 {
-namespace cxx_qft
+namespace @ModelName@_cxx_diagrams
 {
 namespace calculations
 {

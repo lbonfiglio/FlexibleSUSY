@@ -49,7 +49,8 @@ namespace flexiblesusy {
 #define PHYSICAL(parameter) model.get_physical().parameter
 #define MODELPARAMETER(parameter) model.get_##parameter()
 
-using namespace cxx_qft;
+using namespace field_traits;
+using namespace @ModelName@_cxx_diagrams;
 using effective_couplings::beta;
 namespace info = @ModelName@_info;
 
@@ -98,14 +99,14 @@ void CLASSNAME::calculate_decays()
 #endif
 }
 
-double get_alphas(cxx_qft::@ModelName@_evaluation_context const&  context) {
+double get_alphas(@ModelName@_context_base const&  context) {
    return pow(context.model.get_@gs_name@(), 2)/(4.*Pi);
 }
 
 // -------- specializations for decays needing higher order corrections --------
 
 @create_SM_particle_usings@
-using ContextName = cxx_qft::@ModelName@_evaluation_context;
+using ContextName = @ModelName@_context_base;
 
 @calcAmplitudeSpecializationDefs@
 

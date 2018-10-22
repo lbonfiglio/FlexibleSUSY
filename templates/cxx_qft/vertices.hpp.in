@@ -18,8 +18,8 @@
 
 // File generated at @DateAndTime@
 
-#ifndef @ModelName@_CXX_VERTICES_H
-#define @ModelName@_CXX_VERTICES_H
+#ifndef @ModelName@_CXXQFT_VERTICES_H
+#define @ModelName@_CXXQFT_VERTICES_H
 
 #include "concatenate.hpp"
 #include "error.hpp"
@@ -41,33 +41,7 @@
 
 namespace flexiblesusy {
 
-namespace cxx_qft {
-
-namespace detail {
-
-template<class Field>
-struct number_of_field_indices {
-   static constexpr int value =
-      std::tuple_size<typename field_indices<Field>::type>::value;
-   using type = boost::mpl::int_<value>;
-};
-
-template<class Sequence>
-struct total_number_of_field_indices {
-   using type = typename boost::mpl::fold<
-      Sequence,
-      boost::mpl::int_<0>,
-      boost::mpl::plus<
-         boost::mpl::_1,
-         number_of_field_indices<
-            boost::mpl::_2
-            >
-         >
-      >::type;
-   static constexpr int value = type::value;
-};
-
-} // namespace detail
+namespace @ModelName@_cxx_diagrams {
 
 template<class ...Fields>
 struct VertexData;
@@ -86,13 +60,13 @@ public:
       boost::mpl::joint_view<
         boost::mpl::first<boost::mpl::_1>,
         boost::mpl::first<
-          cxx_qft::index_bounds<boost::mpl::_2>
+           meta::index_bounds<boost::mpl::_2>
         >
       >,
       boost::mpl::joint_view<
         boost::mpl::second<boost::mpl::_1>,
         boost::mpl::second<
-          cxx_qft::index_bounds<boost::mpl::_2>
+          meta::index_bounds<boost::mpl::_2>
         >
       >
     >
@@ -117,7 +91,7 @@ public:
     using namespace boost::mpl;
     using fields = vector<Fields...>;
 
-    using result_type = typename cxx_qft::field_indices<
+    using result_type = typename @ModelName@_cxx_diagrams::field_indices<
       typename boost::mpl::at_c<fields, FieldIndex>::type
     >::type;
 
@@ -156,18 +130,18 @@ namespace detail {
 @CXXDiagrams_StrongCoupling@
 } // namespace detail
 
-static double unit_charge(const @ModelName@_evaluation_context& context)
+static double unit_charge(const @ModelName@_context_base& context)
 {
    return -(detail::unit_charge(context).left().real() /
             @ModelName@_fields::Electron::electric_charge);
 }
 
-static double strong_coupling(const @ModelName@_evaluation_context& context)
+static double strong_coupling(const @ModelName@_context_base& context)
 {
    return detail::strong_coupling(context).left().real();
 }
 
-} // namespace cxx_qft
+} // namespace @ModelName@_cxx_diagrams
 
 } // namespace flexiblesusy
 

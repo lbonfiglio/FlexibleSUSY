@@ -27,8 +27,6 @@
 
 namespace flexiblesusy {
 
-namespace cxx_qft {
-
 /**
  * @class SSSVertex
  */
@@ -267,8 +265,6 @@ public:
 private:
    std::complex<double> val;
 };
-
-} // namespace cxx_qft
 
 } // namespace flexiblesusy
 

@@ -23,8 +23,6 @@
 
 namespace flexiblesusy {
 
-namespace cxx_qft {
-
 std::complex<double> SSVVertex::value(int mi, int si) const
 {
    if( mi == minuendIndex && si == subtrahendIndex ) {
@@ -215,7 +213,5 @@ std::complex<double> VVVVVertex::get_coefficient(int i, int j) const
          "VVVVVertex: invalid index combination");
    }
 }
-
-} // namespace cxx_qft
 
 } // namespace flexiblesusy
