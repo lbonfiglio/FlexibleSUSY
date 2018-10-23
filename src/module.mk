@@ -52,6 +52,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/command_line_options.hpp \
 		$(DIR)/composite_convergence_tester.hpp \
 		$(DIR)/compound_constraint.hpp \
+		$(DIR)/concatenate.hpp \
 		$(DIR)/constraint.hpp \
 		$(DIR)/convergence_tester.hpp \
 		$(DIR)/convergence_tester_drbar.hpp \
@@ -69,6 +70,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/ew_input.hpp \
 		$(DIR)/ewsb_solver.hpp \
 		$(DIR)/field_traits.hpp \
+		$(DIR)/find_if.hpp \
 		$(DIR)/fixed_point_iterator.hpp \
 		$(DIR)/functors.hpp \
 		$(DIR)/generic_vertices.hpp \
@@ -85,6 +87,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/mathlink_utils.hpp \
 		$(DIR)/minimizer.hpp \
 		$(DIR)/model.hpp \
+		$(DIR)/multiindex.hpp \
 		$(DIR)/numerics.h \
 		$(DIR)/numerics2.hpp \
 		$(DIR)/physical_input.hpp \
