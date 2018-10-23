@@ -1,7 +1,7 @@
 
 FSModelName = "@CLASSNAME@";
 FSEigenstates = SARAH`EWSB;
-FSDefaultSARAHModel = "THDM_MW";
+FSDefaultSARAHModel = "FlavorAligned2HDM";
 
 OnlyLowEnergyFlexibleSUSY = True;
 
