@@ -96,6 +96,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/problems.hpp \
 		$(DIR)/pv.hpp \
 		$(DIR)/raii.hpp \
+		$(DIR)/renormalization_scheme.hpp \
 		$(DIR)/rg_flow.hpp \
 		$(DIR)/rk.hpp \
 		$(DIR)/rkf_integrator.hpp \
