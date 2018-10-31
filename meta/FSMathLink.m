@@ -157,8 +157,11 @@ GetNumberOfSpectrumEntries[pars_List] :=
 GetHeads[h_[p___]] := Join[{h}, GetHeads[p]];
 GetHeads[p___] := {};
 
+RemoveNamespaces[strs_] :=
+    StringReplace[strs, __ ~~ "`" .. -> ""];
+
 HeadStr[par_] :=
-    Module[{heads = ToString /@ GetHeads[par]},
+    Module[{heads = RemoveNamespaces[ToString /@ GetHeads[par]]},
            If[heads === {}, "",
               ", {\"" <> Utils`StringJoinWithSeparator[heads, "\", \""] <> "\"}"
              ]
