@@ -32,8 +32,10 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    }
 
    const double alpha_s = get_alphas(context);
-   const double alpha_s_red = alpha_s/(Pi);
+   const double alpha_s_red = alpha_s/Pi;
    const double Nf = number_of_active_flavours(mHOS);
+   const double alpha = get_alpha(context);
+   const double alpha_red = alpha/Pi;
    const double mtpole = qedqcd.displayPoleMt();
 
    const double deltaqqOS = 
@@ -42,6 +44,9 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
       2.*(1. - 10.*xDR)/(1-4.*xDR)*(4./3. - std::log(xDR))*alpha_s_red +
       4./3. * alpha_s_red * calc_DeltaH(betaDR) +
       calc_deltaqq(alpha_s_red, Nf);
+
+   const double deltaqqOSQED = 
+      alpha_red * pow(dq::electric_charge, 2) * calc_DeltaH(betaOS);
 
    // chiral breaking correctios
    // TODO: probably shouldn't be applied in case of CP-breaking 
@@ -71,10 +76,13 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
    const auto amp2OS = std::pow(mHOS, 2) * std::pow(betaOS, 2) *
                 2.*std::norm(HBBbarVertexDR.left()) * std::pow(mdqOS / mdqDR, 2);
 
-   return flux * color_factor * 
+   return flux * color_factor *
           (
              // low x limit
-            (1 - 4.*xOS) * phase_spaceDR * amp2DR * (1. + deltaqqDR + deltaH2) +
-            // high x limit
-            4*xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS));
+             (1 - 4. * xOS) * phase_spaceDR * amp2DR *
+                (1. + deltaqqDR + deltaH2) +
+             // high x limit
+             4 * xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS))
+          // universal QED corrections
+          * (1 + deltaqqOSQED);
 }

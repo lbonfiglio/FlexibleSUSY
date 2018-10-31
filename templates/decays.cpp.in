@@ -104,6 +104,12 @@ void CLASSNAME::calculate_decays()
 double get_alphas(@ModelName@_context_base const&  context) {
    return pow(context.model.get_@gs_name@(), 2)/(4.*Pi);
 }
+double get_alpha(@ModelName@_context_base const&  context) {
+   const double g1 = std::sqrt(3./5.)*context.model.get_g1();
+   const double g2 = context.model.get_g2();
+   const double e = g1*g2/std::sqrt(g1*g1+g2*g2);
+   return pow(e, 2)/(4.*Pi);
+}
 
 // -------- specializations for decays needing higher order corrections --------
 

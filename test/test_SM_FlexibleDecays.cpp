@@ -45,8 +45,12 @@ BOOST_AUTO_TEST_CASE( test_SM_FlexibleDecays )
    // ------------ tree-level decays ----------------------------------------
 
    // h -> b bbar
+   // no QED corrections
+   // BOOST_CHECK_CLOSE_FRACTION(decays.partial_width_hh_to_barFdFd(m, 2, 2),
+                              // 2.6118180765322455E-003, 2e-15);
+   // QED corrections
    BOOST_CHECK_CLOSE_FRACTION(decays.partial_width_hh_to_barFdFd(m, 2, 2),
-                              2.6118180765322455E-003, 2e-15);
+                              2.6059181498481999E-003, 5e-15);
    // h -> tau+ tau-
    BOOST_CHECK_CLOSE_FRACTION(decays.partial_width_hh_to_barFeFe(m, 2, 2),
                               2.6800741077127161E-004, 1e-15);
