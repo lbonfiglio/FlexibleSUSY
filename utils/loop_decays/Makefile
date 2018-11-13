@@ -47,13 +47,13 @@ distclean: clean
 $(OUTPUT_DIR):
 	mkdir $(OUTPUT_DIR)
 
-$(CALC_AMPLITUDES_DIAGS): $(OUTPUT_DIR)/diagrams_%.m: $(META_DIR)/calc_amplitudes_%.m | $(OUTPUT_DIR)
+$(CALC_AMPLITUDES_DIAGS): $(OUTPUT_DIR)/diagrams_%.m: $(META_DIR)/calc_amplitudes_%.m $(META_SRC) | $(OUTPUT_DIR)
 	"$(MATH)" -run "resultsDir = \"$(OUTPUT_DIR)\"; Get[\"$<\"]; Quit[status];" > "$(OUTPUT_DIR)/calc_amplitudes_$*.log" 2>&1
 
-$(CALC_AMPLITUDES_AMPS): $(OUTPUT_DIR)/amplitudes_%.m: $(META_DIR)/calc_amplitudes_%.m | $(OUTPUT_DIR)
+$(CALC_AMPLITUDES_AMPS): $(OUTPUT_DIR)/amplitudes_%.m: $(META_DIR)/calc_amplitudes_%.m $(META_SRC) | $(OUTPUT_DIR)
 	"$(MATH)" -run "resultsDir = \"$(OUTPUT_DIR)\"; Get[\"$<\"]; Quit[status];" > "$(OUTPUT_DIR)/calc_amplitudes_$*.log" 2>&1
 
-$(CALC_AMPLITUDES_EXPRS): $(OUTPUT_DIR)/amplitudes_exprs_%.m: $(META_DIR)/calc_amplitudes_%.m | $(OUTPUT_DIR)
+$(CALC_AMPLITUDES_EXPRS): $(OUTPUT_DIR)/amplitudes_exprs_%.m: $(META_DIR)/calc_amplitudes_%.m $(META_SRC) | $(OUTPUT_DIR)
 	"$(MATH)" -run "resultsDir = \"$(OUTPUT_DIR)\"; Get[\"$<\"]; Quit[status];" > "$(OUTPUT_DIR)/calc_amplitudes_$*.log" 2>&1
 
 generate-src: $(TEMPLATES_SRC) $(GENERATE_META) $(CALC_AMPLITUDES_OUTPUT)

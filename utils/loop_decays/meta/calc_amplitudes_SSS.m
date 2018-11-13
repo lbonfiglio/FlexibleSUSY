@@ -1,5 +1,8 @@
 status = 0;
 
+baseDir = DirectoryName[$InputFileName];
+AppendTo[$Path, baseDir];
+
 CheckDirectoryContains[dir_String, files_List] :=
     Module[{workDir = Directory[], result = False},
            If[DirectoryQ[dir],
@@ -64,7 +67,7 @@ CreateAmplitudes[diagrams_, generic_:True] :=
 CalculateAmplitudes[amplitudes_] :=
     Module[{result},
            FormCalc`ClearProcess[];
-           result = FormCalc`CalcFeynAmp[Head[amplitudes][#]]& /@ amplitudes;
+           result = FormCalc`CalcFeynAmp[Head[amplitudes][#], OnShell -> False]& /@ amplitudes;
            result //. Subexpr[] //. Abbr[] //. GenericList[]
           ];
 
@@ -95,3 +98,14 @@ exprsOutputStatus = WriteFormCalcOutputFile[FileNameJoin[{resultsDir, amplitudes
 If[exprsOutputStatus === $Failed,
    status = 2;
   ];
+
+loadUtils = Needs["OneLoopDecaysUtils`"];
+If[loadUtils === $Failed,
+   Quit[1];
+  ];
+
+Print["Extracting form factors ..."];
+formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
+
+Print["Converting form factors ..."];
+formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
