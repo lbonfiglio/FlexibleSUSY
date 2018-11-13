@@ -104,8 +104,35 @@ If[loadUtils === $Failed,
    Quit[1];
   ];
 
+ConvertFeynmanGraphToList[graph_] :=
+    {OneLoopDecaysUtils`GetGraphNumber[graph],
+     OneLoopDecaysUtils`GetGraphCombinatorialFactor[graph],
+     OneLoopDecaysUtils`GetGraphInsertions[graph]
+    };
+
+CollectDiagramInfo[diagrams_, formFactors_] :=
+    Module[{i, j, nTopologies = Length[diagrams],
+            topology, insertions, nGenericInsertions, genericInsertion,
+            classesInsertions, count = 0, contributions = {}},
+           For[i = 1, i <= nTopologies, i++,
+               topology = diagrams[[i, 1]];
+               Print["topology = ", topology];
+               insertions = diagrams[[i, 2]];
+               nGenericInsertions = Length[insertions];
+               For[j = 1, j <= nGenericInsertions, j++,
+                   genericInsertion = ConvertFeynmanGraphToList[insertions[[j, 1]]];
+                   classesInsertions = ConvertFeynmanGraphToList /@ (List @@ insertions[[j, 2]]);
+                   Print["classesInsertions = ", classesInsertions];
+                  ];
+              ];
+           Print["formFactors = ", formFactors];
+          ];
+
 Print["Extracting form factors ..."];
 formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
 
 Print["Converting form factors ..."];
 formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
+
+Print["Combining graph info ..."];
+contributions = CollectDiagramInfo[classDiags, formFactors];

@@ -4,6 +4,10 @@ GetProcessType::usage="";
 ExtractFormFactors::usage="";
 ToFSConventions::usage="";
 
+GetGraphCombinatorialFactor::usage="";
+GetGraphNumber::usage="";
+GetGraphInsertions::usage="";
+
 ExtractFormFactors::missterms="Could not associate the following terms with a matrix element: ``";
 
 Begin["`Private`"];
@@ -15,6 +19,12 @@ GetGenericProcess[Rule[inFields_List, outFields_List]] :=
     Rule[GetGenericFieldSymbol /@ inFields, GetGenericFieldSymbol /@ outFields];
 
 GetProcessType[FormCalc`Amp[process_][expr_]] := GetProcessType[process];
+
+GetGraphCombinatorialFactor[FeynArts`FeynmanGraph[s_, level_][insertions__]] := s;
+
+GetGraphNumber[FeynArts`FeynmanGraph[s_, level_ == n_][insertions__]] := n;
+
+GetGraphInsertions[FeynArts`FeynmanGraph[s_, level_][insertions__]] := List[insertions];
 
 IsSSSDecay[process_] := GetProcessType[process] === Rule[{S}, {S, S}];
 IsSFFDecay[process_] := GetProcessType[process] === Rule[{S}, {F, F}];
