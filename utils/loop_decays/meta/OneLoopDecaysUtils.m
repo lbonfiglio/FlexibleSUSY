@@ -8,6 +8,7 @@ GetGraphCombinatorialFactor::usage="";
 GetGraphNumber::usage="";
 GetGraphInsertions::usage="";
 
+CollectLorentzStructures::missterms="Missing terms from form factor decomposition: ``";
 ExtractFormFactors::missterms="Could not associate the following terms with a matrix element: ``";
 
 Begin["`Private`"];
@@ -103,13 +104,19 @@ ToTermList[expr_Plus] := List @@ expr;
 ToTermList[expr_Times] := List[expr];
 
 CollectLorentzStructures[FormCalc`Amp[process_][expr_]] :=
-    Module[{couplingRules, loopFuncRules, compactExpr, terms, result},
+    Module[{couplingRules, loopFuncRules, compactExpr, terms, result, difference},
            couplingRules = Rule[#, Unique["coup"]]& /@ DeleteDuplicates[Cases[expr, G[_][_][__][__]]];
            loopFuncRules = Rule[#, Unique["lpFn"]]& /@ DeleteDuplicates[Cases[expr, f_[args__] /; IsLoopFunction[f[args]]]];
            compactExpr = expr /. couplingRules /. loopFuncRules;
            terms = ToTermList[Expand[compactExpr]];
            result = CollectCoefficients[JoinStructureLists @@ (FactorOutLorentzStructure /@ terms)];
-           List @@ (result /. (Reverse /@ Join[couplingRules, loopFuncRules]))
+           result = List @@ (result /. (Reverse /@ Join[couplingRules, loopFuncRules]));
+           (* Check result is consistent with original expression *)
+           difference = Simplify[expr - Plus @@ ((Times @@ #)& /@ result)];
+           If[difference =!= 0,
+              Message[CollectLorentzStructures::missterms, difference];
+             ];
+           result
           ];
 
 ExtractFormFactors[FormCalc`Amp[process_][expr_]] :=
