@@ -112,27 +112,29 @@ ConvertFeynmanGraphToList[graph_] :=
 
 CollectDiagramInfo[diagrams_, formFactors_] :=
     Module[{i, j, nTopologies = Length[diagrams],
-            topology, insertions, nGenericInsertions, genericInsertion,
-            classesInsertions, count = 0, contributions = {}},
-           For[i = 1, i <= nTopologies, i++,
-               topology = diagrams[[i, 1]];
-               Print["topology = ", topology];
-               insertions = diagrams[[i, 2]];
-               nGenericInsertions = Length[insertions];
-               For[j = 1, j <= nGenericInsertions, j++,
-                   genericInsertion = ConvertFeynmanGraphToList[insertions[[j, 1]]];
-                   classesInsertions = ConvertFeynmanGraphToList /@ (List @@ insertions[[j, 2]]);
-                   Print["classesInsertions = ", classesInsertions];
-                  ];
-              ];
-           Print["formFactors = ", formFactors];
+            topology, insertions, nGenericInsertions, genericInsertions,
+            genericAmps, count = 1},
+           First[Last[
+               Reap[
+                    For[i = 1, i <= nTopologies, i++,
+                        topology = diagrams[[i, 1]];
+                        insertions = diagrams[[i, 2]];
+                        genericInsertions = List @@ (#[[1]]& /@ insertions);
+                        nGenericInsertions = Length[genericInsertions];
+                        genericAmps = List @@ formFactors[[count ;; count + nGenericInsertions - 1]];
+                        count += nGenericInsertions;
+                        MapThread[Sow[List[topology, #1, Simplify[#2]]]&, {genericInsertions, genericAmps}];
+                       ];
+                   ]]]
           ];
 
 Print["Extracting form factors ..."];
+Print["expr = ", amplitudesExprs];
 formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
 
 Print["Converting form factors ..."];
-formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
+(*formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;*)
 
 Print["Combining graph info ..."];
 contributions = CollectDiagramInfo[classDiags, formFactors];
+Print["contributions = ", contributions];
