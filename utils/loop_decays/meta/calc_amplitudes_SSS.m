@@ -60,7 +60,7 @@ WriteFormCalcOutputFile[fileName_, expr_] :=
 
 WriteFormFactorsOutputFile[fileName_, expr_] :=
     Module[{result, commentStr},
-           commentStr = "(* Generated at " <> DateString <> " *)";
+           commentStr = "(* Generated at " <> DateString[] <> " *)";
            result = Put[OutputForm[commentStr], fileName];
            If[result === $Failed,
               Return[result];
@@ -95,6 +95,9 @@ If[ampsOutputStatus === $Failed,
    status = 2;
   ];
 
+GetGraphID[FeynAmp[GraphID[details__], rest__]] := GraphID[details];
+graphIDs = List @@ (GetGraphID /@ amplitudes);
+
 genericAmplitudes = FeynArts`PickLevel[Generic][amplitudes];
 
 amplitudesExprs = CalculateAmplitudes[Head[genericAmplitudes], #]& /@ genericAmplitudes;
@@ -114,10 +117,10 @@ ConvertFeynmanGraphToList[graph_] :=
      OneLoopDecaysUtils`GetGraphInsertions[graph]
     };
 
-CollectDiagramInfo[diagrams_, formFactors_] :=
+CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
     Module[{i, j, nTopologies = Length[diagrams],
             topology, insertions, nGenericInsertions, genericInsertions,
-            genericAmps, count = 1},
+            genericAmps, genericIDs, count = 1},
            First[Last[
                Reap[
                     For[i = 1, i <= nTopologies, i++,
@@ -126,8 +129,9 @@ CollectDiagramInfo[diagrams_, formFactors_] :=
                         genericInsertions = List @@ insertions;
                         nGenericInsertions = Length[genericInsertions];
                         genericAmps = List @@ formFactors[[count ;; count + nGenericInsertions - 1]];
+                        genericIDs = ids[[count ;; count + nGenericInsertions - 1]];
                         count += nGenericInsertions;
-                        MapThread[Sow[List[topology, #1, Simplify[#2]]]&, {genericInsertions, genericAmps}];
+                        MapThread[Sow[List[#1, topology, #2, Simplify[#3]]]&, {genericIDs, genericInsertions, genericAmps}];
                        ];
                    ]]]
           ];
@@ -139,7 +143,7 @@ Print["Converting form factors ..."];
 formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
 
 Print["Combining graph info ..."];
-contributions = CollectDiagramInfo[diags, formFactors];
+contributions = CollectDiagramInfo[graphIDs, diags, formFactors];
 Print["contributions = ", contributions];
 formFactorsOutputStatus = WriteFormFactorsOutputFile[FileNameJoin[{resultsDir, formFactorsOutputFile}], contributions];
 If[formFactorsOutputStatus === $Failed,

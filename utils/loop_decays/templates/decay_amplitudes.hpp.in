@@ -225,6 +225,7 @@ double square_amplitude(const Amplitude& a)
 }
 
 @genericOneLoopDiagramEvaluatorDecls@
+
 } // namespace flexiblesusy
 
 #endif
