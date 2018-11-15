@@ -26,6 +26,9 @@ CreateAmplitudesOutputFileName[Rule[{initial_}, finalState_List]] :=
 CreateAmplitudesExprsOutputFileName[Rule[{initial_}, finalState_List]] :=
     "amplitudes_exprs_" <> ToGenericFieldString[initial] <> StringJoin[Sort[ToGenericFieldString /@ finalState]] <> ".m";
 
+CreateFormFactorsOutputFileName[Rule[{initial_}, finalState_List]] :=
+    "form_factors_" <> ToGenericFieldString[initial] <> StringJoin[Sort[ToGenericFieldString /@ finalState]] <> ".m";
+
 loadFeynArts = Needs["FeynArts`"];
 loadFormCalc = Needs["FormCalc`"];
 
@@ -55,13 +58,14 @@ WriteFormCalcOutputFile[fileName_, expr_] :=
            PutAppend[expr, fileName]
           ];
 
-CreateAmplitudes[diagrams_, generic_:True] :=
-    Module[{amps},
-           amps = FeynArts`CreateFeynAmp[diagrams];
-           If[generic,
-              FeynArts`PickLevel[Generic][amps],
-              amps
-             ]
+WriteFormFactorsOutputFile[fileName_, expr_] :=
+    Module[{result, commentStr},
+           commentStr = "(* Generated at " <> DateString <> " *)";
+           result = Put[OutputForm[commentStr], fileName];
+           If[result === $Failed,
+              Return[result];
+             ];
+           PutAppend[expr, fileName]
           ];
 
 CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
@@ -72,19 +76,20 @@ CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
 
 topologies = FeynArts`CreateTopologies[1, 1 -> 2, ExcludeTopologies -> Internal];
 
-process = {S[1]} -> {S[1], S[1]};
+process = {S} -> {S, S};
 
 diagramsOutputFile = CreateDiagramsOutputFileName[process];
 amplitudesOutputFile = CreateAmplitudesOutputFileName[process];
 amplitudesExprsOutputFile = CreateAmplitudesExprsOutputFileName[process];
+formFactorsOutputFile = CreateFormFactorsOutputFileName[process];
 
-classDiags = FeynArts`InsertFields[topologies, process, InsertionLevel -> Classes, Model -> "SM"];
-diagsOutputStatus = WriteFeynArtsOutputFile[FileNameJoin[{resultsDir, diagramsOutputFile}], classDiags];
+diags = FeynArts`InsertFields[topologies, process, InsertionLevel -> Generic, Model -> "SM"];
+diagsOutputStatus = WriteFeynArtsOutputFile[FileNameJoin[{resultsDir, diagramsOutputFile}], diags];
 If[diagsOutputStatus === $Failed,
    status = 2;
   ];
 
-amplitudes = FeynArts`CreateFeynAmp[classDiags];
+amplitudes = FeynArts`CreateFeynAmp[diags];
 ampsOutputStatus = WriteFeynArtsOutputFile[FileNameJoin[{resultsDir, amplitudesOutputFile}], amplitudes];
 If[ampsOutputStatus === $Failed,
    status = 2;
@@ -118,7 +123,7 @@ CollectDiagramInfo[diagrams_, formFactors_] :=
                     For[i = 1, i <= nTopologies, i++,
                         topology = diagrams[[i, 1]];
                         insertions = diagrams[[i, 2]];
-                        genericInsertions = List @@ (#[[1]]& /@ insertions);
+                        genericInsertions = List @@ insertions;
                         nGenericInsertions = Length[genericInsertions];
                         genericAmps = List @@ formFactors[[count ;; count + nGenericInsertions - 1]];
                         count += nGenericInsertions;
@@ -128,12 +133,15 @@ CollectDiagramInfo[diagrams_, formFactors_] :=
           ];
 
 Print["Extracting form factors ..."];
-Print["expr = ", amplitudesExprs];
 formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
 
 Print["Converting form factors ..."];
-(*formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;*)
+formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
 
 Print["Combining graph info ..."];
-contributions = CollectDiagramInfo[classDiags, formFactors];
+contributions = CollectDiagramInfo[diags, formFactors];
 Print["contributions = ", contributions];
+formFactorsOutputStatus = WriteFormFactorsOutputFile[FileNameJoin[{resultsDir, formFactorsOutputFile}], contributions];
+If[formFactorsOutputStatus === $Failed,
+   status = 3;
+  ];

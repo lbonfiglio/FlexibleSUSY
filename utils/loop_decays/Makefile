@@ -13,13 +13,15 @@ CALC_AMPLITUDES_SRC := \
 CALC_AMPLITUDES_DIAGS := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/diagrams_%.m,$(CALC_AMPLITUDES_SRC))
 CALC_AMPLITUDES_AMPS := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/amplitudes_%.m,$(CALC_AMPLITUDES_SRC))
 CALC_AMPLITUDES_EXPRS := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/amplitudes_exprs_%.m,$(CALC_AMPLITUDES_SRC))
+CALC_AMPLITUDES_FF := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/form_factors_%.m,$(CALC_AMPLITUDES_SRC))
 
 CALC_AMPLITUDES_OUTPUT := \
 		$(CALC_AMPLITUDES_DIAGS) \
 		$(CALC_AMPLITUDES_AMPS) \
-		$(CALC_AMPLITUDES_EXPRS)
+		$(CALC_AMPLITUDES_EXPRS) \
+		$(CALC_AMPLITUDES_FF)
 
-CALC_AMPLITUDES_LOG := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/calc_amplitudes_%.log,$(CALC_AMPLITUDES_SRC)	)
+CALC_AMPLITUDES_LOG := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/calc_amplitudes_%.log,$(CALC_AMPLITUDES_SRC))
 
 TEMPLATES_SRC := \
 		$(TEMPLATES_DIR)/decay_amplitudes.hpp.in \

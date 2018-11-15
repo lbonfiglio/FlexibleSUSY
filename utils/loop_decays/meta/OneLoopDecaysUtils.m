@@ -122,6 +122,8 @@ CollectLorentzStructures[FormCalc`Amp[process_][expr_]] :=
 ExtractFormFactors[FormCalc`Amp[process_][expr_]] :=
     CollectLorentzStructures[FormCalc`Amp[process][expr]];
 
+SARAHLorentzIndex[i_Integer] := Symbol["lt" <> ToString[i]];
+
 CouplingToSARAHCpRules[] :=
     {
      RuleDelayed[FeynArts`G[_][0][fields__][1], SARAH`Cp[fields][1]],
@@ -129,8 +131,8 @@ CouplingToSARAHCpRules[] :=
      RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`NonCommutative[Global`ChiralityProjector[-1]]], SARAH`Cp[fields][SARAH`PL]],
      RuleDelayed[FeynArts`G[_][0][fields__][FormCalc`Private`ga[6]], SARAH`Cp[fields][SARAH`PR]],
      RuleDelayed[FeynArts`G[_][0][fields__][FormCalc`Private`ga[7]], SARAH`Cp[fields][SARAH`PL]],
-     RuleDelayed[FeynArts`G[_][0][fields__][Global`MetricTensor[FeynArts`KI1[i1_], FeynArts`KI1[i2_]]], SARAH`Cp[fields][SARAH`g[i1, i2]]],
-     RuleDelayed[FeynArts`G[_][0][fields__]["d_"[FeynArts`KI1[i1_], FeynArts`KI1[i2_]]], SARAH`Cp[fields][SARAH`g[i1, i2]]],
+     RuleDelayed[FeynArts`G[_][0][fields__][Global`MetricTensor[FeynArts`KI1[i1_], FeynArts`KI1[i2_]]], SARAH`Cp[fields][SARAH`g[SARAHLorentzIndex[i1], SARAHLorentzIndex[i2]]]],
+     RuleDelayed[FeynArts`G[_][0][fields__]["d_"[FeynArts`KI1[i1_], FeynArts`KI1[i2_]]], SARAH`Cp[fields][SARAH`g[SARAHLorentzIndex[i1], SARAHLorentzIndex[i2]]]],
      RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`Mom[i1_] - FeynArts`Mom[i2_]], SARAH`Cp[fields][SARAH`Mom[{fields}[[i1]]] - SARAH`Mom[{fields}[[i2]]]]],
      RuleDelayed[FeynArts`G[_][0][fields__][NonCommutativeMultiply[FeynArts`KI1[i1_], FormCalc`Private`ga[6]]], SARAH`Cp[fields][SARAH`LorentzProduct[SARAH`gamma[i1], SARAH`PR]]],
      RuleDelayed[FeynArts`G[_][0][fields__][NonCommutativeMultiply[FeynArts`KI1[i1_], FormCalc`Private`ga[7]]], SARAH`Cp[fields][SARAH`LorentzProduct[SARAH`gamma[i1], SARAH`PL]]]
