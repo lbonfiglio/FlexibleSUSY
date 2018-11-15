@@ -24,8 +24,8 @@ CALC_AMPLITUDES_OUTPUT := \
 CALC_AMPLITUDES_LOG := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/calc_amplitudes_%.log,$(CALC_AMPLITUDES_SRC))
 
 TEMPLATES_SRC := \
-		$(TEMPLATES_DIR)/decay_amplitudes.hpp.in \
-		$(TEMPLATES_DIR)/decay_amplitudes.cpp.in
+		$(TEMPLATES_DIR)/one_loop_decay_diagrams.hpp.in \
+		$(TEMPLATES_DIR)/one_loop_decay_diagrams.cpp.in
 
 GENERATE_META	:= $(META_DIR)/generate_loop_decays.m
 

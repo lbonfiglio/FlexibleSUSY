@@ -133,10 +133,10 @@ For[i = 1, i <= Length[genericProcesses], i++,
    ];
 
 Print["Writing output files ..."];
-decayAmplitudesFiles = {{FileNameJoin[{templatesDir, "decay_amplitudes.hpp.in"}],
-                         FileNameJoin[{resultsDir, "decay_amplitudes.hpp"}]},
-                        {FileNameJoin[{templatesDir, "decay_amplitudes.cpp.in"}],
-                         FileNameJoin[{resultsDir, "decay_amplitudes.cpp"}]}};
+decayAmplitudesFiles = {{FileNameJoin[{templatesDir, "one_loop_decay_diagrams.hpp.in"}],
+                         FileNameJoin[{resultsDir, "one_loop_decay_diagrams.hpp"}]},
+                        {FileNameJoin[{templatesDir, "one_loop_decay_diagrams.cpp.in"}],
+                         FileNameJoin[{resultsDir, "one_loop_decay_diagrams.cpp"}]}};
 WriteOut`ReplaceInFiles[decayAmplitudesFiles,
                         { "@genericOneLoopDiagramEvaluatorDecls@" -> TextFormatting`WrapLines[genericOneLoopDiagramEvaluatorDecls],
                           "@genericOneLoopDiagramEvaluatorDefs@"  -> genericOneLoopDiagramEvaluatorDefs
