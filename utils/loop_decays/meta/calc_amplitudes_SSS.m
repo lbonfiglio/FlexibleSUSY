@@ -64,12 +64,11 @@ CreateAmplitudes[diagrams_, generic_:True] :=
              ]
           ];
 
-CalculateAmplitudes[amplitudes_] :=
-    Module[{result},
-           FormCalc`ClearProcess[];
-           result = FormCalc`CalcFeynAmp[Head[amplitudes][#], OnShell -> False]& /@ amplitudes;
-           result //. Subexpr[] //. Abbr[] //. GenericList[]
-          ];
+CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
+    (
+     FormCalc`ClearProcess[];
+     FormCalc`CalcFeynAmp[amplitudeHead[amplitudeExpr], OnShell -> False] //. Subexpr[] //. Abbr[] //. GenericList[]
+    );
 
 topologies = FeynArts`CreateTopologies[1, 1 -> 2, ExcludeTopologies -> Internal];
 
@@ -79,7 +78,7 @@ diagramsOutputFile = CreateDiagramsOutputFileName[process];
 amplitudesOutputFile = CreateAmplitudesOutputFileName[process];
 amplitudesExprsOutputFile = CreateAmplitudesExprsOutputFileName[process];
 
-classDiags = FeynArts`InsertFields[topologies, process, InsertionLevel -> Classes];
+classDiags = FeynArts`InsertFields[topologies, process, InsertionLevel -> Classes, Model -> "SM"];
 diagsOutputStatus = WriteFeynArtsOutputFile[FileNameJoin[{resultsDir, diagramsOutputFile}], classDiags];
 If[diagsOutputStatus === $Failed,
    status = 2;
@@ -93,7 +92,7 @@ If[ampsOutputStatus === $Failed,
 
 genericAmplitudes = FeynArts`PickLevel[Generic][amplitudes];
 
-amplitudesExprs = CalculateAmplitudes[genericAmplitudes];
+amplitudesExprs = CalculateAmplitudes[Head[genericAmplitudes], #]& /@ genericAmplitudes;
 exprsOutputStatus = WriteFormCalcOutputFile[FileNameJoin[{resultsDir, amplitudesExprsOutputFile}], amplitudesExprs];
 If[exprsOutputStatus === $Failed,
    status = 2;
