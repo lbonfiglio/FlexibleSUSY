@@ -42,15 +42,26 @@ GetInsertionsAsList[FeynmanGraph[props__][insertions__]] := List[insertions];
 GetInsertionsAsList[insertions_List] := insertions;
 
 GetExternalMomentumCType[psq_] := CConversion`CreateCType[CConversion`ScalarType[realScalarCType]];
+
+CreateExternalMomentumCString[Pair[k[i_], k[i_]]] := "k" <> ToString[i] <> "sq";
+
 GetLoopMassCType[msq_] := CConversion`CreateCType[CConversion`ScalarType[realScalarCType]];
+
+CreateLoopMassCString[Mass[field_[Index[Generic, idx_], indices___], Loop]] :=
+    "m" <> ToGenericFieldString[field] <> ToString[idx] <> "sq";
+
 GetCouplingCType[cp_] := "const " <> CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]] <> "&";
+
+CreateCouplingCString[SARAH`Cp[fields__]] := "c" <> ToString[Unique[]];
+
+CreateCouplingCString[SARAH`Cp[fields__][lor__]] := "c" <> ToString[Unique[]];
 
 ExternalMomentumSymbol[idx_] := k[idx];
 
 GetExternalMomenta[process_, diagram_] :=
     Module[{nExt},
            nExt = Length[Join[process[[1]], process[[2]]]];
-           Table[ExternalMomentumSymbol[i], {i, 1, nExt}]
+           Table[Pair[ExternalMomentumSymbol[i], ExternalMomentumSymbol[i]], {i, 1, nExt}]
           ];
 
 GetLoopMasses[process_, diagram_] :=
@@ -83,26 +94,48 @@ CreateOneLoopDiagramName[process_, graphID_, insertions_] :=
            "diagram_" <> processName <> "_" <> idString <> "_" <> internalFieldsLabel
           ];
 
-CreateOneLoopDiagramDeclaration[process_, diagram_] :=
-    Module[{returnType, diagramName, externalMomenta, loopMasses, couplings, args = ""},
-           returnType = CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]];
+CreateDiagramEvaluatorName[process_, diagram_] :=
+    Module[{diagramName},
            diagramName = CreateOneLoopDiagramName[process, diagram[[1]], diagram[[3]]];
+           "calculate_" <> diagramName
+          ];
+
+CreateOneLoopDiagramDeclaration[process_, diagram_] :=
+    Module[{returnType, externalMomenta, loopMasses, couplings, args = ""},
+           returnType = CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]];
            externalMomenta = GetExternalMomenta[process, diagram];
            loopMasses = GetLoopMasses[process, diagram];
            couplings = GetCouplings[process, diagram];
            args = StringJoin[Riffle[Join[GetExternalMomentumCType /@ externalMomenta,
                                          GetLoopMassCType /@ loopMasses,
                                          GetCouplingCType /@ couplings], ", "]];
-           returnType <> " calculate_" <> diagramName <> "(" <> args <> ");"
+           returnType <> " " <> CreateDiagramEvaluatorName[process, diagram] <> "(" <> args <> ");"
           ];
 
 CreateOneLoopDiagramDeclarations[process_, diagrams_] :=
     StringJoin[Riffle[CreateOneLoopDiagramDeclaration[process, #]& /@ diagrams, "\n\n"]];
 
-CreateOneLoopDiagramDefinitions[diagrams_TopologyList, amplitudesExprs_] :=
-    Module[{},
-           ""
+CreateOneLoopDiagramDefinition[process_, diagram_] :=
+    Module[{returnType, externalMomenta, externalMomentaVars, externalMomentaArgs,
+            loopMasses, loopMassesVars, loopMassesArgs,
+            couplings, args = "", body = ""},
+           returnType = CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]];
+           externalMomenta = GetExternalMomenta[process, diagram];
+           externalMomentaVars = CreateExternalMomentumCString /@ externalMomenta;
+           externalMomentaArgs = (GetExternalMomentumCType[#] <> " " <> CreateExternalMomentumCString[#])& /@ externalMomenta;
+           loopMasses = GetLoopMasses[process, diagram];
+           loopMassesVars = CreateLoopMassCString /@ loopMasses;
+           loopMassesArgs = (GetLoopMassCType[#] <> " " <> CreateLoopMassCString[#])& /@ loopMasses;
+           couplings = GetCouplings[process, diagram];
+           couplingsVars = CreateCouplingCString /@ couplings;
+           couplingsArgs = (GetCouplingCType[#] <> " " <> CreateCouplingCString[#])& /@ couplings;
+           args = StringJoin[Riffle[Join[externalMomentaArgs, loopMassesArgs, couplingsArgs], ", "]];
+           returnType <> " " <> CreateDiagramEvaluatorName[process, diagram] <> "(" <> args <> ")\n{" <>
+           TextFormatting`IndentText[body] <> "}"
           ];
+
+CreateOneLoopDiagramDefinitions[process_, diagrams_] :=
+    StringJoin[Riffle[CreateOneLoopDiagramDefinition[process, #]& /@ diagrams, "\n\n"]];
 
 CreateDiagramEvaluators[process_, diagrams_] :=
     Module[{decls, defs},
@@ -139,7 +172,7 @@ decayAmplitudesFiles = {{FileNameJoin[{templatesDir, "one_loop_decay_diagrams.hp
                          FileNameJoin[{resultsDir, "one_loop_decay_diagrams.cpp"}]}};
 WriteOut`ReplaceInFiles[decayAmplitudesFiles,
                         { "@genericOneLoopDiagramEvaluatorDecls@" -> TextFormatting`WrapLines[genericOneLoopDiagramEvaluatorDecls],
-                          "@genericOneLoopDiagramEvaluatorDefs@"  -> genericOneLoopDiagramEvaluatorDefs
+                          "@genericOneLoopDiagramEvaluatorDefs@"  -> TextFormatting`WrapLines[genericOneLoopDiagramEvaluatorDefs]
                         }];
 
 Print["Generating C++ code finished"];
