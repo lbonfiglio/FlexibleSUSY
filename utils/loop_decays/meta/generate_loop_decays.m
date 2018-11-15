@@ -90,9 +90,6 @@ CreateOneLoopDiagramDeclaration[process_, diagram_] :=
            externalMomenta = GetExternalMomenta[process, diagram];
            loopMasses = GetLoopMasses[process, diagram];
            couplings = GetCouplings[process, diagram];
-           Print["externalMomenta = ", externalMomenta];
-           Print["loopMasses = ", loopMasses];
-           Print["couplings = ", couplings];
            args = StringJoin[Riffle[Join[GetExternalMomentumCType /@ externalMomenta,
                                          GetLoopMassCType /@ loopMasses,
                                          GetCouplingCType /@ couplings], ", "]];
