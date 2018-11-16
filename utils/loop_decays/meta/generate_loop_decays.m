@@ -293,16 +293,26 @@ CreateOneLoopDiagramDocString[process_, diagram_] :=
 
 IsSARAHLoopFunction[SARAH`A0] := True;
 IsSARAHLoopFunction[SARAH`B0] := True;
+IsSARAHLoopFunction[SARAH`B1] := True;
 IsSARAHLoopFunction[SARAH`C0] := True;
 IsSARAHLoopFunction[SARAH`C1] := True;
 IsSARAHLoopFunction[SARAH`C2] := True;
+IsSARAHLoopFunction[SARAH`C00] := True;
+IsSARAHLoopFunction[SARAH`C11] := True;
+IsSARAHLoopFunction[SARAH`C12] := True;
+IsSARAHLoopFunction[SARAH`C22] := True;
 IsSARAHLoopFunction[f_] := False;
 
 CreateSavedLoopFunctionName[SARAH`A0[args__]] := "a0tmp";
 CreateSavedLoopFunctionName[SARAH`B0[args__]] := "b0tmp";
+CreateSavedLoopFunctionName[SARAH`B1[args__]] := "b1tmp";
 CreateSavedLoopFunctionName[SARAH`C0[args__]] := "c0tmp";
 CreateSavedLoopFunctionName[SARAH`C1[args__]] := "c1tmp";
 CreateSavedLoopFunctionName[SARAH`C2[args__]] := "c2tmp";
+CreateSavedLoopFunctionName[SARAH`C00[args__]] := "c00tmp";
+CreateSavedLoopFunctionName[SARAH`C11[args__]] := "c11tmp";
+CreateSavedLoopFunctionName[SARAH`C12[args__]] := "c12tmp";
+CreateSavedLoopFunctionName[SARAH`C22[args__]] := "c22tmp";
 
 CreateLoopFunctionArgumentName[Pair[ExternalMomentumSymbol[i_], ExternalMomentumSymbol[j_]]] :=
     CreateExternalMomentumCString[ExternalMomentumSymbol[i]] <> "*" <>
