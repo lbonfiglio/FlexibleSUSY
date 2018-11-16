@@ -73,8 +73,6 @@ public:
 @[abstract]extraParameterGetters@
 @[abstract]massCalculationPrototypes@
 @[abstract]tadpoleEqPrototypes@
-@[abstract]loopMassesPrototypes@
-@[abstract]runningDRbarMassesPrototypes@
 @[abstract]dependencePrototypes@
 };
 
