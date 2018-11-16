@@ -183,14 +183,17 @@ CreateDiagramEvaluatorName[process_, diagram_] :=
           ];
 
 CreateOneLoopDiagramDeclaration[process_, diagram_] :=
-    Module[{returnType, externalMomenta, loopMasses, couplings, args = ""},
+    Module[{returnType, externalMomenta, loopMasses, couplings,
+            formFactors, args = ""},
            returnType = GetAmplitudeCType[process];
            externalMomenta = GetExternalMomenta[process, diagram];
            loopMasses = GetLoopMasses[process, diagram];
            couplings = GetCouplings[process, diagram];
+           formFactors = Last[diagram];
            args = StringJoin[Riffle[Join[GetExternalMomentumCType /@ externalMomenta,
                                          GetLoopMassCType /@ loopMasses,
-                                         GetCouplingCType /@ couplings], ", "]];
+                                         GetCouplingCType /@ couplings], ", "]] <>
+                  ", double" <> If[!FreeQ[formFactors, Finite], ", double", ""];
            returnType <> " " <> CreateDiagramEvaluatorName[process, diagram] <> "(" <> args <> ");"
           ];
 
@@ -282,18 +285,18 @@ CreateLoopFunctionArgumentName[arg_^2 /; IsLoopMass[arg]] :=
 CreateLoopFunctionArgumentName[arg_ /; IsLoopMass[arg]] :=
     CreateLoopMassCString[arg];
 
-CallLoopFunction[fn_[args__], namespace_:"passarino_veltman"] :=
+CallLoopFunction[fn_[args__], renScale_String, namespace_:"passarino_veltman"] :=
     Module[{argsStr},
            argsStr = StringJoin[Riffle[CreateLoopFunctionArgumentName /@ List[args], ", "]];
-           namespace <> "::" <> ToString[fn] <> "(" <> argsStr <> ")"
+           namespace <> "::" <> ToString[fn] <> "(" <> argsStr <> ", " <> renScale <> "*" <> renScale <> ")"
           ];
 
-SaveLoopIntegrals[diagram_] :=
+SaveLoopIntegrals[diagram_, renScale_String] :=
     Module[{formFactors, loopFunctions, tmpVars, savedValues, subs},
            formFactors = Last[diagram];
            loopFunctions = Sort[DeleteDuplicates[Cases[formFactors, fn_[args__] /; IsSARAHLoopFunction[fn], {0, Infinity}]]];
            tmpVars = MapIndexed[(CreateSavedLoopFunctionName[#1] <> ToString[First[#2]])&, loopFunctions];
-           savedValues = MapThread[("const auto " <> #1 <> " = " <> CallLoopFunction[#2] <> ";\n")&, {tmpVars, loopFunctions}];
+           savedValues = MapThread[("const auto " <> #1 <> " = " <> CallLoopFunction[#2, renScale] <> ";\n")&, {tmpVars, loopFunctions}];
            savedValues = StringJoin[savedValues];
            subs = MapThread[Rule[#1, Symbol[#2]]&, {loopFunctions, tmpVars}];
            {savedValues, subs}
@@ -304,7 +307,7 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
             loopMasses, loopMassesArgs, loopMassesSubs,
             couplings, couplingsArgs, couplingsSubs, argSubs,
             saveLoopIntegrals, loopIntegralSubs,
-            formFactorExprs,
+            formFactorExprs, renScale = "scale",
             args = "", body = "", docString = ""},
            returnType = GetAmplitudeCType[process];
 
@@ -319,7 +322,7 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
            couplingsSubs = Rule[#[[1]], Symbol[#[[2]]]]& /@ couplings;
            argSubs = Join[couplingsSubs, loopMassesSubs, externalMomentaSubs];
 
-           {saveLoopIntegrals, loopIntegralSubs} = SaveLoopIntegrals[diagram];
+           {saveLoopIntegrals, loopIntegralSubs} = SaveLoopIntegrals[diagram, renScale];
 
            body = body <> saveLoopIntegrals <> "\n";
 
@@ -333,7 +336,8 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
            args = StringJoin[Riffle[externalMomentaArgs, ", "]] <> ",\n" <>
                   StringJoin[Riffle[loopMassesArgs, ", "]] <> ",\n" <>
                   StringJoin[Riffle[couplingsArgs, ", "]] <>
-                  If[!FreeQ[formFactorExprs, Finite], ",\ndouble finite", ""];
+                  ",\ndouble " <> renScale <>
+                  If[!FreeQ[formFactorExprs, Finite], ", double finite", ""];
 
            docString = CreateOneLoopDiagramDocString[process, diagram];
 
