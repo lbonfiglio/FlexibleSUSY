@@ -61,6 +61,15 @@ GetAmplitudeCType[Rule[{F}, {V, F}]] := "Decay_amplitude_FFV";
 
 GetFormFactorName[Rule[{S}, {S, S}], 1] := "form_factor";
 
+GetFormFactorName[Rule[{S}, {S, V}], Pair[ec[3], k[1]]] := "form_factor";
+
+GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], ec[3]]] := "form_factor_g";
+GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], k[2]] Pair[ec[3], k[2]]] := "form_factor_11";
+GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], k[2]] Pair[ec[3], k[3]]] := "form_factor_12";
+GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], k[3]] Pair[ec[3], k[2]]] := "form_factor_21";
+GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], k[3]] Pair[ec[3], k[3]]] := "form_factor_22";
+GetFormFactorName[Rule[{S}, {V, V}], Eps[ec[2], ec[3], k[2], k[3]]] := "form_factor_eps";
+
 ExternalMomentumSymbol[idx_] := k[idx];
 CreateExternalMomentumCString[ExternalMomentumSymbol[idx_]] := "mext" <> ToString[idx];
 CreateExternalMomentumCString[Pair[k[i_], k[i_]]] := "k" <> ToString[i] <> "sq";
@@ -259,6 +268,55 @@ FillAmplitudeMasses[Rule[{S}, {S, S}], diagram_, struct_:"result"] :=
            struct <> ".m_out_2 = " <> outgoingTwo  <> ";\n"
           ];
 
+FillAmplitudeMasses[Rule[{S}, {V, V}], diagram_, struct_:"result"] :=
+    Module[{topology, incomingIndex, outgoingIndices, incomingMass, outgoingOne, outgoingTwo},
+           topology = diagram[[2]];
+           incomingIndex = Cases[topology, Propagator[Incoming][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[incomingIndex] != 1,
+              Print["Error: number of incoming fields is not one."];
+              Quit[1];
+             ];
+           outgoingIndices = Cases[topology, Propagator[Outgoing][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[outgoingIndices] != 2,
+              Print["Error: number of outgoing fields is not two."];
+              Quit[1];
+             ];
+           incomingMass = CreateExternalMomentumCString[ExternalMomentumSymbol[First[incomingIndex]]];
+           outgoingOne = CreateExternalMomentumCString[ExternalMomentumSymbol[First[outgoingIndices]]];
+           outgoingTwo = CreateExternalMomentumCString[ExternalMomentumSymbol[Last[outgoingIndices]]];
+           struct <> ".m_decay = " <> incomingMass <> ";\n" <>
+           struct <> ".m_out_1 = " <> outgoingOne  <> ";\n"<>
+           struct <> ".m_out_2 = " <> outgoingTwo  <> ";\n"
+          ];
+
+FillAmplitudeMasses[Rule[{S}, {V, S}], diagram_, struct_:"result"] :=
+    FillAmplitudeMasses[Rule[{S}, {S, V}] , diagram, struct];
+
+FillAmplitudeMasses[Rule[{S}, {S, V}], diagram_, struct_:"result"] :=
+    Module[{topology, insertions, incomingIndex, outgoingIndices,
+            scalarIndex, vectorIndex, incomingMass, outgoingScalar, outgoingVector},
+           topology = diagram[[2]];
+           insertions = List @@ diagram[[3]] /. (Field[i_] -> f_) :> {i, f};
+           incomingIndex = Cases[topology, Propagator[Incoming][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[incomingIndex] != 1,
+              Print["Error: number of incoming fields is not one."];
+              Quit[1];
+             ];
+           outgoingIndices = Cases[topology, Propagator[Outgoing][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[outgoingIndices] != 2,
+              Print["Error: number of outgoing fields is not two."];
+              Quit[1];
+             ];
+           scalarIndex = Cases[insertions, ({i_, S} /; MemberQ[outgoingIndices, i]) :> i];
+           vectorIndex = Complement[outgoingIndices, scalarIndex];
+           incomingMass = CreateExternalMomentumCString[ExternalMomentumSymbol[First[incomingIndex]]];
+           outgoingScalar = CreateExternalMomentumCString[ExternalMomentumSymbol[First[scalarIndex]]];
+           outgoingVector = CreateExternalMomentumCString[ExternalMomentumSymbol[First[vectorIndex]]];
+           struct <> ".m_decay = " <> incomingMass <> ";\n" <>
+           struct <> ".m_scalar = " <> outgoingScalar  <> ";\n"<>
+           struct <> ".m_vector = " <> outgoingVector  <> ";\n"
+          ];
+
 CreateCouplingDescription[SARAH`Cp[fields__][SARAH`PL]] :=
     "left-handed " <> CreateCouplingDescription[SARAH`Cp[fields]];
 
@@ -398,10 +456,10 @@ CreateDiagramEvaluators[process_, diagrams_] :=
           ];
 
 genericProcesses = {
-    {S} -> {S, S} (*,
-    {S} -> {F, F},
-    {S} -> {V, V},
-    {S} -> {S, V} *)
+    {S} -> {S, S}, (*
+    {S} -> {V, V},*)
+    {S} -> {S, V} (*,
+    {S} -> {F, F} *)
 };
 
 genericOneLoopDiagramEvaluatorDecls = "";
