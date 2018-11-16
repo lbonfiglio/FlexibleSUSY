@@ -8,7 +8,9 @@ META_SRC	:= \
 		$(META_DIR)/OneLoopDecaysUtils.m
 
 CALC_AMPLITUDES_SRC := \
-		$(META_DIR)/calc_amplitudes_SSS.m
+		$(META_DIR)/calc_amplitudes_SSS.m \
+		$(META_DIR)/calc_amplitudes_SSV.m \
+		$(META_DIR)/calc_amplitudes_SVV.m
 
 CALC_AMPLITUDES_DIAGS := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/diagrams_%.m,$(CALC_AMPLITUDES_SRC))
 CALC_AMPLITUDES_AMPS := $(patsubst $(META_DIR)/calc_amplitudes_%.m,$(OUTPUT_DIR)/amplitudes_%.m,$(CALC_AMPLITUDES_SRC))
