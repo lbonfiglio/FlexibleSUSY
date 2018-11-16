@@ -24,6 +24,12 @@ ToFieldString[field_] := ToString[field];
 ToGenericFieldString[field_[indices__Integer]] := ToFieldString[field];
 ToGenericFieldString[field_] := ToFieldString[field];
 
+IsNonZeroDiagram[diagram_] :=
+    Module[{formFactors},
+           formFactors = Last[diagram];
+           Select[formFactors, (Last[#] =!= 0)&] =!= {}
+          ];
+
 CreateProcessName[Rule[{initial_}, finalState_List]] :=
     ToGenericFieldString[initial] <> StringJoin[Sort[ToGenericFieldString /@ finalState]];
 
@@ -396,10 +402,11 @@ For[i = 1, i <= Length[genericProcesses], i++,
     Print["Creating C++ code for process: ", process, " ..."];
     Print["... reading input files"];
     diagramExprs = ReadFormFactorsExprs[process, resultsDir];
+    diagramExprs = Select[diagramExprs, IsNonZeroDiagram];
     Print["... generating evaluation functions"];
     {decls, defs} = CreateDiagramEvaluators[process, diagramExprs];
-    genericOneLoopDiagramEvaluatorDecls = genericOneLoopDiagramEvaluatorDecls <> decls;
-    genericOneLoopDiagramEvaluatorDefs = genericOneLoopDiagramEvaluatorDefs <> defs;
+    genericOneLoopDiagramEvaluatorDecls = genericOneLoopDiagramEvaluatorDecls <> "\n\n" <> decls;
+    genericOneLoopDiagramEvaluatorDefs = genericOneLoopDiagramEvaluatorDefs <> "\n\n" <> defs;
    ];
 
 Print["Writing output files ..."];
