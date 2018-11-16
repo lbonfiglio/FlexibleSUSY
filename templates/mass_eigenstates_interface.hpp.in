@@ -45,9 +45,6 @@ class @ModelName@_mass_eigenstates_interface {
 public:
    virtual ~@ModelName@_mass_eigenstates_interface() {}
 
-   /// number of EWSB equations
-   static const int number_of_ewsb_equations = @numberOfEWSBEquations@;
-
    virtual void calculate_tree_level_mass_spectrum() = 0;
    virtual void calculate_pole_mass_spectrum() = 0;
    virtual void calculate_mass_spectrum() = 0;
