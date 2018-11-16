@@ -56,13 +56,13 @@ GetAmplitudeCType[Rule[{F}, {V, F}]] := "Decay_amplitude_FFV";
 GetFormFactorName[Rule[{S}, {S, S}], 1] := "form_factor";
 
 ExternalMomentumSymbol[idx_] := k[idx];
+CreateExternalMomentumCString[ExternalMomentumSymbol[idx_]] := "mext" <> ToString[idx];
+CreateExternalMomentumCString[Pair[k[i_], k[i_]]] := "k" <> ToString[i] <> "sq";
 
 IsExternalMomentumSquared[Pair[ExternalMomentumSymbol[i_], ExternalMomentumSymbol[i_]]] := True;
 IsExternalMomentumSquared[_] := False;
 
 GetExternalMomentumCType[psq_] := CConversion`CreateCType[CConversion`ScalarType[realScalarCType]];
-
-CreateExternalMomentumCString[Pair[k[i_], k[i_]]] := "k" <> ToString[i] <> "sq";
 
 IsLoopMass[Mass[fields_[indices__], Loop]] := True;
 IsLoopMass[_] := False;
@@ -92,12 +92,13 @@ CreateCouplingCString[SARAH`Cp[fields__][SARAH`PR]] :=
 CreateCouplingCString[SARAH`Cp[fields__][lor_]] :=
     CreateCouplingCString[SARAH`Cp[fields]];
 
+GetExternalMomentumIndex[ExternalMomentumSymbol[i_]] := i;
 GetExternalMomentumIndex[Pair[ExternalMomentumSymbol[i_], ExternalMomentumSymbol[i_]]] := i;
 
 GetExternalMomenta[process_, diagram_] :=
     Module[{nExt},
            nExt = Length[Join[process[[1]], process[[2]]]];
-           Table[Pair[ExternalMomentumSymbol[i], ExternalMomentumSymbol[i]], {i, 1, nExt}]
+           Table[ExternalMomentumSymbol[i], {i, 1, nExt}]
           ];
 
 SortMassesByGenericIndex[masses_List] :=
@@ -231,6 +232,27 @@ CreateCouplingDescription[SARAH`Cp[fields__]] :=
            desc <> StringJoin[Riffle[ToFieldString /@ genericFields, ", "]]
           ];
 
+FillAmplitudeMasses[Rule[{S}, {S, S}], diagram_, struct_:"result"] :=
+    Module[{topology, incomingIndex, outgoingIndices, incomingMass, outgoingOne, outgoingTwo},
+           topology = diagram[[2]];
+           incomingIndex = Cases[topology, Propagator[Incoming][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[incomingIndex] != 1,
+              Print["Error: number of incoming fields is not one."];
+              Quit[1];
+             ];
+           outgoingIndices = Cases[topology, Propagator[Outgoing][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[outgoingIndices] != 2,
+              Print["Error: number of outgoing fields is not two."];
+              Quit[1];
+             ];
+           incomingMass = CreateExternalMomentumCString[ExternalMomentumSymbol[First[incomingIndex]]];
+           outgoingOne = CreateExternalMomentumCString[ExternalMomentumSymbol[First[outgoingIndices]]];
+           outgoingTwo = CreateExternalMomentumCString[ExternalMomentumSymbol[Last[outgoingIndices]]];
+           struct <> ".m_decay = " <> incomingMass <> ";\n" <>
+           struct <> ".m_out_1 = " <> outgoingOne  <> ";\n"<>
+           struct <> ".m_out_2 = " <> outgoingTwo  <> ";\n"
+          ];
+
 CreateCouplingDescription[SARAH`Cp[fields__][SARAH`PL]] :=
     "left-handed " <> CreateCouplingDescription[SARAH`Cp[fields]];
 
@@ -248,7 +270,7 @@ CreateOneLoopDiagramDocString[process_, diagram_] :=
                    " diagram for process " <> CreateProcessString[process] <> "\n";
            docString = docString <> brief <> " *\n";
            externalMomenta = GetExternalMomentaVars[process, diagram];
-           momentaInfo = (" * @param[in] " <> #[[2]] <> " squared momentum of external field " <>
+           momentaInfo = (" * @param[in] " <> #[[2]] <> " mass of external field " <>
                           ToString[GetExternalMomentumIndex[#[[1]]]])& /@ externalMomenta;
            loopMasses = GetLoopMassesVars[process, diagram];
            massesInfo = (" * @param[in] " <> #[[2]] <> " mass of internal field " <>
@@ -276,8 +298,9 @@ CreateSavedLoopFunctionName[SARAH`C0[args__]] := "c0tmp";
 CreateSavedLoopFunctionName[SARAH`C1[args__]] := "c1tmp";
 CreateSavedLoopFunctionName[SARAH`C2[args__]] := "c2tmp";
 
-CreateLoopFunctionArgumentName[arg_ /; IsExternalMomentumSquared[arg]] :=
-    CreateExternalMomentumCString[arg];
+CreateLoopFunctionArgumentName[Pair[ExternalMomentumSymbol[i_], ExternalMomentumSymbol[j_]]] :=
+    CreateExternalMomentumCString[ExternalMomentumSymbol[i]] <> "*" <>
+    CreateExternalMomentumCString[ExternalMomentumSymbol[j]];
 
 CreateLoopFunctionArgumentName[arg_^2 /; IsLoopMass[arg]] :=
     CreateLoopMassCString[arg] <> "*" <> CreateLoopMassCString[arg];
@@ -307,13 +330,13 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
             loopMasses, loopMassesArgs, loopMassesSubs,
             couplings, couplingsArgs, couplingsSubs, argSubs,
             saveLoopIntegrals, loopIntegralSubs,
-            formFactorExprs, renScale = "scale",
+            formFactorExprs, fillExternalMasses, calculateFormFactors, renScale = "scale",
             args = "", body = "", docString = ""},
            returnType = GetAmplitudeCType[process];
 
            externalMomenta = GetExternalMomentaVars[process, diagram];
            externalMomentaArgs = (#[[3]] <> " " <> #[[2]])& /@ externalMomenta;
-           externalMomentaSubs = Rule[#[[1]], Symbol[#[[2]]]]& /@ externalMomenta;
+           externalMomentaSubs = Flatten[{Rule[Pair[#[[1]], #[[1]]], Symbol[#[[2]]]^2], Rule[#[[1]], Symbol[#[[2]]]]}& /@ externalMomenta];
            loopMasses = GetLoopMassesVars[process, diagram];
            loopMassesArgs = (#[[3]] <> " " <> #[[2]])& /@ loopMasses;
            loopMassesSubs = Rule[#[[1]], Symbol[#[[2]]]]& /@ loopMasses;
@@ -329,7 +352,8 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
            formFactorExprs = Last[diagram];
            formFactorValues = {GetFormFactorName[process, #[[1]]], "oneOver16PiSqr*(" <>
                                CConversion`RValueToCFormString[Simplify[(16 Pi^2 #[[2]]) /. loopIntegralSubs /. argSubs]] <> ")"}& /@ formFactorExprs;
-           calculateFormFactors = returnType <> " result;\n" <>
+           fillExternalMasses = FillAmplitudeMasses[process, diagram, "result"];
+           calculateFormFactors = returnType <> " result;\n\n" <> fillExternalMasses <> "\n" <>
                                   StringJoin[("result." <> #[[1]] <> " = " <> #[[2]] <> ";\n")& /@ formFactorValues];
            body = body <> StringReplace[calculateFormFactors, "Finite" -> "finite"] <> "\nreturn result;\n";
 
