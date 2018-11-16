@@ -318,9 +318,6 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
            couplingsArgs = (#[[3]] <> " " <> #[[2]])& /@ couplings;
            couplingsSubs = Rule[#[[1]], Symbol[#[[2]]]]& /@ couplings;
            argSubs = Join[couplingsSubs, loopMassesSubs, externalMomentaSubs];
-           args = StringJoin[Riffle[externalMomentaArgs, ", "]] <> ",\n" <>
-                  StringJoin[Riffle[loopMassesArgs, ", "]] <> ",\n" <>
-                  StringJoin[Riffle[couplingsArgs, ", "]];
 
            {saveLoopIntegrals, loopIntegralSubs} = SaveLoopIntegrals[diagram];
 
@@ -331,7 +328,12 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
                                CConversion`RValueToCFormString[Simplify[#[[2]] /. loopIntegralSubs /. argSubs]]}& /@ formFactorExprs;
            calculateFormFactors = returnType <> " result;\n" <>
                                   StringJoin[("result." <> #[[1]] <> " = " <> #[[2]] <> ";\n")& /@ formFactorValues];
-           body = body <> calculateFormFactors <> "\nreturn result;\n";
+           body = body <> StringReplace[calculateFormFactors, "Finite" -> "finite"] <> "\nreturn result;\n";
+
+           args = StringJoin[Riffle[externalMomentaArgs, ", "]] <> ",\n" <>
+                  StringJoin[Riffle[loopMassesArgs, ", "]] <> ",\n" <>
+                  StringJoin[Riffle[couplingsArgs, ", "]] <>
+                  If[!FreeQ[formFactorExprs, Finite], ",\ndouble finite", ""];
 
            docString = CreateOneLoopDiagramDocString[process, diagram];
 
