@@ -19,6 +19,8 @@
 #ifndef ONE_LOOP_DECAY_DIAGRAMS_H
 #define ONE_LOOP_DECAY_DIAGRAMS_H
 
+#include "decay_amplitudes.hpp"
+
 #include <complex>
 
 namespace flexiblesusy {
