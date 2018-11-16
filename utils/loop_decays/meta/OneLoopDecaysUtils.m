@@ -143,7 +143,8 @@ CouplingToSARAHCpRules[] :=
                                   + SARAH`g[SARAHLorentzIndex[i1], SARAHLorentzIndex[i3]] (SARAH`Mom[{fields}[[i1]]] - SARAH`Mom[{fields}[[i3]]])
                                   + SARAH`g[SARAHLorentzIndex[i2], SARAHLorentzIndex[i3]] (SARAH`Mom[{fields}[[i3]]] - SARAH`Mom[{fields}[[i2]]])]],
      RuleDelayed[FeynArts`G[_][0][fields__]["d_"[FeynArts`KI1[i1_], FeynArts`KI1[i2_]] "d_"[FeynArts`KI1[i3_], FeynArts`KI1[i4_]]],
-                 SARAH`Cp[fields][SARAH`g[SARAHLorentzIndex[i1], SARAHLorentzIndex[i2]] SARAH`g[SARAHLorentzIndex[i3], SARAHLorentzIndex[i4]]]]
+                 SARAH`Cp[fields][SARAH`g[SARAHLorentzIndex[i1], SARAHLorentzIndex[i2]] SARAH`g[SARAHLorentzIndex[i3], SARAHLorentzIndex[i4]]]],
+     RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`Mom[i1_]], SARAH`Cp[fields][SARAH`Mom[{fields}[[i1]]]]]
     };
 
 ToSARAHCouplings[expr_] := expr /. CouplingToSARAHCpRules[];
@@ -156,7 +157,11 @@ LoopFunctionToFSNotationRules[] :=
      RuleDelayed[LoopTools`B0i[LoopTools`bb11, args__], SARAH`B11[args]],
      RuleDelayed[LoopTools`C0i[LoopTools`cc0, args__], SARAH`C0[args]],
      RuleDelayed[LoopTools`C0i[LoopTools`cc1, args__], SARAH`C1[args]],
-     RuleDelayed[LoopTools`C0i[LoopTools`cc2, args__], SARAH`C2[args]]
+     RuleDelayed[LoopTools`C0i[LoopTools`cc2, args__], SARAH`C2[args]],
+     RuleDelayed[LoopTools`C0i[LoopTools`cc00, args__], SARAH`C00[args]],
+     RuleDelayed[LoopTools`C0i[LoopTools`cc11, args__], SARAH`C11[args]],
+     RuleDelayed[LoopTools`C0i[LoopTools`cc12, args__], SARAH`C12[args]],
+     RuleDelayed[LoopTools`C0i[LoopTools`cc22, args__], SARAH`C22[args]]
     };
 
 ToFSLoopFunctions[expr_] := expr /. LoopFunctionToFSNotationRules[];
