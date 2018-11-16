@@ -17,6 +17,7 @@
 // ====================================================================
 
 #include "one_loop_decay_diagrams.hpp"
+#include "pv.hpp"
 
 namespace flexiblesusy {
 

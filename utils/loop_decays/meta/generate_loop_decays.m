@@ -45,14 +45,23 @@ GetInsertionsAsList[insertions_List] := insertions;
 
 ExternalMomentumSymbol[idx_] := k[idx];
 
+IsExternalMomentumSquared[Pair[ExternalMomentumSymbol[i_], ExternalMomentumSymbol[i_]]] := True;
+IsExternalMomentumSquared[_] := False;
+
 GetExternalMomentumCType[psq_] := CConversion`CreateCType[CConversion`ScalarType[realScalarCType]];
 
 CreateExternalMomentumCString[Pair[k[i_], k[i_]]] := "k" <> ToString[i] <> "sq";
 
+IsLoopMass[Mass[fields_[indices__], Loop]] := True;
+IsLoopMass[_] := False;
+
 GetLoopMassCType[msq_] := CConversion`CreateCType[CConversion`ScalarType[realScalarCType]];
 
-CreateLoopMassCString[Mass[field_[Index[Generic, idx_], indices___], Loop]] :=
+CreateLoopMassCString[Mass[field_[Index[Generic, idx_], indices___], Loop]^2] :=
     "m" <> ToGenericFieldString[field] <> ToString[idx] <> "sq";
+
+CreateLoopMassCString[Mass[field_[Index[Generic, idx_], indices___], Loop]] :=
+    "m" <> ToGenericFieldString[field] <> ToString[idx];
 
 GetCouplingCType[cp_] := "const " <> CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]] <> "&";
 
@@ -227,7 +236,7 @@ CreateOneLoopDiagramDocString[process_, diagram_] :=
            momentaInfo = (" * @param[in] " <> #[[2]] <> " squared momentum of external field " <>
                           ToString[GetExternalMomentumIndex[#[[1]]]])& /@ externalMomenta;
            loopMasses = GetLoopMassesVars[process, diagram];
-           massesInfo = (" * @param[in] " <> #[[2]] <> " squared mass of internal field " <>
+           massesInfo = (" * @param[in] " <> #[[2]] <> " mass of internal field " <>
                           ToString[GetLoopMassIndex[#[[1]]]])& /@ loopMasses;
            couplings = GetCouplingsVars[process, diagram];
            couplingsInfo = (" * @param[in] " <> #[[2]] <> " " <>
@@ -239,25 +248,76 @@ CreateOneLoopDiagramDocString[process_, diagram_] :=
            "/**\n" <> docString <> " */\n"
           ];
 
+IsSARAHLoopFunction[SARAH`A0] := True;
+IsSARAHLoopFunction[SARAH`B0] := True;
+IsSARAHLoopFunction[SARAH`C0] := True;
+IsSARAHLoopFunction[SARAH`C1] := True;
+IsSARAHLoopFunction[SARAH`C2] := True;
+IsSARAHLoopFunction[f_] := False;
+
+CreateSavedLoopFunctionName[SARAH`A0[args__]] := "a0_tmp";
+CreateSavedLoopFunctionName[SARAH`B0[args__]] := "b0_tmp";
+CreateSavedLoopFunctionName[SARAH`C0[args__]] := "c0_tmp";
+CreateSavedLoopFunctionName[SARAH`C1[args__]] := "c1_tmp";
+CreateSavedLoopFunctionName[SARAH`C2[args__]] := "c2_tmp";
+
+CreateLoopFunctionArgumentName[arg_ /; IsExternalMomentumSquared[arg]] :=
+    CreateExternalMomentumCString[arg];
+
+CreateLoopFunctionArgumentName[arg_^2 /; IsLoopMass[arg]] :=
+    CreateLoopMassCString[arg] <> "*" <> CreateLoopMassCString[arg];
+
+CreateLoopFunctionArgumentName[arg_ /; IsLoopMass[arg]] :=
+    CreateLoopMassCString[arg];
+
+CallLoopFunction[fn_[args__], namespace_:"passarino_veltman"] :=
+    Module[{argsStr},
+           argsStr = StringJoin[Riffle[CreateLoopFunctionArgumentName /@ List[args], ", "]];
+           namespace <> "::" <> ToString[fn] <> "(" <> argsStr <> ")"
+          ];
+
+SaveLoopIntegrals[diagram_] :=
+    Module[{formFactors, loopFunctions, tmpVars, savedValues, subs},
+           formFactors = Last[diagram];
+           loopFunctions = Sort[DeleteDuplicates[Cases[formFactors, fn_[args__] /; IsSARAHLoopFunction[fn], {0, Infinity}]]];
+           tmpVars = MapIndexed[(CreateSavedLoopFunctionName[#1] <> "_" <> ToString[First[#2]])&, loopFunctions];
+           savedValues = MapThread[("const auto " <> #1 <> " = " <> CallLoopFunction[#2] <> ";\n")&, {tmpVars, loopFunctions}];
+           savedValues = StringJoin[savedValues];
+           subs = MapThread[Rule[#1, #2]&, {loopFunctions, tmpVars}];
+           {savedValues, subs}
+          ];
+
 CreateOneLoopDiagramDefinition[process_, diagram_] :=
-    Module[{returnType, externalMomenta, externalMomentaArgs,
-            loopMasses, loopMassesArgs,
-            couplings, couplingsArgs, args = "", body = "", docString = ""},
+    Module[{returnType, externalMomenta, externalMomentaArgs, externalMomentaSubs,
+            loopMasses, loopMassesArgs, loopMassesSubs,
+            couplings, couplingsArgs, couplingsSubs,
+            saveLoopIntegrals, loopIntegralSubs,
+            args = "", body = "", docString = ""},
            returnType = CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]];
+
            externalMomenta = GetExternalMomentaVars[process, diagram];
            externalMomentaArgs = (#[[3]] <> " " <> #[[2]])& /@ externalMomenta;
+           externalMomentaSubs = Rule[#[[1]], #[[2]]]& /@ externalMomenta;
            loopMasses = GetLoopMassesVars[process, diagram];
            loopMassesArgs = (#[[3]] <> " " <> #[[2]])& /@ loopMasses;
+           loopMassesSubs = Rule[#[[1]], #[[2]]]& /@ loopMasses;
            couplings = GetCouplingsVars[process, diagram];
            couplingsArgs = (#[[3]] <> " " <> #[[2]])& /@ couplings;
+           couplingsSubs = Rule[#[[1]], #[[2]]]& /@ couplings;
            args = StringJoin[Riffle[externalMomentaArgs, ", "]] <> ",\n" <>
                   StringJoin[Riffle[loopMassesArgs, ", "]] <> ",\n" <>
                   StringJoin[Riffle[couplingsArgs, ", "]];
+
+           {saveLoopIntegrals, loopIntegralSubs} = SaveLoopIntegrals[diagram];
+
+           body = body <> saveLoopIntegrals;
+
            docString = CreateOneLoopDiagramDocString[process, diagram];
+
            docString <>
            returnType <> " " <> CreateDiagramEvaluatorName[process, diagram] <> "(\n" <>
-           TextFormatting`IndentText[args] <> ")\n{" <>
-           TextFormatting`IndentText[body] <> "}"
+           TextFormatting`IndentText[args] <> ")\n{\n" <>
+           TextFormatting`IndentText[body] <> "\n}"
           ];
 
 CreateOneLoopDiagramDefinitions[process_, diagrams_] :=
