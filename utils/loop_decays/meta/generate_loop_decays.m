@@ -324,8 +324,8 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
            body = body <> saveLoopIntegrals <> "\n";
 
            formFactorExprs = Last[diagram];
-           formFactorValues = {GetFormFactorName[process, #[[1]]],
-                               CConversion`RValueToCFormString[Simplify[#[[2]] /. loopIntegralSubs /. argSubs]]}& /@ formFactorExprs;
+           formFactorValues = {GetFormFactorName[process, #[[1]]], "oneOver16PiSqr*(" <>
+                               CConversion`RValueToCFormString[Simplify[(16 Pi^2 #[[2]]) /. loopIntegralSubs /. argSubs]] <> ")"}& /@ formFactorExprs;
            calculateFormFactors = returnType <> " result;\n" <>
                                   StringJoin[("result." <> #[[1]] <> " = " <> #[[2]] <> ";\n")& /@ formFactorValues];
            body = body <> StringReplace[calculateFormFactors, "Finite" -> "finite"] <> "\nreturn result;\n";
