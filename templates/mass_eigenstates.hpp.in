@@ -46,6 +46,8 @@
 
 #include <Eigen/Core>
 
+#define SUPER(p) @ModelName@_soft_parameters::get_##p()
+
 namespace flexiblesusy {
 
 class @ModelName@_ewsb_solver_interface;
@@ -128,6 +130,8 @@ public:
    void clear_problems() override;
 
 @lspGetters@
+@[override]delegateParameterGetters@
+@[override]delegateParameterSetters@
 @[override]massGetters@
 @[override]higgsMassGetterPrototypes@
 @[override]mixingMatrixGetters@
@@ -199,5 +203,7 @@ private:
 std::ostream& operator<<(std::ostream&, const @ModelName@_mass_eigenstates&);
 
 } // namespace flexiblesusy
+
+#undef SUPER
 
 #endif

@@ -65,6 +65,8 @@ public:
    virtual void set_physical(const @ModelName@_physical&) = 0;
    virtual void clear_problems() = 0;
 
+@[abstract]parameterGetters@
+@[abstract]parameterSetters@
 @[abstract]massGetters@
 @[abstract]higgsMassGetterPrototypes@
 @[abstract]mixingMatrixGetters@
