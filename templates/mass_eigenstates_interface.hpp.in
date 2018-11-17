@@ -31,11 +31,15 @@
 #define @ModelName@_MASS_EIGENSTATES_INTERFACE_H
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 
 #include <Eigen/Core>
 
 namespace flexiblesusy {
+
+class Problems;
+class @ModelName@_physical;
 
 /**
  * @class @ModelName@_mass_eigenstates_interface
@@ -44,6 +48,8 @@ namespace flexiblesusy {
 class @ModelName@_mass_eigenstates_interface {
 public:
    virtual ~@ModelName@_mass_eigenstates_interface() {}
+
+   virtual std::unique_ptr<@ModelName@_mass_eigenstates_interface> clone() const = 0;
 
    virtual void calculate_tree_level_mass_spectrum() = 0;
    virtual void calculate_pole_mass_spectrum() = 0;

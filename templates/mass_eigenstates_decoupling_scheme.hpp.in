@@ -65,6 +65,8 @@ public:
    @ModelName@_mass_eigenstates_decoupling_scheme& operator=(const @ModelName@_mass_eigenstates_decoupling_scheme&) = default;
    @ModelName@_mass_eigenstates_decoupling_scheme& operator=(@ModelName@_mass_eigenstates_decoupling_scheme&&) = default;
 
+   std::unique_ptr<@ModelName@_mass_eigenstates_interface> clone() const override;
+
    /// number of EWSB equations
    static const int number_of_ewsb_equations = @numberOfEWSBEquations@;
 

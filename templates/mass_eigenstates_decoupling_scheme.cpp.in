@@ -69,6 +69,11 @@ CLASSNAME::@ModelName@_mass_eigenstates_decoupling_scheme(const @ModelName@_inpu
 {
 }
 
+std::unique_ptr<@ModelName@_mass_eigenstates_interface> CLASSNAME::clone() const
+{
+   return std::make_unique<@ModelName@_mass_eigenstates_decoupling_scheme>(*this);
+}
+
 void CLASSNAME::do_force_output(bool flag)
 {
    force_output = flag;

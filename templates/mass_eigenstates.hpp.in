@@ -67,6 +67,8 @@ public:
    @ModelName@_mass_eigenstates& operator=(const @ModelName@_mass_eigenstates&) = default;
    @ModelName@_mass_eigenstates& operator=(@ModelName@_mass_eigenstates&&) = default;
 
+   std::unique_ptr<@ModelName@_mass_eigenstates_interface> clone() const override;
+
    /// number of EWSB equations
    static const int number_of_ewsb_equations = @numberOfEWSBEquations@;
 
