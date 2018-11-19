@@ -33,21 +33,22 @@
 #include "@ModelName@_mass_eigenstates_decoupling_scheme.hpp"
 #include "config.h"
 #include "eigen_utils.hpp"
-#include "wrappers.hpp"
-#include "linalg2.hpp"
-#include "numerics2.hpp"
-#include "logger.hpp"
 #include "error.hpp"
-#include "memory.hpp"
-#include "raii.hpp"
+#include "ewsb_solver.hpp"
 #include "functors.hpp"
+#include "linalg2.hpp"
+#include "logger.hpp"
+#include "memory.hpp"
+#include "numerics2.hpp"
+#include "raii.hpp"
+#include "wrappers.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <functional>
 #include <iostream>
 #include <memory>
-#include <algorithm>
 #include <stdexcept>
 
 namespace flexiblesusy {
