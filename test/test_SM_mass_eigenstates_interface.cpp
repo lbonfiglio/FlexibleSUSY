@@ -18,13 +18,15 @@ using Models = std::pair<Model_ptr, Model_ptr>;
 
 #define COMPARE_0(a,b,par,eps)                                          \
    do {                                                                 \
-      BOOST_CHECK_CLOSE(a->get_##par(), b->get_##par(), eps);           \
+      BOOST_CHECK_CLOSE(std::real(a->get_##par()), std::real(b->get_##par()), eps); \
+      BOOST_CHECK_CLOSE(std::imag(a->get_##par()), std::imag(b->get_##par()), eps); \
    } while (false)
 
 #define COMPARE_1(a,b,par,N,eps)                                        \
    do {                                                                 \
       for (int i = 0; i < (N); i++) {                                   \
-         BOOST_CHECK_CLOSE(a->get_##par()(i), b->get_##par()(i), eps);  \
+         BOOST_CHECK_CLOSE(std::real(a->get_##par()(i)), std::real(b->get_##par()(i)), eps);  \
+         BOOST_CHECK_CLOSE(std::imag(a->get_##par()(i)), std::imag(b->get_##par()(i)), eps);  \
       }                                                                 \
    } while (false)
 
@@ -32,7 +34,8 @@ using Models = std::pair<Model_ptr, Model_ptr>;
    do {                                                                 \
       for (int i = 0; i < (N); i++) {                                   \
          for (int k = 0; k < (M); k++) {                                \
-            BOOST_CHECK_CLOSE(a->get_##par()(i,k), b->get_##par()(i,k), eps); \
+            BOOST_CHECK_CLOSE(std::real(a->get_##par()(i,k)), std::real(b->get_##par()(i,k)), eps); \
+            BOOST_CHECK_CLOSE(std::imag(a->get_##par()(i,k)), std::imag(b->get_##par()(i,k)), eps); \
          }                                                              \
       }                                                                 \
    } while (false)
@@ -51,8 +54,8 @@ Models make_models(const SM_input_parameters& input)
    dec->set_Ye(me->get_Ye());
    dec->set_Lambdax(me->get_Lambdax());
    dec->set_v(me->get_v());
-   // dec->set_mu2(me->get_mu2());
-   // dec->set_scale(me->get_scale());
+   // dec->set_mu2(me->get_mu2()); // determine mu2 from EWSB conditions
+   // dec->set_scale(me->get_scale()); // scale is not defined for decoupling scheme
 
    return std::make_pair(std::move(me), std::move(dec));
 }
@@ -68,7 +71,9 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
    auto model_1 = std::move(std::get<0>(models));
    auto model_2 = std::move(std::get<1>(models));
 
+   model_1->solve_ewsb_equations_tree_level();
    model_1->calculate_tree_level_mass_spectrum();
+   model_2->solve_ewsb_equations_tree_level();
    model_2->calculate_tree_level_mass_spectrum();
 
    const auto eps = std::numeric_limits<double>::epsilon();
@@ -94,4 +99,12 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
    COMPARE_1(model_1, model_2, MFd, 3, eps);
    COMPARE_1(model_1, model_2, MFe, 3, eps);
    COMPARE_1(model_1, model_2, MFv, 3, eps);
+
+   COMPARE_2(model_1, model_2, Vd, 3, 3, eps);
+   COMPARE_2(model_1, model_2, Ud, 3, 3, eps);
+   COMPARE_2(model_1, model_2, Vu, 3, 3, eps);
+   COMPARE_2(model_1, model_2, Uu, 3, 3, eps);
+   COMPARE_2(model_1, model_2, Ve, 3, 3, eps);
+   COMPARE_2(model_1, model_2, Ue, 3, 3, eps);
+   COMPARE_2(model_1, model_2, ZZ, 2, 2, eps);
 }
