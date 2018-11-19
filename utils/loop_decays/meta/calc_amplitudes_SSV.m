@@ -119,9 +119,7 @@ CanonicalizeCouplings[formFactors_List] :=
            countVectors[fields_List] := Count[fields, V[__] | -V[__]];
            couplingsUUV = Cases[formFactors, SARAH`Cp[fields__][lor_] /; (countGhosts[List[fields]] == 2 &&
                                                                           countVectors[List[fields]] == 1), {0, Infinity}];
-           Print["couplingsUUV = ", couplingsUUV];
            dupCouplingsUUV = Select[GatherBy[couplingsUUV, #[[0]]&], (Length[#] > 1) &];
-           Print["dupCouplingsUUV = ", dupCouplingsUUV];
            (* Assume that only one component of the kinematic vector for a given U-U-V
               coupling has non-vanishing coefficient *)
            If[dupCouplingsUUV =!= {},

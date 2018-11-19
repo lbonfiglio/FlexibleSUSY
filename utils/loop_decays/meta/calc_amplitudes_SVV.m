@@ -111,6 +111,55 @@ If[loadUtils === $Failed,
    Quit[1];
   ];
 
+(* Expands incoming momentum in terms of outgoing momenta using
+   momentum conservation *)
+ExpandMomenta[formFactors_List] :=
+    Module[{i, numFormFactors, matElem, coeff, expanded, result},
+           numFormFactors = Length[formFactors];
+           result = Last[Last[Reap[
+               For[i = 1, i <= numFormFactors, i++,
+                   matElem = formFactors[[i, 1]];
+                   coeff = formFactors[[i, 2]];
+                   expanded = Expand[matElem /. k[1] -> k[2] + k[3] /. { Pair[args__] :> Distribute[Pair[args]],
+                                                                         Eps[args__] :> Distribute[Eps[args]] }];
+                   expanded = expanded /. Eps[x___, p_, y___, p_, z___] :> 0;
+                   If[Head[expanded] === Plus,
+                      expanded = List @@ expanded;,
+                      expanded = List[expanded];,
+                     ];
+                   (Which[# === Eps[ec[2], ec[3], k[2], k[3]],
+                          Sow[{#, \[ImaginaryI] coeff}];,
+                          # === Eps[ec[2], ec[3], k[3], k[2]],
+                          Sow[{Eps[ec[2], ec[3], k[2], k[3]], -\[ImaginaryI] coeff}];,
+                          # === Pair[ec[2], ec[3]],
+                          Sow[{#, coeff}];,
+                          MatchQ[#, a_Pair b_Pair],
+                          Sow[{#, coeff}];,
+                          True, Print["Error: unexpected matrix element: ", matElem]; Quit[1];
+                         ])& /@ expanded;
+                  ]]]];
+           result
+          ];
+
+CanonicalizeCouplings[formFactors_List] :=
+    Module[{countGhosts, countVectors, couplingsUUV, dupCouplingsUUV,
+            couplingSubs, result},
+           result = formFactors;
+           countGhosts[fields_List] := Count[fields, U[__] | -U[__]];
+           countVectors[fields_List] := Count[fields, V[__] | -V[__]];
+           couplingsUUV = Cases[formFactors, SARAH`Cp[fields__][lor_] /; (countGhosts[List[fields]] == 2 &&
+                                                                          countVectors[List[fields]] == 1), {0, Infinity}];
+           dupCouplingsUUV = Select[GatherBy[couplingsUUV, #[[0]]&], (Length[#] > 1) &];
+           (* Assume that only one component of the kinematic vector for a given U-U-V
+              coupling has non-vanishing coefficient *)
+           If[dupCouplingsUUV =!= {},
+              couplingSubs = DeleteCases[#, SARAH`Cp[f1_, f2_, f3_][SARAH`Mom[f1_]]]& /@ dupCouplingsUUV;
+              couplingSubs = Rule[#, 0]& /@ Flatten[couplingSubs];
+              result = result /. couplingSubs;
+             ];
+           result
+          ];
+
 ConvertFeynmanGraphToList[graph_] :=
     {OneLoopDecaysUtils`GetGraphNumber[graph],
      OneLoopDecaysUtils`GetGraphCombinatorialFactor[graph],
@@ -141,10 +190,10 @@ formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
 
 Print["Converting form factors ..."];
 formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
+formFactors = CanonicalizeCouplings /@ ExpandMomenta /@ formFactors;
 
 Print["Combining graph info ..."];
 contributions = CollectDiagramInfo[graphIDs, diags, formFactors];
-Print["contributions = ", contributions];
 formFactorsOutputStatus = WriteFormFactorsOutputFile[FileNameJoin[{resultsDir, formFactorsOutputFile}], contributions];
 If[formFactorsOutputStatus === $Failed,
    status = 3;

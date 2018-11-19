@@ -104,6 +104,12 @@ CreateCouplingCString[SARAH`Cp[fields__][SARAH`PL]] :=
 CreateCouplingCString[SARAH`Cp[fields__][SARAH`PR]] :=
     CreateCouplingCString[SARAH`Cp[fields]] <> "PR";
 
+CreateCouplingCString[SARAH`Cp[fields__][SARAH`LorentzProduct[SARAH`gamma[_], SARAH`PL]]] :=
+    CreateCouplingCString[SARAH`Cp[fields]] <> "PL";
+
+CreateCouplingCString[SARAH`Cp[fields__][SARAH`LorentzProduct[SARAH`gamma[_], SARAH`PR]]] :=
+    CreateCouplingCString[SARAH`Cp[fields]] <> "PR";
+
 CreateCouplingCString[SARAH`Cp[fields__][lor_]] :=
     CreateCouplingCString[SARAH`Cp[fields]];
 
@@ -456,8 +462,8 @@ CreateDiagramEvaluators[process_, diagrams_] :=
           ];
 
 genericProcesses = {
-    {S} -> {S, S}, (*
-    {S} -> {V, V},*)
+    {S} -> {S, S},
+    {S} -> {V, V},
     {S} -> {S, V} (*,
     {S} -> {F, F} *)
 };
