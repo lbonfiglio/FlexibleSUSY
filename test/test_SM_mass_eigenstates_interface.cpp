@@ -25,8 +25,8 @@ using Models = std::pair<Model_ptr, Model_ptr>;
 #define COMPARE_1(a,b,par,N,eps)                                        \
    do {                                                                 \
       for (int i = 0; i < (N); i++) {                                   \
-         BOOST_CHECK_CLOSE(std::real(a->get_##par()(i)), std::real(b->get_##par()(i)), eps);  \
-         BOOST_CHECK_CLOSE(std::imag(a->get_##par()(i)), std::imag(b->get_##par()(i)), eps);  \
+         BOOST_CHECK_CLOSE(std::real(a->get_##par()(i)), std::real(b->get_##par()(i)), eps); \
+         BOOST_CHECK_CLOSE(std::imag(a->get_##par()(i)), std::imag(b->get_##par()(i)), eps); \
       }                                                                 \
    } while (false)
 
@@ -36,6 +36,30 @@ using Models = std::pair<Model_ptr, Model_ptr>;
          for (int k = 0; k < (M); k++) {                                \
             BOOST_CHECK_CLOSE(std::real(a->get_##par()(i,k)), std::real(b->get_##par()(i,k)), eps); \
             BOOST_CHECK_CLOSE(std::imag(a->get_##par()(i,k)), std::imag(b->get_##par()(i,k)), eps); \
+         }                                                              \
+      }                                                                 \
+   } while (false)
+
+#define COMPARE_POLE_0(a,b,par,eps)                                     \
+   do {                                                                 \
+      BOOST_CHECK_CLOSE(std::real(a.par), std::real(b->get_##par()), eps); \
+      BOOST_CHECK_CLOSE(std::imag(a.par), std::imag(b->get_##par()), eps); \
+   } while (false)
+
+#define COMPARE_POLE_1(a,b,par,N,eps)                                   \
+   do {                                                                 \
+      for (int i = 0; i < (N); i++) {                                   \
+         BOOST_CHECK_CLOSE(std::real(a.par(i)), std::real(b->get_##par()(i)), eps); \
+         BOOST_CHECK_CLOSE(std::imag(a.par(i)), std::imag(b->get_##par()(i)), eps); \
+      }                                                                 \
+   } while (false)
+
+#define COMPARE_POLE_2(a,b,par,N,M,eps)                                 \
+   do {                                                                 \
+      for (int i = 0; i < (N); i++) {                                   \
+         for (int k = 0; k < (M); k++) {                                \
+            BOOST_CHECK_CLOSE(std::real(a.par(i,k)), std::real(b->get_##par()(i,k)), eps); \
+            BOOST_CHECK_CLOSE(std::imag(a.par(i,k)), std::imag(b->get_##par()(i,k)), eps); \
          }                                                              \
       }                                                                 \
    } while (false)
@@ -62,6 +86,8 @@ Models make_models(const SM_input_parameters& input)
 
 BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
 {
+   const auto eps = std::numeric_limits<double>::epsilon();
+
    SM_input_parameters input;
    input.LambdaIN = 0.24;
    input.Qin = 91.0;
@@ -73,11 +99,12 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
 
    model_1->solve_ewsb_equations_tree_level();
    model_1->calculate_tree_level_mass_spectrum();
+   model_1->calculate_pole_mass_spectrum();
    model_2->solve_ewsb_equations_tree_level();
    model_2->calculate_tree_level_mass_spectrum();
+   model_2->calculate_pole_mass_spectrum();
 
-   const auto eps = std::numeric_limits<double>::epsilon();
-
+   // parameters
    COMPARE_0(model_1, model_2, g1, eps);
    COMPARE_0(model_1, model_2, g2, eps);
    COMPARE_0(model_1, model_2, g3, eps);
@@ -88,6 +115,7 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
    COMPARE_2(model_1, model_2, Yd, 3, 3, eps);
    COMPARE_2(model_1, model_2, Ye, 3, 3, eps);
 
+   // tree-level masses
    COMPARE_0(model_1, model_2, MVP, eps);
    COMPARE_0(model_1, model_2, MVZ, eps);
    COMPARE_0(model_1, model_2, MVWp, eps);
@@ -107,4 +135,27 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
    COMPARE_2(model_1, model_2, Ve, 3, 3, eps);
    COMPARE_2(model_1, model_2, Ue, 3, 3, eps);
    COMPARE_2(model_1, model_2, ZZ, 2, 2, eps);
+
+   // pole masses
+   const auto pole_2 = model_2->get_physical();
+
+   COMPARE_POLE_0(pole_2, model_2, MVP, eps);
+   COMPARE_POLE_0(pole_2, model_2, MVZ, eps);
+   COMPARE_POLE_0(pole_2, model_2, MVWp, eps);
+   COMPARE_POLE_0(pole_2, model_2, MVG, eps);
+   COMPARE_POLE_0(pole_2, model_2, Mhh, eps);
+   COMPARE_POLE_0(pole_2, model_2, MHp, eps);
+   COMPARE_POLE_0(pole_2, model_2, MAh, eps);
+   COMPARE_POLE_1(pole_2, model_2, MFu, 3, eps);
+   COMPARE_POLE_1(pole_2, model_2, MFd, 3, eps);
+   COMPARE_POLE_1(pole_2, model_2, MFe, 3, eps);
+   COMPARE_POLE_1(pole_2, model_2, MFv, 3, eps);
+
+   COMPARE_POLE_2(pole_2, model_2, Vd, 3, 3, eps);
+   COMPARE_POLE_2(pole_2, model_2, Ud, 3, 3, eps);
+   COMPARE_POLE_2(pole_2, model_2, Vu, 3, 3, eps);
+   COMPARE_POLE_2(pole_2, model_2, Uu, 3, 3, eps);
+   COMPARE_POLE_2(pole_2, model_2, Ve, 3, 3, eps);
+   COMPARE_POLE_2(pole_2, model_2, Ue, 3, 3, eps);
+   // COMPARE_POLE_2(pole_2, model_2, ZZ, 2, 2, eps);
 }
