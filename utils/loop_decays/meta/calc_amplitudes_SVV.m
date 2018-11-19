@@ -141,6 +141,8 @@ ExpandMomenta[formFactors_List] :=
            result
           ];
 
+(* @todo ensure 4-vector boson couplings are also correctly handled w.r.t. field ordering
+         in vertex *)
 CanonicalizeCouplings[formFactors_List] :=
     Module[{countGhosts, countVectors, couplingsUUV, dupCouplingsUUV,
             couplingSubs, result},
