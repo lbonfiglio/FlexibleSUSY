@@ -108,7 +108,7 @@ Problems& CLASSNAME::get_problems()
 
 int CLASSNAME::solve_ewsb_equations_tree_level()
 {
-   int error = 1;
+   int error = EWSB_solver::SUCCESS;
 
 @solveTreeLevelEWSBviaSoftHiggsMasses@
 
