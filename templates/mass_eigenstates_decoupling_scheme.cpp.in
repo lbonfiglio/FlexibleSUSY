@@ -155,6 +155,11 @@ void CLASSNAME::calculate_tree_level_mass_spectrum()
  */
 void CLASSNAME::calculate_pole_mass_spectrum()
 {
+   calculate_tree_level_mass_spectrum();
+   // move goldstone bosons to the front
+   reorder_tree_level_masses();
+   copy_tree_level_masses_to_pole_masses();
+   check_pole_masses_for_tachyons();
 }
 
 void CLASSNAME::copy_tree_level_masses_to_pole_masses()
@@ -199,15 +204,7 @@ void CLASSNAME::check_pole_masses_for_tachyons()
 void CLASSNAME::calculate_mass_spectrum()
 {
    calculate_tree_level_mass_spectrum();
-   // move goldstone bosons to the front
-   reorder_tree_level_masses();
-   copy_tree_level_masses_to_pole_masses();
-   check_pole_masses_for_tachyons();
-
-   if (problems.have_problem() && !force_output) {
-      clear_tree_level_parameters();
-      physical.clear();
-   }
+   calculate_pole_mass_spectrum();
 }
 
 void CLASSNAME::clear_tree_level_parameters()
