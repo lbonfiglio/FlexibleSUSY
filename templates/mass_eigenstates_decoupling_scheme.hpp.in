@@ -46,7 +46,6 @@
 
 namespace flexiblesusy {
 
-class @ModelName@_ewsb_solver_interface;
 /**
  * @class @ModelName@_mass_eigenstates_decoupling_scheme
  *
@@ -75,9 +74,6 @@ public:
    bool do_force_output() const;
    void reorder_tree_level_masses();
    void reorder_pole_masses();
-   void set_ewsb_iteration_precision(double);
-   double get_ewsb_iteration_precision() const;
-   void set_ewsb_solver(const std::shared_ptr<@ModelName@_ewsb_solver_interface>&);
    void print(std::ostream& out = std::cerr) const;
    void clear();
 
@@ -115,16 +111,11 @@ public:
 
 private:
    bool force_output{false};              ///< switch to force output of pole masses
-   double ewsb_iteration_precision{1.e-5};///< precision goal of EWSB solution
    @ModelName@_physical physical{}; ///< contains the pole masses and mixings
    Problems problems{@ModelName@_info::model_name,
                      &@ModelName@_info::particle_names_getter,
                      &@ModelName@_info::parameter_names_getter}; ///< problems
-   std::shared_ptr<@ModelName@_ewsb_solver_interface> ewsb_solver{};
 
-   int get_number_of_ewsb_iterations() const;
-   int solve_ewsb_tree_level();
-   int solve_ewsb_tree_level_custom();
    void clear_tree_level_parameters();
    void copy_tree_level_masses_to_pole_masses();
 

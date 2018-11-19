@@ -31,10 +31,8 @@
  */
 
 #include "@ModelName@_mass_eigenstates_decoupling_scheme.hpp"
-#include "@ModelName@_ewsb_solver_interface.hpp"
 #include "config.h"
 #include "eigen_utils.hpp"
-#include "ewsb_solver.hpp"
 #include "wrappers.hpp"
 #include "linalg2.hpp"
 #include "numerics2.hpp"
@@ -43,8 +41,6 @@
 #include "memory.hpp"
 #include "raii.hpp"
 #include "functors.hpp"
-
-@ewsbSolverHeaders@
 
 #include <array>
 #include <cmath>
@@ -66,7 +62,6 @@ namespace flexiblesusy {
 
 CLASSNAME::@ModelName@_mass_eigenstates_decoupling_scheme(const @ModelName@_input_parameters& input_)
    : @ModelName@_soft_parameters(input_)
-@defaultEWSBSolverCctor@
 {
 }
 
@@ -83,24 +78,6 @@ void CLASSNAME::do_force_output(bool flag)
 bool CLASSNAME::do_force_output() const
 {
    return force_output;
-}
-
-int CLASSNAME::get_number_of_ewsb_iterations() const
-{
-   return static_cast<int>(std::abs(-log10(ewsb_iteration_precision) * 10));
-}
-
-void CLASSNAME::set_ewsb_iteration_precision(double precision)
-{
-   ewsb_iteration_precision = precision;
-   if (ewsb_solver) {
-      ewsb_solver->set_precision(precision);
-   }
-}
-
-double CLASSNAME::get_ewsb_iteration_precision() const
-{
-   return ewsb_iteration_precision;
 }
 
 const @ModelName@_physical& CLASSNAME::get_physical() const
@@ -128,55 +105,13 @@ Problems& CLASSNAME::get_problems()
    return problems;
 }
 
-void CLASSNAME::set_ewsb_solver(const std::shared_ptr<@ModelName@_ewsb_solver_interface>& solver)
+int CLASSNAME::solve_ewsb_equations_tree_level()
 {
-   ewsb_solver = solver;
-}
-
-int CLASSNAME::solve_ewsb_tree_level_custom()
-{
-   int error = EWSB_solver::SUCCESS;
+   int error = 1;
 
 @solveTreeLevelEWSBviaSoftHiggsMasses@
 
    return error;
-}
-
-int CLASSNAME::solve_ewsb_equations_tree_level()
-{
-   if (!ewsb_solver) {
-      throw SetupError("@ModelName@_mass_eigenstates::solve_ewsb_tree_level: "
-                       "no EWSB solver set");
-   }
-
-   const int old_loop_order = ewsb_solver->get_loop_order();
-   const auto save_loop_order = make_raii_guard(
-      [this, old_loop_order] () {
-         this->ewsb_solver->set_loop_order(old_loop_order);
-      });
-
-   const int old_iterations = ewsb_solver->get_number_of_iterations();
-   const auto save_iterations = make_raii_guard(
-      [this, old_iterations] () {
-         this->ewsb_solver->set_number_of_iterations(old_iterations);
-      });
-
-   const double old_precision = ewsb_solver->get_precision();
-   const auto save_precision = make_raii_guard(
-      [this, old_precision] () {
-         this->ewsb_solver->set_precision(old_precision);
-      });
-
-   ewsb_solver->set_loop_order(0);
-   ewsb_solver->set_number_of_iterations(get_number_of_ewsb_iterations());
-   ewsb_solver->set_precision(ewsb_iteration_precision);
-
-   return ewsb_solver->solve(*this);
-}
-
-int CLASSNAME::solve_ewsb_tree_level()
-{
-   return solve_ewsb_equations_tree_level();
 }
 
 int CLASSNAME::solve_ewsb_equations()
@@ -207,7 +142,7 @@ void CLASSNAME::print(std::ostream& ostr) const
 void CLASSNAME::calculate_tree_level_mass_spectrum()
 {
 @saveEWSBOutputParameters@
-@solveEWSBTemporarily@
+   solve_ewsb_equations_tree_level();
 
 @calculateAllMasses@
 }
