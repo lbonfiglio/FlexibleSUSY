@@ -111,6 +111,29 @@ If[loadUtils === $Failed,
    Quit[1];
   ];
 
+CanonicalizeCouplings[formFactors_List] :=
+    Module[{countGhosts, countVectors, couplingsUUV, dupCouplingsUUV,
+            couplingSubs, result},
+           result = formFactors;
+           countGhosts[fields_List] := Count[fields, U[__] | -U[__]];
+           countVectors[fields_List] := Count[fields, V[__] | -V[__]];
+           couplingsUUV = Cases[formFactors, SARAH`Cp[fields__][lor_] /; (countGhosts[List[fields]] == 2 &&
+                                                                          countVectors[List[fields]] == 1), {0, Infinity}];
+           Print["couplingsUUV = ", couplingsUUV];
+           dupCouplingsUUV = Select[GatherBy[couplingsUUV, #[[0]]&], (Length[#] > 1) &];
+           Print["dupCouplingsUUV = ", dupCouplingsUUV];
+           (* Assume that only one component of the kinematic vector for a given U-U-V
+              coupling has non-vanishing coefficient *)
+           If[dupCouplingsUUV =!= {},
+              couplingSubs = DeleteCases[#, SARAH`Cp[U[a___, Index[Generic, i_], b___],
+                                                     U[c___, Index[Generic, j_], d___],
+                                                     V[x___, Index[Generic, k_], y___]][SARAH`Mom[U[a___, Index[Generic, i_], b___]]]]& /@ dupCouplingsUUV;
+              couplingSubs = Rule[#, 0]& /@ Flatten[couplingSubs];
+              result = result /. couplingSubs;
+             ];
+           result
+          ];
+
 ConvertFeynmanGraphToList[graph_] :=
     {OneLoopDecaysUtils`GetGraphNumber[graph],
      OneLoopDecaysUtils`GetGraphCombinatorialFactor[graph],
@@ -138,13 +161,12 @@ CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
 
 Print["Extracting form factors ..."];
 formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
-
 Print["Converting form factors ..."];
 formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
+formFactors = CanonicalizeCouplings /@ formFactors;
 
 Print["Combining graph info ..."];
 contributions = CollectDiagramInfo[graphIDs, diags, formFactors];
-Print["contributions = ", contributions];
 formFactorsOutputStatus = WriteFormFactorsOutputFile[FileNameJoin[{resultsDir, formFactorsOutputFile}], contributions];
 If[formFactorsOutputStatus === $Failed,
    status = 3;
