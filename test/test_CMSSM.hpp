@@ -5,7 +5,6 @@
 #include "test_legacy.hpp"
 #include "softsusy.h"
 #include "CMSSM_two_scale_model.hpp"
-#include "CMSSM_two_scale_high_scale_constraint.hpp"
 #include "wrappers.hpp"
 #include "ew_input.hpp"
 #include "test_CMSSM_like.hpp"
