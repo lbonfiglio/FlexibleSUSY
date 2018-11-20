@@ -84,5 +84,5 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
              (1 - 4. * xOS) * phase_spaceDR * amp2DR *
                 (1. + deltaqqDR + deltaqqDRQED +  deltaH2) +
              // high x limit
-             4 * xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS + deltaqqOSQED))
+             4 * xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS + deltaqqOSQED));
 }
