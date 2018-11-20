@@ -1864,17 +1864,17 @@ CreateInputParameterArraySetter[inputParameters_List] :=
 
 CreateModelParameterGetter[par_] :=
     Module[{name = CConversion`ToValidCSymbolString[par]},
-           CConversion`CreateInlineGetter[name, name, GetType[par]]
+           CConversion`CreateInlineGetters[name, name, GetType[par]]
           ];
 
 CreateDelegateModelParameterGetter[par_, macro_String:"SUPER"] :=
     Module[{name = CConversion`ToValidCSymbolString[par]},
-           CConversion`CreateInlineGetter[name, name, GetType[par], "", macro]
+           CConversion`CreateInlineGetters[name, name, GetType[par], "", macro]
           ];
 
 CreateModelParameterSetter[par_] :=
     Module[{name = CConversion`ToValidCSymbolString[par], type = GetType[par]},
-           CConversion`CreateInlineSetter[name, type]
+           CConversion`CreateInlineSetters[name, type]
           ];
 
 CreateUsingParameterGetter[par_, super_String] :=

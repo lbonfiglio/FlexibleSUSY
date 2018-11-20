@@ -46,7 +46,7 @@
 
 #include <Eigen/Core>
 
-#define SUPER(p) @ModelName@_soft_parameters::get_##p()
+#define SUPER(p) @ModelName@_soft_parameters::p
 
 namespace flexiblesusy {
 
