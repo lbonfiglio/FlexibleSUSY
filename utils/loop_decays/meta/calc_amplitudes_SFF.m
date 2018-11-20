@@ -73,7 +73,7 @@ WriteFormFactorsOutputFile[fileName_, expr_] :=
 CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
     (
      FormCalc`ClearProcess[];
-     FormCalc`CalcFeynAmp[amplitudeHead[amplitudeExpr], OnShell -> True, FermionChains -> Weyl] //. Subexpr[] //. Abbr[] //. GenericList[]
+     FormCalc`CalcFeynAmp[amplitudeHead[amplitudeExpr], OnShell -> True, FermionChains -> Chiral] //. Subexpr[] //. Abbr[] //. GenericList[]
     );
 
 topologies = FeynArts`CreateTopologies[1, 1 -> 2, ExcludeTopologies -> Internal];
@@ -101,7 +101,7 @@ GetGraphID[FeynAmp[GraphID[details__], rest__]] := GraphID[details];
 graphIDs = List @@ (GetGraphID /@ amplitudes);
 
 genericAmplitudes = FeynArts`PickLevel[Generic][amplitudes];
-Print["genericAmplitudes = ", genericAmplitudes];
+
 amplitudesExprs = CalculateAmplitudes[Head[genericAmplitudes], #]& /@ genericAmplitudes;
 exprsOutputStatus = WriteFormCalcOutputFile[FileNameJoin[{resultsDir, amplitudesExprsOutputFile}], amplitudesExprs];
 If[exprsOutputStatus === $Failed,
@@ -112,6 +112,96 @@ loadUtils = Needs["OneLoopDecaysUtils`"];
 If[loadUtils === $Failed,
    Quit[1];
   ];
+
+GetExternalLegInsertions[diagrams_] :=
+    Module[{genericDiags, topologies, externalFields,
+            genericInsertions, externalInsertions},
+           genericDiags = FeynArts`PickLevel[Generic][diagrams];
+           topologies = List @@ (First /@ genericDiags);
+           externalFields = Cases[#, Propagator[Incoming|Outgoing][v1_, v2_, f_] :> f, {0, Infinity}]& /@ topologies;
+           genericInsertions = List @@ ((List @@ #)& /@ Last /@ genericDiags);
+           externalInsertions = MapIndexed[With[{insertionsList = #1, topIdx = First[#2]},
+                                                Select[#, MemberQ[externalFields[[topIdx]], First[#]]&]& /@ insertionsList]&,
+                                           genericInsertions];
+           externalInsertions = DeleteDuplicates[#, (#1[[1]] === #2[[1]])&]& /@ externalInsertions;
+           If[Or @@ (Length[#] != 1)& /@ externalInsertions,
+              Print["Error: multiple different external field insertions for a single topology are not handled."];
+              Quit[1];
+             ];
+           (List @@ #[[1]])& /@ externalInsertions
+          ];
+
+ExternalMomentumSymbol[i_] := k[i];
+
+StripSign[-f_] := f;
+StripSign[f_] := f;
+
+GenericFieldType[-field_] := GenericFieldType[field];
+GenericFieldType[field_[indices__]] := GenericFieldType[field];
+GenericFieldType[field_] := StripSign[field];
+
+GetSquaredMassSymbol[mass_] := mass^2;
+
+CreateLoopFunctionArgReplacementRules[fieldIdx_, mass_] :=
+    Module[{loopFnHeads, squaredMass},
+           squaredMass = GetSquaredMassSymbol[mass];
+           squaredMass = squaredMass /. Index[Generation, i_] :> Symbol["Gen" <> ToString[i]];
+           loopFnHeads = { SARAH`B0, SARAH`C1, SARAH`C2, SARAH`C0 };
+           Rule[#[x___, squaredMass, y___], #[x, Pair[ExternalMomentumSymbol[fieldIdx],
+                                                      ExternalMomentumSymbol[fieldIdx]], y]]& /@ loopFnHeads
+          ];
+
+CreateLoopFunctionArgReplacementRule[Field[fieldIdx_], mass_] :=
+    CreateLoopFunctionArgReplacementRule[fieldIdx, mass];
+
+CreateSquaredMassReplacementRules[fieldIdx_, mass_] :=
+    Module[{squaredMass},
+           squaredMassSymbol = GetSquaredMassSymbol[mass];
+           {Rule[squaredMassSymbol, Pair[ExternalMomentumSymbol[fieldIdx], ExternalMomentumSymbol[fieldIdx]]],
+            Rule[mass^2, Pair[ExternalMomentumSymbol[fieldIdx], ExternalMomentumSymbol[fieldIdx]]]}
+          ];
+
+CreateSquaredMassReplacementRules[Field[fieldIdx_], mass_] :=
+    CreateSquaredMassReplacementRules[fieldIdx, mass];
+
+CreateGenericMassReplacementRules[fieldIdx_, field_, mass_] :=
+    Module[{genericField},
+           genericField = GenericFieldType[field][Index[Generic, fieldIdx]];
+           {Rule[mass, Mass[genericField]]} /. Index[Generation, i_] :> Symbol["Gen" <> ToString[i]]
+          ];
+
+CreateGenericMassReplacementRules[Field[fieldIdx_], field_, mass_] :=
+    CreateGenericMassReplacementRules[fieldIdx, field, mass];
+
+CreateCouplingIndexReplacementRules[fieldIdx_, field_] :=
+    Module[{genericField},
+           genericField = GenericFieldType[field][Index[Generic, fieldIdx]];
+           {Rule[SARAH`Cp[x___, field, y___], SARAH`Cp[x, genericField, y]],
+            Rule[SARAH`Cp[x___, -field, y___], SARAH`Cp[x, -genericField, y]]}
+          ];
+
+CreateCouplingIndexReplacementRules[Field[fieldIdx_], field_] :=
+    CreateCouplingIndexReplacementRules[fieldIdx, field];
+
+ToGenericExpressions[externalLegInsertions_, statesInfo_, formFactors_List] :=
+    Module[{incomingInfo, incomingField, incomingMass,
+            outgoingInfo, outgoingFields, outgoingMasses,
+            fieldMasses, loopFnArgReplacements, squaredMassReplacements, massReplacements,
+            couplingReplacements, result},
+           result = formFactors;
+           incomingInfo = statesInfo[[1]];
+           outgoingInfo = statesInfo[[2]];
+           incomingField = Select[externalLegInsertions, (Last[#] === First[incomingInfo[[1]]])&];
+           outgoingFields = Complement[externalLegInsertions, incomingField];
+           incomingMass = (Rule[#[[1]], #[[3]]]& /@ incomingInfo) /. (Reverse /@ externalLegInsertions);
+           outgoingMasses = (Rule[-#[[1]], #[[3]]]& /@ outgoingInfo) /. (Reverse /@ externalLegInsertions);
+           fieldMasses = Join[incomingMass, outgoingMasses];
+           loopFnArgReplacements = Flatten[CreateLoopFunctionArgReplacementRules[#[[1]], #[[2]]]& /@ fieldMasses];
+           squaredMassReplacements = Flatten[CreateSquaredMassReplacementRules[#[[1]], #[[2]]]& /@ fieldMasses];
+           massReplacements = Flatten[CreateGenericMassReplacementRules[#[[1]], #[[1]] /. externalLegInsertions, #[[2]]]& /@ fieldMasses];
+           couplingReplacements = Flatten[CreateCouplingIndexReplacementRules[#[[1]], #[[2]]]& /@ externalLegInsertions];
+           formFactors //. loopFnArgReplacements /. squaredMassReplacements /. massReplacements //. couplingReplacements
+          ];
 
 CanonicalizeCouplings[formFactors_List] :=
     Module[{countGhosts, countVectors, couplingsUUV, dupCouplingsUUV,
@@ -159,14 +249,34 @@ CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
                    ]]]
           ];
 
+ReplaceExternalFieldInsertions[insertions_, diagram_] :=
+    Module[{genericFieldReplacements},
+           genericFieldReplacements = Rule[#[[2]], GenericFieldType[#[[2]]]]& /@ insertions;
+           {diagram[[1]], diagram[[2]], diagram[[3]] /. genericFieldReplacements, diagram[[4]]}
+          ];
+
 Print["Extracting form factors ..."];
+
 formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
+
 Print["Converting form factors ..."];
+
 formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
-formFactors = CanonicalizeCouplings /@ formFactors;
+
+externalInsertions = GetExternalLegInsertions[diags];
+If[Length[externalInsertions] != 1,
+   Print["Error: expected only a single topology."];
+   Quit[1];
+  ];
+externalInsertions = First[externalInsertions];
+statesInfo = amplitudesExprs[[0,1,2]];
+formFactors = CanonicalizeCouplings /@ ToGenericExpressions[externalInsertions, statesInfo, #]& /@ formFactors;
 
 Print["Combining graph info ..."];
+
 contributions = CollectDiagramInfo[graphIDs, diags, formFactors];
+contributions = ReplaceExternalFieldInsertions[externalInsertions, #]& /@ contributions;
+
 formFactorsOutputStatus = WriteFormFactorsOutputFile[FileNameJoin[{resultsDir, formFactorsOutputFile}], contributions];
 If[formFactorsOutputStatus === $Failed,
    status = 3;
