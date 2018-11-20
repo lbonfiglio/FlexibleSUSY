@@ -54,6 +54,8 @@ CreateInputParameterArraySetter::usage="";
 CreateModelParameterGetter::usage="";
 CreateModelParameterSetter::usage="";
 CreateDelegateModelParameterGetter::usage="";
+CreateUsingParameterGetter::using="Creates using directive for parameter getter of parent class";
+CreateUsingParameterSetter::using="Creates using directive for parameter setter of parent class";
 
 CreateEnumName::usage="Creates enum symbol for given parameter";
 DecomposeParameter::usage="decomposes parameter into its real components";
@@ -1874,6 +1876,12 @@ CreateModelParameterSetter[par_] :=
     Module[{name = CConversion`ToValidCSymbolString[par], type = GetType[par]},
            CConversion`CreateInlineSetter[name, type]
           ];
+
+CreateUsingParameterGetter[par_, super_String] :=
+    "using " <> super <> "::get_" <> CConversion`ToValidCSymbolString[par] <> ";\n";
+
+CreateUsingParameterSetter[par_, super_String] :=
+    "using " <> super <> "::set_" <> CConversion`ToValidCSymbolString[par] <> ";\n";
 
 FindSLHABlock[blockList_List, par_] :=
     Module[{foundBlocks},

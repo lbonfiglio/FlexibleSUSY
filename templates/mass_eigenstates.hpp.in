@@ -132,6 +132,8 @@ public:
    void clear_problems() override;
 
 @lspGetters@
+@usingSuperParameterGetters@
+@usingSuperParameterSetters@
 @[override]delegateParameterGetters@
 @[override]delegateParameterSetters@
 @[override]massGetters@
