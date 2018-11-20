@@ -151,12 +151,12 @@ CreateLoopFunctionArgReplacementRules[fieldIdx_, mass_] :=
                                                       ExternalMomentumSymbol[fieldIdx]], y]]& /@ loopFnHeads
           ];
 
-CreateLoopFunctionArgReplacementRule[Field[fieldIdx_], mass_] :=
-    CreateLoopFunctionArgReplacementRule[fieldIdx, mass];
+CreateLoopFunctionArgReplacementRules[Field[fieldIdx_], mass_] :=
+    CreateLoopFunctionArgReplacementRules[fieldIdx, mass];
 
 CreateSquaredMassReplacementRules[fieldIdx_, mass_] :=
     Module[{squaredMass},
-           squaredMassSymbol = GetSquaredMassSymbol[mass];
+           squaredMassSymbol = GetSquaredMassSymbol[mass] /. Index[Generation, i_] :> Symbol["Gen" <> ToString[i]];
            {Rule[squaredMassSymbol, Pair[ExternalMomentumSymbol[fieldIdx], ExternalMomentumSymbol[fieldIdx]]],
             Rule[mass^2, Pair[ExternalMomentumSymbol[fieldIdx], ExternalMomentumSymbol[fieldIdx]]]}
           ];
