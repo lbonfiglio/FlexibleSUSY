@@ -62,6 +62,7 @@ IsNonTrivialLorentzStructure[FormCalc`Pair[__]] := True;
 IsNonTrivialLorentzStructure[FormCalc`Eps[__]] := True;
 IsNonTrivialLorentzStructure[FormCalc`DiracChain[__]] := True;
 IsNonTrivialLorentzStructure[FormCalc`WeylChain[__]] := True;
+IsNonTrivialLorentzStructure[FormCalc`Mat[__]] := True;
 IsNonTrivialLorentzStructure[_] := False;
 
 JoinStructureLists[args__StructureList] := Join[args];

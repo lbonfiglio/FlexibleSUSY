@@ -158,13 +158,18 @@ CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
           ];
 
 Print["Extracting form factors ..."];
+
 formFactors = OneLoopDecaysUtils`ExtractFormFactors /@ amplitudesExprs;
+
 Print["Converting form factors ..."];
+
 formFactors = OneLoopDecaysUtils`ToFSConventions /@ formFactors;
 formFactors = CanonicalizeCouplings /@ formFactors;
 
 Print["Combining graph info ..."];
+
 contributions = CollectDiagramInfo[graphIDs, diags, formFactors];
+
 formFactorsOutputStatus = WriteFormFactorsOutputFile[FileNameJoin[{resultsDir, formFactorsOutputFile}], contributions];
 If[formFactorsOutputStatus === $Failed,
    status = 3;

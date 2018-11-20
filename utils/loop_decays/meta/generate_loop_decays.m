@@ -70,6 +70,11 @@ GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], k[3]] Pair[ec[3], k[2]]] := "fo
 GetFormFactorName[Rule[{S}, {V, V}], Pair[ec[2], k[3]] Pair[ec[3], k[3]]] := "form_factor_22";
 GetFormFactorName[Rule[{S}, {V, V}], Eps[ec[2], ec[3], k[2], k[3]]] := "form_factor_eps";
 
+GetFormFactorName[Rule[{S}, {F, F}], Mat[DiracChain[Spinor[k[2], Mass[F[Index[Generic, 2]]], 1], 6,
+                                                    Spinor[k[3], Mass[F[Index[Generic, 3]]], -1]]]] := "form_factor_right";
+GetFormFactorName[Rule[{S}, {F, F}], Mat[DiracChain[Spinor[k[2], Mass[F[Index[Generic, 2]]], 1], 7,
+                                                    Spinor[k[3], Mass[F[Index[Generic, 3]]], -1]]]] := "form_factor_left";
+
 ExternalMomentumSymbol[idx_] := k[idx];
 CreateExternalMomentumCString[ExternalMomentumSymbol[idx_]] := "mext" <> ToString[idx];
 CreateExternalMomentumCString[Pair[k[i_], k[i_]]] := "k" <> ToString[i] <> "sq";
@@ -323,6 +328,27 @@ FillAmplitudeMasses[Rule[{S}, {S, V}], diagram_, struct_:"result"] :=
            struct <> ".m_vector = " <> outgoingVector  <> ";\n"
           ];
 
+FillAmplitudeMasses[Rule[{S}, {F, F}], diagram_, struct_:"result"] :=
+    Module[{topology, incomingIndex, outgoingIndices, incomingMass, outgoingOne, outgoingTwo},
+           topology = diagram[[2]];
+           incomingIndex = Cases[topology, Propagator[Incoming][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[incomingIndex] != 1,
+              Print["Error: number of incoming fields is not one."];
+              Quit[1];
+             ];
+           outgoingIndices = Cases[topology, Propagator[Outgoing][vertices___, Field[i_]] :> i, {0, Infinity}];
+           If[Length[outgoingIndices] != 2,
+              Print["Error: number of outgoing fields is not two."];
+              Quit[1];
+             ];
+           incomingMass = CreateExternalMomentumCString[ExternalMomentumSymbol[First[incomingIndex]]];
+           outgoingOne = CreateExternalMomentumCString[ExternalMomentumSymbol[First[outgoingIndices]]];
+           outgoingTwo = CreateExternalMomentumCString[ExternalMomentumSymbol[Last[outgoingIndices]]];
+           struct <> ".m_decay = " <> incomingMass <> ";\n" <>
+           struct <> ".m_out_1 = " <> outgoingOne  <> ";\n"<>
+           struct <> ".m_out_2 = " <> outgoingTwo  <> ";\n"
+          ];
+
 CreateCouplingDescription[SARAH`Cp[fields__][SARAH`PL]] :=
     "left-handed " <> CreateCouplingDescription[SARAH`Cp[fields]];
 
@@ -407,7 +433,7 @@ SaveLoopIntegrals[diagram_, renScale_String] :=
 
 CreateOneLoopDiagramDefinition[process_, diagram_] :=
     Module[{returnType, externalMomenta, externalMomentaArgs, externalMomentaSubs,
-            loopMasses, loopMassesArgs, loopMassesSubs,
+            externalMassSubs, loopMasses, loopMassesArgs, loopMassesSubs,
             couplings, couplingsArgs, couplingsSubs, argSubs,
             saveLoopIntegrals, loopIntegralSubs,
             formFactorExprs, fillExternalMasses, calculateFormFactors, renScale = "scale",
@@ -417,6 +443,8 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
            externalMomenta = GetExternalMomentaVars[process, diagram];
            externalMomentaArgs = (#[[3]] <> " " <> #[[2]])& /@ externalMomenta;
            externalMomentaSubs = Flatten[{Rule[Pair[#[[1]], #[[1]]], Symbol[#[[2]]]^2], Rule[#[[1]], Symbol[#[[2]]]]}& /@ externalMomenta];
+           externalMassSubs = Table[Rule[Mass[Field[i][Index[Generic, i]]],
+                                         Symbol[CreateExternalMomentumCString[ExternalMomentumSymbol[i]]]], {i, 1, 3}] /. (List @@ diagram[[3]]);
            loopMasses = GetLoopMassesVars[process, diagram];
            loopMassesArgs = (#[[3]] <> " " <> #[[2]])& /@ loopMasses;
            loopMassesSubs = Rule[#[[1]], Symbol[#[[2]]]]& /@ loopMasses;
@@ -431,7 +459,7 @@ CreateOneLoopDiagramDefinition[process_, diagram_] :=
 
            formFactorExprs = Last[diagram];
            formFactorValues = {GetFormFactorName[process, #[[1]]], "oneOver16PiSqr*(" <>
-                               CConversion`RValueToCFormString[Simplify[(16 Pi^2 #[[2]]) /. loopIntegralSubs /. argSubs]] <> ")"}& /@ formFactorExprs;
+                               CConversion`RValueToCFormString[Simplify[(16 Pi^2 #[[2]]) /. loopIntegralSubs /. argSubs /. externalMassSubs]] <> ")"}& /@ formFactorExprs;
            fillExternalMasses = FillAmplitudeMasses[process, diagram, "result"];
            calculateFormFactors = returnType <> " result;\n\n" <> fillExternalMasses <> "\n" <>
                                   StringJoin[("result." <> #[[1]] <> " = " <> #[[2]] <> ";\n")& /@ formFactorValues];
@@ -464,8 +492,8 @@ CreateDiagramEvaluators[process_, diagrams_] :=
 genericProcesses = {
     {S} -> {S, S},
     {S} -> {V, V},
-    {S} -> {S, V} (*,
-    {S} -> {F, F} *)
+    {S} -> {S, V},
+    {S} -> {F, F}
 };
 
 genericOneLoopDiagramEvaluatorDecls = "";
