@@ -61,6 +61,14 @@ std::complex<double> C1(double p2a, double p2b, double p2ab,
                         double m2a, double m2b, double m2c, double scl2) PVATTR;
 std::complex<double> C2(double p2a, double p2b, double p2ab,
                         double m2a, double m2b, double m2c, double scl2) PVATTR;
+std::complex<double> C00(double p2a, double p2b, double p2ab,
+                         double m2a, double m2b, double m2c, double scl2) PVATTR;
+std::complex<double> C11(double p2a, double p2b, double p2ab,
+                         double m2a, double m2b, double m2c, double scl2) PVATTR;
+std::complex<double> C12(double p2a, double p2b, double p2ab,
+                         double m2a, double m2b, double m2c, double scl2) PVATTR;
+std::complex<double> C22(double p2a, double p2b, double p2ab,
+                         double m2a, double m2b, double m2c, double scl2) PVATTR;
 #endif
 
 std::complex<double> A0 (std::complex<double> m2, double scl2) PVATTR;
@@ -83,6 +91,22 @@ std::complex<double> C2(std::complex<double> p2a, std::complex<double> p2b,
                         std::complex<double> p2ab, std::complex<double> m2a,
                         std::complex<double> m2b, std::complex<double> m2c,
                         double scl2) PVATTR;
+std::complex<double> C00(std::complex<double> p2a, std::complex<double> p2b,
+                         std::complex<double> p2ab, std::complex<double> m2a,
+                         std::complex<double> m2b, std::complex<double> m2c,
+                         double scl2) PVATTR;
+std::complex<double> C11(std::complex<double> p2a, std::complex<double> p2b,
+                         std::complex<double> p2ab, std::complex<double> m2a,
+                         std::complex<double> m2b, std::complex<double> m2c,
+                         double scl2) PVATTR;
+std::complex<double> C12(std::complex<double> p2a, std::complex<double> p2b,
+                         std::complex<double> p2ab, std::complex<double> m2a,
+                         std::complex<double> m2b, std::complex<double> m2c,
+                         double scl2) PVATTR;
+std::complex<double> C22(std::complex<double> p2a, std::complex<double> p2b,
+                         std::complex<double> p2ab, std::complex<double> m2a,
+                         std::complex<double> m2b, std::complex<double> m2c,
+                         double scl2) PVATTR;
 #endif
 
 template<class T> std::complex<double> B22(T, T, T, double) PVATTR;
