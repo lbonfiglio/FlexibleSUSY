@@ -97,6 +97,8 @@ CreateLoopMassCString[Mass[field_[Index[Generic, idx_], indices___], Loop]] :=
 
 GetCouplingCType[cp_] := "const " <> CConversion`CreateCType[CConversion`ScalarType[complexScalarCType]] <> "&";
 
+GetCouplingCType[couplings_List] := GetCouplingCType /@ couplings;
+
 CreateCouplingCString[SARAH`Cp[fields__]] :=
     Module[{edgeLabels},
            edgeLabels = ToFieldString /@ (List[fields] /. (field_[___, Index[Generic, i_], ___] :> field[i]));
@@ -117,6 +119,22 @@ CreateCouplingCString[SARAH`Cp[fields__][SARAH`LorentzProduct[SARAH`gamma[_], SA
 
 CreateCouplingCString[SARAH`Cp[fields__][lor_]] :=
     CreateCouplingCString[SARAH`Cp[fields]];
+
+CreateCouplingCString[couplings_List] :=
+    Module[{i, j, couplingStrs, repeatedCounts, count},
+           couplingStrs = CreateCouplingCString /@ couplings;
+           repeatedCounts = Select[Tally[couplingStrs], (#[[2]] > 1)&];
+           For[i = 1, i <= Length[repeatedCounts], i++,
+               count = 1;
+               For[j = 1, j <= Length[couplingStrs], j++,
+                   If[couplingStrs[[j]] == repeatedCounts[[i,1]],
+                      couplingStrs = ReplacePart[couplingStrs, j -> couplingStrs[[j]] <> ToString[count]];
+                      count++;
+                     ];
+                  ];
+              ];
+           couplingStrs
+          ];
 
 GetExternalMomentumIndex[ExternalMomentumSymbol[i_]] := i;
 GetExternalMomentumIndex[Pair[ExternalMomentumSymbol[i_], ExternalMomentumSymbol[i_]]] := i;
@@ -144,32 +162,26 @@ GetLoopMasses[process_, diagram_] :=
            SortMassesByGenericIndex[masses]
           ];
 
-PairChiralCouplings[gatheredCouplings_List] :=
-    Module[{leftChiralCouplings, rightChiralCouplings,
-            couplingGroups, fieldsGather, chiralSort, result},
-           result = gatheredCouplings;
-           leftChiralCouplings = Select[gatheredCouplings, !FreeQ[#, SARAH`PL]&];
-           rightChiralCouplings = Select[gatheredCouplings, !FreeQ[#, SARAH`PR]&];
-           If[leftChiralCouplings =!= {} && rightChiralCouplings =!= {},
-              result = Complement[result, Join[leftChiralCouplings, rightChiralCouplings]];
-              fieldsGather[SARAH`Cp[fields__]] := List[fields];
-              fieldsGather[SARAH`Cp[fields__][lor_]] := List[fields];
-              couplingGroups = GatherBy[Flatten[Join[leftChiralCouplings, rightChiralCouplings]], fieldsGather];
-              chiralSort[SARAH`Cp[fields__][SARAH`PL], SARAH`Cp[fields__][SARAH`PR]] := 1;
-              chiralSort[SARAH`Cp[fields__][SARAH`PR], SARAH`Cp[fields__][SARAH`PL]] := -1;
-              chiralSort[left_, right_] := 0;
-              couplingGroups = Flatten[Sort[#, chiralSort]& /@ couplingGroups];
-              result = Join[result, {couplingGroups}];
-             ];
-           result
+GroupByFieldContent[couplings_List] :=
+    Module[{fieldsGather, result},
+           fieldsGather[SARAH`Cp[fields__]] := List[fields];
+           fieldsGather[SARAH`Cp[fields__][lor_]] := List[fields];
+           GatherBy[couplings, fieldsGather]
           ];
 
-GroupByLorentzStructure[couplings_List] :=
-    Module[{lorentzGather, result},
-           lorentzGather[SARAH`Cp[fields__]] := 1;
-           lorentzGather[SARAH`Cp[fields__][lor_]] := lor;
-           result = GatherBy[couplings, lorentzGather];
-           Flatten[PairChiralCouplings[result]]
+SortChiralCouplings[couplings_List] :=
+    Module[{chiralCouplings, chiralSort},
+           chiralCouplings = Cases[couplings, SARAH`Cp[fields__][SARAH`PL|SARAH`PR], {0, Infinity}];
+           If[chiralCouplings === {},
+              Return[couplings];
+             ];
+           If[chiralCouplings =!= couplings,
+              Print["Error: cannot sort mixture of chiral and non-chiral couplings"];
+              Quit[1];
+             ];
+           chiralSort[SARAH`Cp[fields__][SARAH`PL], SARAH`Cp[fields__][SARAH`PR]] := True;
+           chiralSort[SARAH`Cp[fields__][SARAH`PR], SARAH`Cp[fields__][SARAH`PL]] := False;
+           Sort[couplings, chiralSort]
           ];
 
 GetCouplings[process_, diagram_] :=
@@ -178,7 +190,7 @@ GetCouplings[process_, diagram_] :=
            couplings = Join[Cases[formFactors, SARAH`Cp[fields__], {0, Infinity}],
                             Cases[formFactors, SARAH`Cp[fields__][lor__], {0, Infinity}]];
            couplings = DeleteDuplicates[couplings];
-           GroupByLorentzStructure[couplings]
+           SortChiralCouplings /@ GroupByFieldContent[couplings]
           ];
 
 CreateProcessString[Rule[{initial_}, finalState_List]] :=
@@ -215,7 +227,7 @@ CreateOneLoopDiagramDeclaration[process_, diagram_] :=
            returnType = GetAmplitudeCType[process];
            externalMomenta = GetExternalMomenta[process, diagram];
            loopMasses = GetLoopMasses[process, diagram];
-           couplings = GetCouplings[process, diagram];
+           couplings = Flatten[GetCouplings[process, diagram]];
            formFactors = Last[diagram];
            args = StringJoin[Riffle[Join[GetExternalMomentumCType /@ externalMomenta,
                                          GetLoopMassCType /@ loopMasses,
@@ -249,7 +261,7 @@ GetCouplingsVars[process_, diagram_] :=
            couplings = GetCouplings[process, diagram];
            vars = CreateCouplingCString /@ couplings;
            types = GetCouplingCType /@ couplings;
-           MapThread[{#1, #2, #3}&, {couplings, vars, types}]
+           MapThread[{#1, #2, #3}&, Flatten /@ {couplings, vars, types}]
           ];
 
 CreateCouplingDescription[SARAH`Cp[fields__]] :=
