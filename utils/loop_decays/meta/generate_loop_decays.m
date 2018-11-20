@@ -134,7 +134,7 @@ SortMassesByGenericIndex[masses_List] :=
            Sort[masses, orderingFn]
           ];
 
-GetLoopMassIndex[Mass[field_[___, Index[Generic, i_], ___], Loop]] := i;
+GetLoopMassField[Mass[field_[___, Index[Generic, i_], ___], Loop]] := field[i];
 
 GetLoopMasses[process_, diagram_] :=
     Module[{formFactors, masses},
@@ -228,11 +228,12 @@ CreateOneLoopDiagramDeclarations[process_, diagrams_] :=
     StringJoin[Riffle[CreateOneLoopDiagramDeclaration[process, #]& /@ diagrams, "\n\n"]];
 
 GetExternalMomentaVars[process_, diagram_] :=
-    Module[{externalMomenta, vars, types},
+    Module[{i, externalMomenta, vars, types, fields},
            externalMomenta = GetExternalMomenta[process, diagram];
            vars = CreateExternalMomentumCString /@ externalMomenta;
            types = GetExternalMomentumCType /@ externalMomenta;
-           MapThread[{#1, #2, #3}&, {externalMomenta, vars, types}]
+           fields = Table[Field[i][Index[Generic, i]], {i, 1, Length[externalMomenta]}] /. (List @@ diagram[[3]]);
+           MapThread[{#1, #2, #3, #4}&, {externalMomenta, vars, types, fields}]
           ];
 
 GetLoopMassesVars[process_, diagram_] :=
@@ -252,11 +253,13 @@ GetCouplingsVars[process_, diagram_] :=
           ];
 
 CreateCouplingDescription[SARAH`Cp[fields__]] :=
-    Module[{genericFields, desc},
-           genericFields = List[fields] /. f_[___, Index[Generic, i_], ___] :> f[i];
-           desc = "coupling between fields ";
-           desc <> StringJoin[Riffle[ToFieldString /@ genericFields, ", "]]
-          ];
+    "coupling " <> ToString[SARAH`Cp[fields] /. f_[___, Index[Generic, i_], ___] :> f[i]]
+
+CreateCouplingDescription[SARAH`Cp[fields__][1]] :=
+    CreateCouplingDescription[SARAH`Cp[fields]];
+
+CreateCouplingDescription[SARAH`Cp[fields__][lor__]] :=
+    "coupling " <> ToString[SARAH`Cp[fields][lor] /. f_[___, Index[Generic, i_], ___] :> f[i]]
 
 FillAmplitudeMasses[Rule[{S}, {S, S}], diagram_, struct_:"result"] :=
     Module[{topology, incomingIndex, outgoingIndices, incomingMass, outgoingOne, outgoingTwo},
@@ -349,15 +352,6 @@ FillAmplitudeMasses[Rule[{S}, {F, F}], diagram_, struct_:"result"] :=
            struct <> ".m_out_2 = " <> outgoingTwo  <> ";\n"
           ];
 
-CreateCouplingDescription[SARAH`Cp[fields__][SARAH`PL]] :=
-    "left-handed " <> CreateCouplingDescription[SARAH`Cp[fields]];
-
-CreateCouplingDescription[SARAH`Cp[fields__][SARAH`PR]] :=
-    "right-handed " <> CreateCouplingDescription[SARAH`Cp[fields]];
-
-CreateCouplingDescription[SARAH`Cp[fields__][lor_]] :=
-    CreateCouplingDescription[SARAH`Cp[fields]];
-
 CreateOneLoopDiagramDocString[process_, diagram_] :=
     Module[{idString, brief, externalMomenta, momentaInfo,
             loopMasses, massesInfo, couplings, couplingsInfo, docString = ""},
@@ -367,10 +361,10 @@ CreateOneLoopDiagramDocString[process_, diagram_] :=
            docString = docString <> brief <> " *\n";
            externalMomenta = GetExternalMomentaVars[process, diagram];
            momentaInfo = (" * @param[in] " <> #[[2]] <> " mass of external field " <>
-                          ToString[GetExternalMomentumIndex[#[[1]]]])& /@ externalMomenta;
+                          ToString[#[[4]] /. field_[___, Index[Generic, i_], ___] :> field[i]])& /@ externalMomenta;
            loopMasses = GetLoopMassesVars[process, diagram];
            massesInfo = (" * @param[in] " <> #[[2]] <> " mass of internal field " <>
-                          ToString[GetLoopMassIndex[#[[1]]]])& /@ loopMasses;
+                          ToString[GetLoopMassField[#[[1]]]])& /@ loopMasses;
            couplings = GetCouplingsVars[process, diagram];
            couplingsInfo = (" * @param[in] " <> #[[2]] <> " " <>
                           CreateCouplingDescription[#[[1]]])& /@ couplings;
