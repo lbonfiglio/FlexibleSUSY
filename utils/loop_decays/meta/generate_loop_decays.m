@@ -513,8 +513,10 @@ For[i = 1, i <= Length[genericProcesses], i++,
     diagramExprs = Select[diagramExprs, IsNonZeroDiagram];
     Print["... generating evaluation functions"];
     {decls, defs} = CreateDiagramEvaluators[process, diagramExprs];
-    genericOneLoopDiagramEvaluatorDecls = genericOneLoopDiagramEvaluatorDecls <> "\n\n" <> decls;
-    genericOneLoopDiagramEvaluatorDefs = genericOneLoopDiagramEvaluatorDefs <> "\n\n" <> defs;
+    genericOneLoopDiagramEvaluatorDecls = genericOneLoopDiagramEvaluatorDecls <>
+                                          If[genericOneLoopDiagramEvaluatorDecls != "", "\n\n", ""] <> decls;
+    genericOneLoopDiagramEvaluatorDefs = genericOneLoopDiagramEvaluatorDefs <>
+                                         If[genericOneLoopDiagramEvaluatorDefs != "", "\n\n", ""] <> defs;
    ];
 
 Print["Writing output files ..."];

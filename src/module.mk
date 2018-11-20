@@ -26,6 +26,7 @@ LIBFLEXI_SRC := \
 		$(DIR)/sfermions.cpp \
 		$(DIR)/numerics.cpp \
 		$(DIR)/numerics2.cpp \
+		$(DIR)/one_loop_decay_diagrams.cpp \
 		$(DIR)/physical_input.cpp \
 		$(DIR)/pmns.cpp \
 		$(DIR)/problems.cpp \
@@ -91,6 +92,7 @@ LIBFLEXI_HDR := \
 		$(DIR)/multiindex.hpp \
 		$(DIR)/numerics.h \
 		$(DIR)/numerics2.hpp \
+		$(DIR)/one_loop_decay_diagrams.hpp \
 		$(DIR)/physical_input.hpp \
 		$(DIR)/pmns.hpp \
 		$(DIR)/pp_map.hpp \
