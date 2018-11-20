@@ -45,6 +45,8 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
       4./3. * alpha_s_red * calc_DeltaH(betaDR) +
       calc_deltaqq(alpha_s_red, Nf);
 
+   const double deltaqqDRQED =
+      17./4. * alpha_red * pow(dq::electric_charge, 2); 
    const double deltaqqOSQED = 
       alpha_red * pow(dq::electric_charge, 2) * calc_DeltaH(betaOS);
 
@@ -80,9 +82,7 @@ double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
           (
              // low x limit
              (1 - 4. * xOS) * phase_spaceDR * amp2DR *
-                (1. + deltaqqDR + deltaH2) +
+                (1. + deltaqqDR + deltaqqDRQED +  deltaH2) +
              // high x limit
-             4 * xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS))
-          // universal QED corrections
-          * (1 + deltaqqOSQED);
+             4 * xOS * phase_spaceOS * amp2OS * (1. + deltaqqOS + deltaqqOSQED))
 }

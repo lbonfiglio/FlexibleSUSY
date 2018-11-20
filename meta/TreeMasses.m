@@ -256,6 +256,7 @@ FlagPoleTachyon::usage = "";
 FlagRunningTachyon::usage = "";
 
 GetStrongCoupling::usage = "Returns the name of the QCD coupling, e.g. g3. If not present returns Null."
+GetEMCoupling::usage = "Returns the name of the QED coupling, usually 'e'. If not present returns Null."
 
 Begin["`Private`"];
 
@@ -2220,6 +2221,9 @@ GetPseudoscalarHiggsBoson[] :=
 
 GetStrongCoupling[] :=
    If[ValueQ[SARAH`strongCoupling], SARAH`strongCoupling];
+
+GetEMCoupling[] :=
+   If[ValueQ[SARAH`electricCharge], SARAH`electricCharge];
 
 End[];
 
