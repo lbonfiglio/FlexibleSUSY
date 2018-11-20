@@ -1686,9 +1686,9 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
            dependencePrototypes      = TreeMasses`CreateDependencePrototypes[massMatrices];
            dependenceFunctions       = TreeMasses`CreateDependenceFunctions[massMatrices];
            softScalarMasses =
-               If[MatchQ[SARAH`ListSoftBreakingScalarMasses, {___}],
+               If[SARAH`SupersymmetricModel,
                   DeleteDuplicates[SARAH`ListSoftBreakingScalarMasses],
-                  {}
+                  Select[Parameters`GetModelParametersWithMassDimension[2], Parameters`IsRealParameter]
                  ];
            (* find soft Higgs masses that appear in tree-level EWSB eqs. *)
            treeLevelEWSBOutputParameters =
