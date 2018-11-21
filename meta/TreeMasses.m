@@ -78,6 +78,7 @@ matrix";
 ClearOutputParameters::usage="clears masses and mixing matrices";
 
 CopyDRBarMassesToPoleMasses::usage="copies DRbar mass to pole mass";
+CopyRunningMassesFromTo::usage="copies masses between two objects";
 
 CreateMassArrayGetter::usage="";
 CreateMassArraySetter::usage="";
@@ -1743,13 +1744,13 @@ ClearOutputParameters[massMatrix_TreeMasses`FSMassMatrix] :=
            Return[result];
           ];
 
-CopyDRBarMassesToPoleMasses[p:TreeMasses`FSMassMatrix[_,massESSymbols_List,_]] :=
+CopyRunningMassesFromTo[p:TreeMasses`FSMassMatrix[_,massESSymbols_List,_], from_String, to_String] :=
     Module[{massMatrices},
            massMatrices = DeleteDuplicates[TreeMasses`FSMassMatrix[0, #, Null]& /@ massESSymbols];
-           StringJoin[CopyDRBarMassesToPoleMasses /@ massMatrices]
+           StringJoin[CopyRunningMassesFromTo[#, from, to]& /@ massMatrices]
           ];
 
-CopyDRBarMassesToPoleMasses[massMatrix_TreeMasses`FSMassMatrix] :=
+CopyRunningMassesFromTo[massMatrix_TreeMasses`FSMassMatrix, from_String, to_String] :=
     Module[{result, massESSymbol, mixingMatrixSymbol, dim, dimStr,
             i, massStr, mixStr},
            massESSymbol = GetMassEigenstate[massMatrix];
@@ -1758,20 +1759,23 @@ CopyDRBarMassesToPoleMasses[massMatrix_TreeMasses`FSMassMatrix] :=
            dimStr = ToString[dim];
            massStr = CConversion`ToValidCSymbolString[FlexibleSUSY`M[MakeESSymbol[massESSymbol]]];
            (* copy mass *)
-           result = "PHYSICAL(" <> massStr <> ") = " <> massStr <> ";\n";
+           result = WrapMacro[massStr, to] <> " = " <> WrapMacro[massStr, from] <> ";\n";
            If[mixingMatrixSymbol =!= Null,
               If[Head[mixingMatrixSymbol] === List,
                  For[i = 1, i <= Length[mixingMatrixSymbol], i++,
                      mixStr = CConversion`ToValidCSymbolString[mixingMatrixSymbol[[i]]];
-                     result = result <> "PHYSICAL(" <> mixStr <> ") = " <> mixStr <> ";\n";
+                     result = result <> WrapMacro[mixStr, to] <> " = " <> WrapMacro[mixStr, from] <> ";\n";
                     ];
                  ,
                  mixStr = CConversion`ToValidCSymbolString[mixingMatrixSymbol];
-                 result = result <> "PHYSICAL(" <> mixStr <> ") = " <> mixStr <> ";\n";
+                 result = result <> WrapMacro[mixStr, to] <> " = " <> WrapMacro[mixStr, from] <> ";\n";
                 ];
              ];
-           Return[result];
+           result
           ];
+
+CopyDRBarMassesToPoleMasses[p_] :=
+        CopyRunningMassesFromTo[p, "", "PHYSICAL"];
 
 FindColorGaugeGroup[] :=
     Module[{coupling, gaugeGroup, result},

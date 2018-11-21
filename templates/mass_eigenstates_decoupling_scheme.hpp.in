@@ -38,13 +38,18 @@
 
 #include <iosfwd>
 #include <memory>
-#include <string>
 
 #include <Eigen/Core>
 
 #define SUPER(p) @ModelName@_soft_parameters::p
 
 namespace flexiblesusy {
+
+namespace standard_model {
+class Standard_model;
+}
+
+class @ModelName@_mass_eigenstates;
 
 /**
  * @class @ModelName@_mass_eigenstates_decoupling_scheme
@@ -58,6 +63,7 @@ class @ModelName@_mass_eigenstates_decoupling_scheme
 {
 public:
    explicit @ModelName@_mass_eigenstates_decoupling_scheme(const @ModelName@_input_parameters& input_ = @ModelName@_input_parameters());
+   explicit @ModelName@_mass_eigenstates_decoupling_scheme(const @ModelName@_mass_eigenstates&);
    @ModelName@_mass_eigenstates_decoupling_scheme(const @ModelName@_mass_eigenstates_decoupling_scheme&) = default;
    @ModelName@_mass_eigenstates_decoupling_scheme(@ModelName@_mass_eigenstates_decoupling_scheme&&) = default;
    virtual ~@ModelName@_mass_eigenstates_decoupling_scheme() = default;
@@ -72,6 +78,8 @@ public:
    void check_pole_masses_for_tachyons();
    void do_force_output(bool);
    bool do_force_output() const;
+   bool fill_from(const standard_model::Standard_model&);
+   bool fill_from(const @ModelName@_mass_eigenstates&);
    void reorder_tree_level_masses();
    void reorder_pole_masses();
    void print(std::ostream& out = std::cerr) const;

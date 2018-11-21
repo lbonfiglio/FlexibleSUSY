@@ -1559,6 +1559,8 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
             solveTreeLevelEWSBviaSoftHiggsMasses,
             solveEWSBTemporarily,
             copyDRbarMassesToPoleMasses = "",
+            copyRunningSMParametersToDecouplingParameters = "",
+            copyRunningBSMMassesToDecouplingMasses = "",
             reorderDRbarMasses = "", reorderPoleMasses = "",
             checkPoleMassesForTachyons = "",
             twoLoopHiggsHeaders = "", threeLoopHiggsHeaders = "", fourLoopHiggsHeaders = "",
@@ -1582,6 +1584,7 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                mixingMatricesDef    = mixingMatricesDef <> TreeMasses`CreateMixingMatrixDefinition[massMatrices[[k]]];
                clearOutputParameters = clearOutputParameters <> TreeMasses`ClearOutputParameters[massMatrices[[k]]];
                copyDRbarMassesToPoleMasses = copyDRbarMassesToPoleMasses <> TreeMasses`CopyDRBarMassesToPoleMasses[massMatrices[[k]]];
+               copyRunningBSMMassesToDecouplingMasses = copyRunningBSMMassesToDecouplingMasses <> TreeMasses`CopyRunningMassesFromTo[massMatrices[[k]], "OTHER", ""];
                massCalculationPrototypes = massCalculationPrototypes <> TreeMasses`CreateMassCalculationPrototype[massMatrices[[k]]];
                massCalculationFunctions  = massCalculationFunctions  <> TreeMasses`CreateMassCalculationFunction[massMatrices[[k]]];
               ];
@@ -1774,6 +1777,8 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                             "@clearOutputParameters@"  -> IndentText[clearOutputParameters],
                             "@clearPhases@"            -> IndentText[clearPhases],
                             "@copyDRbarMassesToPoleMasses@" -> IndentText[copyDRbarMassesToPoleMasses],
+                            "@copyRunningSMParametersToDecouplingParameters@"  -> IndentText[copyRunningSMParametersToDecouplingParameters],
+                            "@copyRunningBSMMassesToDecouplingMasses@" -> IndentText[copyRunningBSMMassesToDecouplingMasses],
                             "@reorderDRbarMasses@"     -> IndentText[reorderDRbarMasses],
                             "@reorderPoleMasses@"      -> IndentText[reorderPoleMasses],
                             "@checkPoleMassesForTachyons@" -> IndentText[checkPoleMassesForTachyons],
