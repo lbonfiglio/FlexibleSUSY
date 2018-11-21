@@ -189,7 +189,7 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
    COMPARE_POLE_PTR_2(pole_2, model_2, Uu, 3, 3, eps);
    COMPARE_POLE_PTR_2(pole_2, model_2, Ve, 3, 3, eps);
    COMPARE_POLE_PTR_2(pole_2, model_2, Ue, 3, 3, eps);
-   // COMPARE_POLE_PTR_2(pole_2, model_2, ZZ, 2, 2, eps);
+   COMPARE_POLE_PTR_2(pole_2, model_2, ZZ, 2, 2, eps);
 }
 
 BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_conversion )
@@ -265,5 +265,5 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_conversion )
    COMPARE_POLE_2(pole_1, pole_2, Uu, 3, 3, eps);
    COMPARE_POLE_2(pole_1, pole_2, Ve, 3, 3, eps);
    COMPARE_POLE_2(pole_1, pole_2, Ue, 3, 3, eps);
-   // COMPARE_POLE_2(pole_1, pole_2, ZZ, 2, 2, eps);
+   COMPARE_POLE_2(pole_1, pole_2, ZZ, 2, 2, eps);
 }

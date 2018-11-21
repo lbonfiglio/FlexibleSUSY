@@ -1744,22 +1744,28 @@ ClearOutputParameters[massMatrix_TreeMasses`FSMassMatrix] :=
            Return[result];
           ];
 
-CopyRunningMassesFromTo[p:TreeMasses`FSMassMatrix[_,massESSymbols_List,_], from_String, to_String] :=
+CopyRunningMassesFromTo[p:TreeMasses`FSMassMatrix[_, massESSymbols_List, mix_], from_String, to_String] :=
     Module[{massMatrices},
-           massMatrices = DeleteDuplicates[TreeMasses`FSMassMatrix[0, #, Null]& /@ massESSymbols];
+           massMatrices = Join[
+                   DeleteDuplicates[TreeMasses`FSMassMatrix[0, #, Null]& /@ massESSymbols],
+                   { TreeMasses`FSMassMatrix[0, Null, mix] }
+           ];
            StringJoin[CopyRunningMassesFromTo[#, from, to]& /@ massMatrices]
           ];
 
 CopyRunningMassesFromTo[massMatrix_TreeMasses`FSMassMatrix, from_String, to_String] :=
-    Module[{result, massESSymbol, mixingMatrixSymbol, dim, dimStr,
+    Module[{result = "", massESSymbol, mixingMatrixSymbol, dim, dimStr,
             i, massStr, mixStr},
            massESSymbol = GetMassEigenstate[massMatrix];
            mixingMatrixSymbol = GetMixingMatrixSymbol[massMatrix];
            dim = GetDimension[massESSymbol];
            dimStr = ToString[dim];
-           massStr = CConversion`ToValidCSymbolString[FlexibleSUSY`M[MakeESSymbol[massESSymbol]]];
            (* copy mass *)
-           result = WrapMacro[massStr, to] <> " = " <> WrapMacro[massStr, from] <> ";\n";
+           If[massESSymbol =!= Null,
+              massStr = CConversion`ToValidCSymbolString[FlexibleSUSY`M[MakeESSymbol[massESSymbol]]];
+              result = WrapMacro[massStr, to] <> " = " <> WrapMacro[massStr, from] <> ";\n";
+           ];
+           (* copy mixings *)
            If[mixingMatrixSymbol =!= Null,
               If[Head[mixingMatrixSymbol] === List,
                  For[i = 1, i <= Length[mixingMatrixSymbol], i++,
