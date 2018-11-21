@@ -1512,6 +1512,9 @@ CreateDefaultEWSBSolverConstructor[solvers_List] :=
            init
           ];
 
+ParameterAppearsExactlyOnceIn[eqs_List, par_] :=
+    Length[Select[eqs, (!FreeQ[#, par])&]] === 1;
+
 WriteModelClass[massMatrices_List, ewsbEquations_List,
                 parametersFixedByEWSB_List, ewsbSubstitutions_List,
                 nPointFunctions_List, vertexRules_List, phases_List,
@@ -1697,7 +1700,8 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                Parameters`AppendGenerationIndices @
                If[MatchQ[FlexibleSUSY`FSSolveEWSBTreeLevelFor, {__}],
                   FlexibleSUSY`FSSolveEWSBTreeLevelFor,
-                  Select[softScalarMasses, (!FreeQ[ewsbEquations, #])&]
+                  (* each softScalarMasses should appear only in exactly 1 EWSB eq.! *)
+                  Select[softScalarMasses, ParameterAppearsExactlyOnceIn[ewsbEquations, #]&]
                  ];
            If[MatchQ[treeLevelEWSBOutputParameters, {__}],
               parametersToSave = treeLevelEWSBOutputParameters;
