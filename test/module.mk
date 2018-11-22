@@ -400,6 +400,7 @@ TEST_SH += \
 		$(DIR)/test_CMSSM_QedQcd_no_convergence.sh \
 		$(DIR)/test_CMSSM_streams.sh
 TEST_SRC += \
+		$(DIR)/test_CMSSM_mass_eigenstates_decoupling_scheme.cpp \
 		$(DIR)/test_CMSSM_slha.cpp \
 		$(DIR)/test_CMSSM_slha_input.cpp \
 		$(DIR)/test_CMSSM_two_loop_spectrum.cpp \
@@ -763,6 +764,8 @@ $(DIR)/test_CMSSM_database.x: $(LIBCMSSM)
 $(DIR)/test_CMSSM_gluino.sh: $(RUN_SOFTPOINT_EXE)
 
 $(DIR)/test_MRSSM2_gmm2.x: $(LIBMRSSM2)
+
+$(DIR)/test_CMSSM_mass_eigenstates_decoupling_scheme.x: $(LIBCMSSM)
 
 $(DIR)/test_CMSSM_model.x: $(LIBCMSSM)
 

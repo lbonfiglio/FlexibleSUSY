@@ -1,5 +1,5 @@
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE test_SM_mass_eigenstates_interface
+#define BOOST_TEST_MODULE test_SM_mass_eigenstates_decoupling_scheme
 
 #include <boost/test/unit_test.hpp>
 
@@ -56,30 +56,6 @@
          for (int k = 0; k < (M); k++) {                                \
             BOOST_CHECK_CLOSE(std::real(a.par(i,k)), std::real(b.par(i,k)), eps); \
             BOOST_CHECK_CLOSE(std::imag(a.par(i,k)), std::imag(b.par(i,k)), eps); \
-         }                                                              \
-      }                                                                 \
-   } while (false)
-
-#define COMPARE_POLE_PTR_0(a,b,par,eps)                                 \
-   do {                                                                 \
-      BOOST_CHECK_CLOSE(std::real(a.par), std::real(b->get_##par()), eps); \
-      BOOST_CHECK_CLOSE(std::imag(a.par), std::imag(b->get_##par()), eps); \
-   } while (false)
-
-#define COMPARE_POLE_PTR_1(a,b,par,N,eps)                               \
-   do {                                                                 \
-      for (int i = 0; i < (N); i++) {                                   \
-         BOOST_CHECK_CLOSE(std::real(a.par(i)), std::real(b->get_##par()(i)), eps); \
-         BOOST_CHECK_CLOSE(std::imag(a.par(i)), std::imag(b->get_##par()(i)), eps); \
-      }                                                                 \
-   } while (false)
-
-#define COMPARE_POLE_PTR_2(a,b,par,N,M,eps)                             \
-   do {                                                                 \
-      for (int i = 0; i < (N); i++) {                                   \
-         for (int k = 0; k < (M); k++) {                                \
-            BOOST_CHECK_CLOSE(std::real(a.par(i,k)), std::real(b->get_##par()(i,k)), eps); \
-            BOOST_CHECK_CLOSE(std::imag(a.par(i,k)), std::imag(b->get_##par()(i,k)), eps); \
          }                                                              \
       }                                                                 \
    } while (false)

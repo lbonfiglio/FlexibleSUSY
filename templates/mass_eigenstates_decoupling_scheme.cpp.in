@@ -118,6 +118,7 @@ bool CLASSNAME::fill_from(const standard_model::Standard_model& sm_input)
 
    // set SM-like VEV
    {
+      auto& model = *this;
       auto MODEL = this;
 @setDecouplingVEVFromSMVEV@
    }
