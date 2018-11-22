@@ -116,7 +116,7 @@ Model_ifc_ptrs make_model_ifc_ptrs(const SM_input_parameters& input)
    return std::make_pair(std::move(ptrs.first), std::move(ptrs.second));
 }
 
-BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
+BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_conversion )
 {
    const auto eps = std::numeric_limits<double>::epsilon();
 
@@ -125,69 +125,69 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates )
    input.Qin = 91.0;
    input.QEWSB = 173.34;
 
-   auto models = make_model_ifc_ptrs(input);
-   auto model_1 = std::move(std::get<0>(models));
-   auto model_2 = std::move(std::get<1>(models));
+   auto models = make_model_ptrs(input);
+   auto model = std::move(std::get<0>(models));
 
-   model_1->solve_ewsb_equations_tree_level();
-   model_1->calculate_tree_level_mass_spectrum();
-   model_1->calculate_pole_mass_spectrum();
-   model_2->solve_ewsb_equations_tree_level();
-   model_2->calculate_tree_level_mass_spectrum();
-   model_2->calculate_pole_mass_spectrum();
+   model->solve_ewsb_equations_tree_level();
+   model->calculate_tree_level_mass_spectrum();
+   model->calculate_pole_mass_spectrum();
+
+   auto dec = flexiblesusy::make_unique<SM_mass_eigenstates_decoupling_scheme>(input);
+   dec->fill_from(*model);
 
    // parameters
-   COMPARE_0(model_1, model_2, g1, eps);
-   COMPARE_0(model_1, model_2, g2, eps);
-   COMPARE_0(model_1, model_2, g3, eps);
-   COMPARE_0(model_1, model_2, Lambdax, eps);
-   COMPARE_0(model_1, model_2, v, eps);
-   COMPARE_0(model_1, model_2, mu2, eps);
-   COMPARE_2(model_1, model_2, Yu, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Yd, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Ye, 3, 3, eps);
+   COMPARE_0(model, dec, g1, eps);
+   COMPARE_0(model, dec, g2, eps);
+   COMPARE_0(model, dec, g3, eps);
+   COMPARE_0(model, dec, Lambdax, eps);
+   COMPARE_0(model, dec, v, eps);
+   COMPARE_0(model, dec, mu2, eps);
+   COMPARE_2(model, dec, Yu, 3, 3, eps);
+   COMPARE_2(model, dec, Yd, 3, 3, eps);
+   COMPARE_2(model, dec, Ye, 3, 3, eps);
 
    // tree-level masses
-   COMPARE_0(model_1, model_2, MVP, eps);
-   COMPARE_0(model_1, model_2, MVZ, eps);
-   COMPARE_0(model_1, model_2, MVWp, eps);
-   COMPARE_0(model_1, model_2, MVG, eps);
-   COMPARE_0(model_1, model_2, Mhh, eps);
-   COMPARE_0(model_1, model_2, MHp, eps);
-   COMPARE_0(model_1, model_2, MAh, eps);
-   COMPARE_1(model_1, model_2, MFu, 3, eps);
-   COMPARE_1(model_1, model_2, MFd, 3, eps);
-   COMPARE_1(model_1, model_2, MFe, 3, eps);
-   COMPARE_1(model_1, model_2, MFv, 3, eps);
+   COMPARE_0(model, dec, MVP, eps);
+   COMPARE_0(model, dec, MVZ, eps);
+   COMPARE_0(model, dec, MVWp, eps);
+   COMPARE_0(model, dec, MVG, eps);
+   COMPARE_0(model, dec, Mhh, eps);
+   COMPARE_0(model, dec, MHp, eps);
+   COMPARE_0(model, dec, MAh, eps);
+   COMPARE_1(model, dec, MFu, 3, eps);
+   COMPARE_1(model, dec, MFd, 3, eps);
+   COMPARE_1(model, dec, MFe, 3, eps);
+   COMPARE_1(model, dec, MFv, 3, eps);
 
-   COMPARE_2(model_1, model_2, Vd, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Ud, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Vu, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Uu, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Ve, 3, 3, eps);
-   COMPARE_2(model_1, model_2, Ue, 3, 3, eps);
-   COMPARE_2(model_1, model_2, ZZ, 2, 2, eps);
+   COMPARE_2(model, dec, Vd, 3, 3, eps);
+   COMPARE_2(model, dec, Ud, 3, 3, eps);
+   COMPARE_2(model, dec, Vu, 3, 3, eps);
+   COMPARE_2(model, dec, Uu, 3, 3, eps);
+   COMPARE_2(model, dec, Ve, 3, 3, eps);
+   COMPARE_2(model, dec, Ue, 3, 3, eps);
+   COMPARE_2(model, dec, ZZ, 2, 2, eps);
 
    // pole masses
-   const auto pole_2 = model_2->get_physical();
+   const auto pole_1 = model->get_physical();
+   const auto pole_2 = dec->get_physical();
 
-   COMPARE_POLE_PTR_0(pole_2, model_2, MVP, eps);
-   COMPARE_POLE_PTR_0(pole_2, model_2, MVZ, eps);
-   COMPARE_POLE_PTR_0(pole_2, model_2, MVWp, eps);
-   COMPARE_POLE_PTR_0(pole_2, model_2, MVG, eps);
-   COMPARE_POLE_PTR_0(pole_2, model_2, Mhh, eps);
-   COMPARE_POLE_PTR_0(pole_2, model_2, MHp, eps);
-   COMPARE_POLE_PTR_0(pole_2, model_2, MAh, eps);
-   COMPARE_POLE_PTR_1(pole_2, model_2, MFu, 3, eps);
-   COMPARE_POLE_PTR_1(pole_2, model_2, MFd, 3, eps);
-   COMPARE_POLE_PTR_1(pole_2, model_2, MFe, 3, eps);
-   COMPARE_POLE_PTR_1(pole_2, model_2, MFv, 3, eps);
+   COMPARE_POLE_0(pole_1, pole_2, MVP, eps);
+   COMPARE_POLE_0(pole_1, pole_2, MVZ, eps);
+   COMPARE_POLE_0(pole_1, pole_2, MVWp, eps);
+   COMPARE_POLE_0(pole_1, pole_2, MVG, eps);
+   COMPARE_POLE_0(pole_1, pole_2, Mhh, eps);
+   COMPARE_POLE_0(pole_1, pole_2, MHp, eps);
+   COMPARE_POLE_0(pole_1, pole_2, MAh, eps);
+   COMPARE_POLE_1(pole_1, pole_2, MFu, 3, eps);
+   COMPARE_POLE_1(pole_1, pole_2, MFd, 3, eps);
+   COMPARE_POLE_1(pole_1, pole_2, MFe, 3, eps);
+   COMPARE_POLE_1(pole_1, pole_2, MFv, 3, eps);
 
-   COMPARE_POLE_PTR_2(pole_2, model_2, Vd, 3, 3, eps);
-   COMPARE_POLE_PTR_2(pole_2, model_2, Ud, 3, 3, eps);
-   COMPARE_POLE_PTR_2(pole_2, model_2, Vu, 3, 3, eps);
-   COMPARE_POLE_PTR_2(pole_2, model_2, Uu, 3, 3, eps);
-   COMPARE_POLE_PTR_2(pole_2, model_2, Ve, 3, 3, eps);
-   COMPARE_POLE_PTR_2(pole_2, model_2, Ue, 3, 3, eps);
-   COMPARE_POLE_PTR_2(pole_2, model_2, ZZ, 2, 2, eps);
+   COMPARE_POLE_2(pole_1, pole_2, Vd, 3, 3, eps);
+   COMPARE_POLE_2(pole_1, pole_2, Ud, 3, 3, eps);
+   COMPARE_POLE_2(pole_1, pole_2, Vu, 3, 3, eps);
+   COMPARE_POLE_2(pole_1, pole_2, Uu, 3, 3, eps);
+   COMPARE_POLE_2(pole_1, pole_2, Ve, 3, 3, eps);
+   COMPARE_POLE_2(pole_1, pole_2, Ue, 3, 3, eps);
+   COMPARE_POLE_2(pole_1, pole_2, ZZ, 2, 2, eps);
 }

@@ -418,6 +418,7 @@ TEST_SRC += \
 		$(DIR)/test_SM_gmm2.cpp \
 		$(DIR)/test_SM_low_scale_constraint.cpp \
 		$(DIR)/test_SM_mass_eigenstates_interface.cpp \
+		$(DIR)/test_SM_mass_eigenstates_decoupling_scheme.cpp \
 		$(DIR)/test_SM_one_loop_spectrum.cpp \
 		$(DIR)/test_SM_higgs_loop_corrections.cpp \
 		$(DIR)/test_SM_tree_level_spectrum.cpp \
@@ -875,6 +876,8 @@ $(DIR)/test_SM_higgs_loop_corrections.x: $(LIBSM)
 $(DIR)/test_SM_low_scale_constraint.x: $(LIBSM)
 
 $(DIR)/test_SM_mass_eigenstates_interface.x: $(LIBSM)
+
+$(DIR)/test_SM_mass_eigenstates_decoupling_scheme.x: $(LIBSM)
 
 $(DIR)/test_SM_tree_level_spectrum.x: $(LIBSM)
 
