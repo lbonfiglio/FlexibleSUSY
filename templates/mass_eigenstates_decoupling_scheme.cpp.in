@@ -32,6 +32,7 @@
 
 #include "@ModelName@_mass_eigenstates_decoupling_scheme.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
+#include "@ModelName@_info.hpp"
 #include "config.h"
 #include "eigen_utils.hpp"
 #include "error.hpp"
@@ -109,14 +110,29 @@ bool CLASSNAME::fill_from(const standard_model::Standard_model& sm_input)
    downQuarksDRbar.diagonal()  = sm.get_MFd();
    downLeptonsDRbar.diagonal() = sm.get_MFe();
 
-@copyRunningSMParametersToDecouplingParameters@
+   // set SM-like gauge couplings (assuming they exist in the BSM model)
+   set_@hyperchargeCoupling@(sm_gY/@ModelName@_info::normalization_@hyperchargeCoupling@);
+   set_@leftCoupling@(sm_g2/@ModelName@_info::normalization_@leftCoupling@);
+   set_@strongCoupling@(sm_g3/@ModelName@_info::normalization_@strongCoupling@);
+
+   // set SM-like VEV
+   {
+      auto MODEL = this;
+@setDecouplingVEVFromSMVEV@
+   }
+
+   // set SM-like Yukawa couplings
+   {
+      auto& model = *this;
+@setDecouplingYukawasFromSMYukawas@
+   }
 
    calculate_tree_level_mass_spectrum();
 }
 
 bool CLASSNAME::fill_from(const @ModelName@_mass_eigenstates& model)
 {
-   *static_cast<SM_soft_parameters*>(this) = static_cast<SM_soft_parameters>(model);
+   static_cast<SM_soft_parameters&>(*this) = static_cast<SM_soft_parameters>(model);
    physical = model.get_physical();
 
 #define OTHER(p) model.get_##p()
