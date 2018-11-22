@@ -6,6 +6,7 @@
 #include "test_SM.hpp"
 #include "SM_mass_eigenstates.hpp"
 #include "SM_mass_eigenstates_decoupling_scheme.hpp"
+#include "standard_model.hpp"
 #include "memory.hpp"
 
 #include <memory>
@@ -116,6 +117,35 @@ Model_ifc_ptrs make_model_ifc_ptrs(const SM_input_parameters& input)
    return std::make_pair(std::move(ptrs.first), std::move(ptrs.second));
 }
 
+std::unique_ptr<standard_model::Standard_model> make_sm(
+   const SM_input_parameters& input)
+{
+   Eigen::Matrix<double,3,3> Yu, Yd, Ye;
+   Yu << 0, 0, 0, 0, 0, 0, 0, 0, 0.8;
+   Ye << 0, 0, 0, 0, 0, 0, 0, 0, 0.1;
+   Yd << 0, 0, 0, 0, 0, 0, 0, 0, 0.3;
+
+   auto sm = flexiblesusy::make_unique<standard_model::Standard_model>(
+      91.           , // scale
+      0             , // loops
+      0             , // thresholds
+      0.45          , // g1
+      0.61          , // g2
+      1.06          , // g3
+      input.LambdaIN, // lambda
+      Yu            ,
+      Yd            ,
+      Ye            ,
+      0.            , // mu2
+      245.            // v
+   );
+
+   sm->solve_ewsb_tree_level();
+   sm->calculate_DRbar_masses();
+
+   return std::move(sm);
+}
+
 BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_conversion )
 {
    const auto eps = std::numeric_limits<double>::epsilon();
@@ -190,4 +220,41 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_conversion )
    COMPARE_POLE_2(pole_1, pole_2, Ve, 3, 3, eps);
    COMPARE_POLE_2(pole_1, pole_2, Ue, 3, 3, eps);
    COMPARE_POLE_2(pole_1, pole_2, ZZ, 2, 2, eps);
+}
+
+BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_decoupling_scheme_matching )
+{
+   const auto eps = std::numeric_limits<double>::epsilon();
+
+   SM_input_parameters input;
+   input.LambdaIN = 0.24;
+   input.Qin = 91.0;
+   input.QEWSB = 173.34;
+
+   auto dec = flexiblesusy::make_unique<SM_mass_eigenstates_decoupling_scheme>(input);
+
+   {
+      auto models = make_model_ptrs(input);
+      auto model = std::move(std::get<0>(models));
+
+      model->solve_ewsb_equations_tree_level();
+      model->calculate_tree_level_mass_spectrum();
+      model->calculate_pole_mass_spectrum();
+
+      dec->fill_from(*model);
+   }
+
+   auto sm = make_sm(input);
+
+   dec->fill_from(*sm);
+
+   // parameters
+   COMPARE_0(sm, dec, g1, eps);
+   COMPARE_0(sm, dec, g2, eps);
+   COMPARE_0(sm, dec, g3, eps);
+   // COMPARE_0(sm, dec, Lambdax, eps);
+   COMPARE_0(sm, dec, v, eps);
+   COMPARE_2(sm, dec, Yu, 3, 3, eps);
+   COMPARE_2(sm, dec, Yd, 3, 3, eps);
+   COMPARE_2(sm, dec, Ye, 3, 3, eps);
 }
