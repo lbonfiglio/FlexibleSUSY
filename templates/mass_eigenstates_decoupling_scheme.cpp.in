@@ -58,6 +58,7 @@ namespace flexiblesusy {
 
 #define CLASSNAME @ModelName@_mass_eigenstates_decoupling_scheme
 
+#define PHASE(p) model.get_##p()
 #define PHYSICAL(parameter) physical.parameter
 #define INPUT(parameter) model.get_input().parameter
 #define LOCALINPUT(parameter) input.parameter
@@ -132,7 +133,7 @@ bool CLASSNAME::fill_from(const standard_model::Standard_model& sm_input)
 
 bool CLASSNAME::fill_from(const @ModelName@_mass_eigenstates& model)
 {
-   static_cast<SM_soft_parameters&>(*this) = static_cast<SM_soft_parameters>(model);
+   static_cast<@ModelName@_soft_parameters&>(*this) = static_cast<@ModelName@_soft_parameters>(model);
    physical = model.get_physical();
 
 #define OTHER(p) model.get_##p()
