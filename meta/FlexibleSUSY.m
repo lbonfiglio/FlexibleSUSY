@@ -340,8 +340,8 @@ FSHimalayaInput = {
 FSDecaysInput = {
     (* fix vu and vd from SM VEV at tree-level *)
     (*
-    vu -> VEV Sin[ArcTan[vu/vd]],
-    vd -> VEV Cos[ArcTan[vu/vd]]
+    vu -> VEV Sin[ArcTan[SARAH`VEVSM2/SARAH`VEVSM1]],
+    vd -> VEV Cos[ArcTan[SARAH`VEVSM2/SARAH`VEVSM1]]
     *)
 };
 
