@@ -336,6 +336,15 @@ FSHimalayaInput = {
     mA -> FlexibleSUSY`M[SARAH`PseudoScalar]
 };
 
+(* parameter relations for the decays *)
+FSDecaysInput = {
+    (* fix vu and vd from SM VEV at tree-level *)
+    (*
+    vu -> VEV Sin[ArcTan[vu/vd]],
+    vd -> VEV Cos[ArcTan[vu/vd]]
+    *)
+};
+
 FSDebugOutput = False;
 
 Begin["`Private`"];
@@ -1777,7 +1786,7 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                             "@clearPhases@"            -> IndentText[clearPhases],
                             "@copyDRbarMassesToPoleMasses@" -> IndentText[copyDRbarMassesToPoleMasses],
                             "@setDecouplingYukawasFromSMYukawas@"  -> IndentText @ IndentText[ThresholdCorrections`SetDRbarYukawaCouplings[]],
-                            "@setDecouplingVEVFromSMVEV@" -> IndentText @ IndentText @ WrapLines[Constraint`ApplyConstraints[FlexibleSUSY`MatchingScaleInput]],
+                            "@setDecouplingVEVFromSMVEV@" -> IndentText @ IndentText @ WrapLines[Constraint`ApplyConstraints[List @@@ FlexibleSUSY`FSDecaysInput]],
                             "@copyRunningBSMMassesToDecouplingMasses@" -> IndentText[copyRunningBSMMassesToDecouplingMasses],
                             "@reorderDRbarMasses@"     -> IndentText[reorderDRbarMasses],
                             "@reorderPoleMasses@"      -> IndentText[reorderPoleMasses],
