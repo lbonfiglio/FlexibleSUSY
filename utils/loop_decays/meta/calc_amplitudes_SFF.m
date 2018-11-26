@@ -76,6 +76,7 @@ CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
      FormCalc`CalcFeynAmp[amplitudeHead[amplitudeExpr], OnShell -> True, FermionChains -> Chiral] //. Subexpr[] //. Abbr[] //. GenericList[]
     );
 
+(* Calculate all contributing graphs using FeynArts/FormCalc *)
 topologies = FeynArts`CreateTopologies[1, 1 -> 2, ExcludeTopologies -> Internal];
 
 process = {S[1]} -> {F[4], -F[4]};
@@ -113,6 +114,11 @@ If[loadUtils === $Failed,
    Quit[1];
   ];
 
+(* Determines the field insertions applied to the external (Incoming or Outgoing)
+   propagators for each diagram in the given set, as returned by FeynArts`InsertFields.
+   It is assumed that all diagrams in the list have the same set of insertions applied
+   to the external legs.
+*)
 GetExternalLegInsertions[diagrams_] :=
     Module[{genericDiags, topologies, externalFields,
             genericInsertions, externalInsertions},
@@ -142,6 +148,10 @@ GenericFieldType[field_] := StripSign[field];
 
 GetSquaredMassSymbol[mass_] := mass^2;
 
+(* Inside argument lists of loop functions, replace occurrences of
+   arguments of the form mass^2, where mass is the given external field mass, by dot
+   products of external momenta
+*)
 CreateLoopFunctionArgReplacementRules[fieldIdx_, mass_] :=
     Module[{loopFnHeads, squaredMass},
            squaredMass = GetSquaredMassSymbol[mass];
@@ -154,6 +164,9 @@ CreateLoopFunctionArgReplacementRules[fieldIdx_, mass_] :=
 CreateLoopFunctionArgReplacementRules[Field[fieldIdx_], mass_] :=
     CreateLoopFunctionArgReplacementRules[fieldIdx, mass];
 
+(* Replace occurrences of mass^2 for the given external mass with dot products
+   of external momenta
+*)
 CreateSquaredMassReplacementRules[fieldIdx_, mass_] :=
     Module[{squaredMass},
            squaredMassSymbol = GetSquaredMassSymbol[mass] /. Index[Generation, i_] :> Symbol["Gen" <> ToString[i]];
@@ -164,6 +177,9 @@ CreateSquaredMassReplacementRules[fieldIdx_, mass_] :=
 CreateSquaredMassReplacementRules[Field[fieldIdx_], mass_] :=
     CreateSquaredMassReplacementRules[fieldIdx, mass];
 
+(* Remove class level information from given mass and replace it with a
+   generic Mass object with generic indices for the field
+*)
 CreateGenericMassReplacementRules[fieldIdx_, field_, mass_] :=
     Module[{genericField},
            genericField = GenericFieldType[field][Index[Generic, fieldIdx]];
@@ -173,6 +189,9 @@ CreateGenericMassReplacementRules[fieldIdx_, field_, mass_] :=
 CreateGenericMassReplacementRules[Field[fieldIdx_], field_, mass_] :=
     CreateGenericMassReplacementRules[fieldIdx, field, mass];
 
+(* Remove class level information from the field in SARAH couplings
+   and replace it with the corresponding generic field with generic indices
+*)
 CreateCouplingIndexReplacementRules[fieldIdx_, field_] :=
     Module[{genericField},
            genericField = GenericFieldType[field][Index[Generic, fieldIdx]];
@@ -183,6 +202,9 @@ CreateCouplingIndexReplacementRules[fieldIdx_, field_] :=
 CreateCouplingIndexReplacementRules[Field[fieldIdx_], field_] :=
     CreateCouplingIndexReplacementRules[fieldIdx, field];
 
+(* Converts an expression with class level indices, masses, and couplings into
+   one in which all quantities are replaced by generic equivalents for use as
+   generic expressions *)
 ToGenericExpressions[externalLegInsertions_, statesInfo_, formFactors_List] :=
     Module[{incomingInfo, incomingField, incomingMass,
             outgoingInfo, outgoingFields, outgoingMasses,
@@ -203,6 +225,9 @@ ToGenericExpressions[externalLegInsertions_, statesInfo_, formFactors_List] :=
            formFactors //. loopFnArgReplacements /. squaredMassReplacements /. massReplacements //. couplingReplacements
           ];
 
+(* Given a list of matrix element and coefficients, apply simplifications assumed
+   to hold in SARAH and FlexibleSUSY
+*)
 CanonicalizeCouplings[formFactors_List] :=
     Module[{countGhosts, countVectors, couplingsUUV, dupCouplingsUUV,
             couplingSubs, result},
@@ -224,12 +249,18 @@ CanonicalizeCouplings[formFactors_List] :=
            result
           ];
 
+(* Converts a FeynmanGraph object to a list containing the graph number,
+   combinatorial factors, and insertions *)
 ConvertFeynmanGraphToList[graph_] :=
     {OneLoopDecaysUtils`GetGraphNumber[graph],
      OneLoopDecaysUtils`GetGraphCombinatorialFactor[graph],
      OneLoopDecaysUtils`GetGraphInsertions[graph]
     };
 
+(* Combines the lists of graph IDs, diagrams, and amplitudes (expressed as a list of matrix
+   elements and corresponding coefficients) into a single list where each element is of the form
+   {graph ID, topology, insertions, form factors}
+*)
 CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
     Module[{i, j, nTopologies = Length[diagrams],
             topology, insertions, nGenericInsertions, genericInsertions,
@@ -249,6 +280,10 @@ CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
                    ]]]
           ];
 
+(* Given a list of diagrams in the format returned by CollectDiagramInfo,
+   replace the external field insertions in each diagram by the corresponding
+   generic field insertions
+*)
 ReplaceExternalFieldInsertions[insertions_, diagram_] :=
     Module[{genericFieldReplacements},
            genericFieldReplacements = Rule[#[[2]], GenericFieldType[#[[2]]]]& /@ insertions;

@@ -74,6 +74,7 @@ CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
      FormCalc`CalcFeynAmp[amplitudeHead[amplitudeExpr], OnShell -> False] //. Subexpr[] //. Abbr[] //. GenericList[]
     );
 
+(* Calculate all contributing graphs using FeynArts/FormCalc *)
 topologies = FeynArts`CreateTopologies[1, 1 -> 2, ExcludeTopologies -> Internal];
 
 process = {S} -> {S, S};
@@ -111,12 +112,18 @@ If[loadUtils === $Failed,
    Quit[1];
   ];
 
+(* Converts a FeynmanGraph object to a list containing the graph number,
+   combinatorial factors, and insertions *)
 ConvertFeynmanGraphToList[graph_] :=
     {OneLoopDecaysUtils`GetGraphNumber[graph],
      OneLoopDecaysUtils`GetGraphCombinatorialFactor[graph],
      OneLoopDecaysUtils`GetGraphInsertions[graph]
     };
 
+(* Combines the lists of graph IDs, diagrams, and amplitudes (expressed as a list of matrix
+   elements and corresponding coefficients) into a single list where each element is of the form
+   {graph ID, topology, insertions, form factors}
+*)
 CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
     Module[{i, j, nTopologies = Length[diagrams],
             topology, insertions, nGenericInsertions, genericInsertions,

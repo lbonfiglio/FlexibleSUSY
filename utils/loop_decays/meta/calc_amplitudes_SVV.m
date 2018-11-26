@@ -74,6 +74,7 @@ CalculateAmplitudes[amplitudeHead_, amplitudeExpr_] :=
      FormCalc`CalcFeynAmp[amplitudeHead[amplitudeExpr], OnShell -> False] //. Subexpr[] //. Abbr[] //. GenericList[]
     );
 
+(* Calculate all contributing graphs using FeynArts/FormCalc *)
 topologies = FeynArts`CreateTopologies[1, 1 -> 2, ExcludeTopologies -> Internal];
 
 process = {S} -> {V, V};
@@ -125,7 +126,7 @@ ExpandMomenta[formFactors_List] :=
                    expanded = expanded /. Eps[x___, p_, y___, p_, z___] :> 0;
                    If[Head[expanded] === Plus,
                       expanded = List @@ expanded;,
-                      expanded = List[expanded];,
+                      expanded = List[expanded];
                      ];
                    (Which[# === Eps[ec[2], ec[3], k[2], k[3]],
                           Sow[{#, \[ImaginaryI] coeff}];,
@@ -141,8 +142,9 @@ ExpandMomenta[formFactors_List] :=
            result
           ];
 
-(* @todo ensure 4-vector boson couplings are also correctly handled w.r.t. field ordering
-         in vertex *)
+(* Given a list of matrix element and coefficients, apply simplifications assumed
+   to hold in SARAH and FlexibleSUSY
+*)
 CanonicalizeCouplings[formFactors_List] :=
     Module[{countGhosts, countVectors, couplingsUUV, dupCouplingsUUV,
             couplingSubs, result},
@@ -162,12 +164,18 @@ CanonicalizeCouplings[formFactors_List] :=
            result
           ];
 
+(* Converts a FeynmanGraph object to a list containing the graph number,
+   combinatorial factors, and insertions *)
 ConvertFeynmanGraphToList[graph_] :=
     {OneLoopDecaysUtils`GetGraphNumber[graph],
      OneLoopDecaysUtils`GetGraphCombinatorialFactor[graph],
      OneLoopDecaysUtils`GetGraphInsertions[graph]
     };
 
+(* Combines the lists of graph IDs, diagrams, and amplitudes (expressed as a list of matrix
+   elements and corresponding coefficients) into a single list where each element is of the form
+   {graph ID, topology, insertions, form factors}
+*)
 CollectDiagramInfo[ids_, diagrams_, formFactors_] :=
     Module[{i, j, nTopologies = Length[diagrams],
             topology, insertions, nGenericInsertions, genericInsertions,

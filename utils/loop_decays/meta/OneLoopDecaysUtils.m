@@ -1,12 +1,18 @@
 BeginPackage["OneLoopDecaysUtils`"];
 
-GetProcessType::usage="";
-ExtractFormFactors::usage="";
-ToFSConventions::usage="";
+ExtractFormFactors::usage="given a FormCalc Amp object, returns the expression for the
+amplitude as a list of the form
+    {{matrix element, coefficient}, {matrix element, coefficient}, ...}
+where the first element of each pair is a non-trivial Lorentz structure
+and the second is its corresponding coefficient in the amplitude";
+ToFSConventions::usage="replaces FeynArts/FormCalc symbols in an expression by their
+equivalents used by SARAH and FlexibleSUSY";
 
-GetGraphCombinatorialFactor::usage="";
-GetGraphNumber::usage="";
-GetGraphInsertions::usage="";
+GetGraphCombinatorialFactor::usage="returns the combinatorial factor associated with a
+FeynArts FeynmanGraph object";
+GetGraphNumber::usage="returns the graph number of a FeynArts FeymanGraph object";
+GetGraphInsertions::usage="returns the insertions associated with a FeynmanGraph object as a list";
+GetAdjacencyMatrix::usage="determines the adjacency matrix from a FeynArts Topology object";
 
 CollectLorentzStructures::missterms="Missing terms from form factor decomposition: ``";
 ExtractFormFactors::missterms="Could not associate the following terms with a matrix element: ``";
@@ -19,19 +25,11 @@ GetGenericFieldSymbol[{field_, properties__}] := field;
 GetGenericProcess[Rule[inFields_List, outFields_List]] :=
     Rule[GetGenericFieldSymbol /@ inFields, GetGenericFieldSymbol /@ outFields];
 
-GetProcessType[FormCalc`Amp[process_][expr_]] := GetProcessType[process];
-
 GetGraphCombinatorialFactor[FeynArts`FeynmanGraph[s_, level_][insertions__]] := s;
 
 GetGraphNumber[FeynArts`FeynmanGraph[s_, level_ == n_][insertions__]] := n;
 
 GetGraphInsertions[FeynArts`FeynmanGraph[s_, level_][insertions__]] := List[insertions];
-
-IsSSSDecay[process_] := GetProcessType[process] === Rule[{S}, {S, S}];
-IsSFFDecay[process_] := GetProcessType[process] === Rule[{S}, {F, F}];
-IsSVVDecay[process_] := GetProcessType[process] === Rule[{S}, {V, V}];
-IsSSVDecay[process_] := Or[GetProcessType[process] === Rule[{S}, {S, V}],
-                           GetProcessType[process] === Rule[{S}, {V, S}]];
 
 IsLoopFunction[LoopTools`A0[__]] := True;
 IsLoopFunction[LoopTools`A00[__]] := True;
@@ -168,6 +166,31 @@ LoopFunctionToFSNotationRules[] :=
 ToFSLoopFunctions[expr_] := expr /. LoopFunctionToFSNotationRules[];
 
 ToFSConventions[expr_] := ToFSLoopFunctions[ToSARAHCouplings[expr]];
+
+(* Converts a list of integer pairs {{from, to}, {from, to}, ...}
+   representing a graph to the corresponding adjacency matrix *)
+GetAdjacencyMatrix[edgeList_List, undirected_:True] :=
+    Module[{edgeTest, edgeCount},
+           edgeTest = If[undirected,
+                         Function[{e1, e2}, Or[e1[[1]] == e2[[1]] && e1[[2]] == e2[[2]],
+                                               e1[[2]] == e2[[1]] && e1[[1]] == e2[[2]]]],
+                         Function[{e1, e2}, e1[[1]] == e2[[1]] && e1[[2]] == e2[[2]]]
+                        ];
+           (* Use convention in which self-edges contribute 2 to the diagonal entries
+              for undirected graphs *)
+           edgeCount = Tally[edgeList, edgeTest] /. If[undirected, {{{i_, i_}, c_} :> {{i, i}, 2 c}}, {}];
+           If[undirected,
+              edgeCount = DeleteDuplicates[Join[edgeCount, {Reverse[#[[1]]], #[[2]]}& /@ edgeCount]];
+             ];
+           SparseArray[Rule[#[[1]], #[[2]]]& /@ edgeCount]
+          ];
+
+GetAdjacencyMatrix[FeynArts`Topology[s_][propagators__], undirected_:True] :=
+    Module[{propList, edgeList},
+           propList = List[propagators];
+           edgeList = {#[[1]], #[[2]]}& /@ propList;
+           Normal[GetAdjacencyMatrix[edgeList, undirected]]
+          ];
 
 End[];
 
