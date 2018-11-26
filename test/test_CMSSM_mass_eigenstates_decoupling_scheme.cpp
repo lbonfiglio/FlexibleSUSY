@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE( test_CMSSM_mass_eigenstates_conversion )
 /// checks that SM-like parameters are equal after matching
 BOOST_AUTO_TEST_CASE( test_CMSSM_mass_eigenstates_decoupling_scheme_matching )
 {
-   const auto eps = std::numeric_limits<double>::epsilon();
+   const auto eps = 1e-12;
 
    CMSSM_input_parameters input;
    input.m0 = 250.;
@@ -246,15 +246,13 @@ BOOST_AUTO_TEST_CASE( test_CMSSM_mass_eigenstates_decoupling_scheme_matching )
    COMPARE_0(sm, dec, g2, eps);
    COMPARE_0(sm, dec, g3, eps);
 
-   const double num_eps = 1e-13;
-
-   BOOST_CHECK_CLOSE(sm.get_v(), v, num_eps);
+   BOOST_CHECK_CLOSE(sm.get_v(), v, eps);
 
    for (int i = 0; i < 3; i++) {
       for (int k = 0; k < 3; k++) {
-         BOOST_CHECK_CLOSE(sm.get_Yu(i,k), dec.get_Yu(i,k)*sb, num_eps);
-         BOOST_CHECK_CLOSE(sm.get_Yd(i,k), dec.get_Yd(i,k)*cb, num_eps);
-         BOOST_CHECK_CLOSE(sm.get_Ye(i,k), dec.get_Ye(i,k)*cb, num_eps);
+         BOOST_CHECK_CLOSE(sm.get_Yu(i,k), dec.get_Yu(i,k)*sb, eps);
+         BOOST_CHECK_CLOSE(sm.get_Yd(i,k), dec.get_Yd(i,k)*cb, eps);
+         BOOST_CHECK_CLOSE(sm.get_Ye(i,k), dec.get_Ye(i,k)*cb, eps);
       }
    }
 }

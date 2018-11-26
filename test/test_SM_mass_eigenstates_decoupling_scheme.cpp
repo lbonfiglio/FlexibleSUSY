@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_conversion )
 
 BOOST_AUTO_TEST_CASE( test_SM_mass_eigenstates_decoupling_scheme_matching )
 {
-   const auto eps = std::numeric_limits<double>::epsilon();
+   const auto eps = 1e-13;
 
    SM_input_parameters input;
    input.LambdaIN = 0.24;

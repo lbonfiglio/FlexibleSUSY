@@ -336,15 +336,6 @@ FSHimalayaInput = {
     mA -> FlexibleSUSY`M[SARAH`PseudoScalar]
 };
 
-(* parameter relations for the decays *)
-FSDecaysInput = {
-    (* fix vu and vd from SM VEV at tree-level *)
-    (*
-    vu -> VEV Sin[ArcTan[SARAH`VEVSM2/SARAH`VEVSM1]],
-    vd -> VEV Cos[ArcTan[SARAH`VEVSM2/SARAH`VEVSM1]]
-    *)
-};
-
 FSDebugOutput = False;
 
 Begin["`Private`"];
@@ -1785,8 +1776,28 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                             "@clearOutputParameters@"  -> IndentText[clearOutputParameters],
                             "@clearPhases@"            -> IndentText[clearPhases],
                             "@copyDRbarMassesToPoleMasses@" -> IndentText[copyDRbarMassesToPoleMasses],
-                            "@setDecouplingYukawasFromSMYukawas@"  -> IndentText @ IndentText[ThresholdCorrections`SetDRbarYukawaCouplings[]],
-                            "@setDecouplingVEVFromSMVEV@" -> IndentText @ IndentText @ WrapLines[Constraint`ApplyConstraints[List @@@ FlexibleSUSY`FSDecaysInput]],
+                            "@calculateDecouplingGaugeCouplings@" -> IndentText @ IndentText[ThresholdCorrections`CalculateGaugeCouplings[]],
+                            "@setDecouplingGaugeCouplings@" -> IndentText @ IndentText[
+                                Constraint`ApplyConstraints[
+                                    Cases[FlexibleSUSY`LowScaleInput,
+                                          {SARAH`hyperchargeCoupling, __} |
+                                          {SARAH`leftCoupling, __} |
+                                          {SARAH`strongCoupling, __}
+                                    ]
+                                ]
+                                                                            ],
+                            "@setDecouplingVEV@" -> IndentText @ IndentText @ WrapLines[Constraint`ApplyConstraints[
+                                Cases[FlexibleSUSY`LowScaleInput,
+                                      {p_ | p_[__], __} /;
+                                      (p =!= SARAH`hyperchargeCoupling &&
+                                       p =!= SARAH`leftCoupling &&
+                                       p =!= SARAH`strongCoupling &&
+                                       p =!= SARAH`UpYukawa &&
+                                       p =!= SARAH`DownYukawa &&
+                                       p =!= SARAH`ElectronYukawa)
+                                ]
+                                                                                        ]],
+                            "@setDecouplingYukawas@"  -> IndentText @ IndentText[ThresholdCorrections`SetDRbarYukawaCouplings[]],
                             "@copyRunningBSMMassesToDecouplingMasses@" -> IndentText[copyRunningBSMMassesToDecouplingMasses],
                             "@reorderDRbarMasses@"     -> IndentText[reorderDRbarMasses],
                             "@reorderPoleMasses@"      -> IndentText[reorderPoleMasses],
