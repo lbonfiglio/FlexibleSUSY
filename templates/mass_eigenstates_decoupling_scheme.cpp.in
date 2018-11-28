@@ -152,10 +152,20 @@ bool CLASSNAME::fill_from(const standard_model::Standard_model& sm_input)
    }
 
    // apply user-defined low-energy constraint for the Yukawa couplings
-   // @todo check if general enough
    {
       auto& model = *this;
-@setDecouplingYukawas@
+      auto MODEL = this;
+@setDecouplingYukawaUpQuarks@
+   }
+   {
+      auto& model = *this;
+      auto MODEL = this;
+@setDecouplingYukawaDownQuarks@
+   }
+   {
+      auto& model = *this;
+      auto MODEL = this;
+@setDecouplingYukawaDownLeptons@
    }
 
    calculate_tree_level_mass_spectrum();

@@ -1786,18 +1786,22 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                                     ]
                                 ]
                                                                             ],
-                            "@setDecouplingVEV@" -> IndentText @ IndentText @ WrapLines[Constraint`ApplyConstraints[
-                                Cases[FlexibleSUSY`LowScaleInput,
-                                      {p_ | p_[__], __} /;
-                                      (p =!= SARAH`hyperchargeCoupling &&
-                                       p =!= SARAH`leftCoupling &&
-                                       p =!= SARAH`strongCoupling &&
-                                       p =!= SARAH`UpYukawa &&
-                                       p =!= SARAH`DownYukawa &&
-                                       p =!= SARAH`ElectronYukawa)
+                            "@setDecouplingVEV@" -> IndentText @ IndentText @ WrapLines[
+                                Constraint`ApplyConstraints[
+                                    Cases[FlexibleSUSY`LowScaleInput,
+                                          {p_?Parameters`IsVEV | (p_?Parameters`IsVEV)[__], __}
+                                    ]
                                 ]
-                                                                                        ]],
-                            "@setDecouplingYukawas@"  -> IndentText @ IndentText[ThresholdCorrections`SetDRbarYukawaCouplings[]],
+                                                                              ],
+                            "@setDecouplingYukawaUpQuarks@"  -> IndentText @ IndentText[
+                                ThresholdCorrections`SetDRbarYukawaCouplingTop[FlexibleSUSY`LowScaleInput]
+                                                                             ],
+                            "@setDecouplingYukawaDownQuarks@"  -> IndentText @ IndentText[
+                                ThresholdCorrections`SetDRbarYukawaCouplingBottom[FlexibleSUSY`LowScaleInput]
+                                                                             ],
+                            "@setDecouplingYukawaDownLeptons@"  -> IndentText @ IndentText[
+                                ThresholdCorrections`SetDRbarYukawaCouplingElectron[FlexibleSUSY`LowScaleInput]
+                                                                             ],
                             "@copyRunningBSMMassesToDecouplingMasses@" -> IndentText[copyRunningBSMMassesToDecouplingMasses],
                             "@reorderDRbarMasses@"     -> IndentText[reorderDRbarMasses],
                             "@reorderPoleMasses@"      -> IndentText[reorderPoleMasses],
