@@ -1568,7 +1568,16 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
             convertMixingsToSLHAConvention = "",
             convertMixingsToHKConvention = "",
             enablePoleMassThreads = True,
-            ewsbSolverHeaders = "", defaultEWSBSolverCctor = ""
+            ewsbSolverHeaders = "", defaultEWSBSolverCctor = "",
+            smDecouplingParameters = { SARAH`hyperchargeCoupling,
+                                       SARAH`leftCoupling,
+                                       SARAH`strongCoupling,
+                                       SARAH`UpYukawa,
+                                       SARAH`DownYukawa,
+                                       SARAH`ElectronYukawa, MZDRbar,
+                                       MZMSbar, MWDRbar, MWMSbar,
+                                       EDRbar, EMSbar, ThetaWDRbar,
+                                       VEV }
            },
            convertMixingsToSLHAConvention = WriteOut`ConvertMixingsToSLHAConvention[massMatrices];
            convertMixingsToHKConvention   = WriteOut`ConvertMixingsToHKConvention[massMatrices];
@@ -1782,14 +1791,22 @@ WriteModelClass[massMatrices_List, ewsbEquations_List,
                                     Cases[FlexibleSUSY`LowScaleInput,
                                           {SARAH`hyperchargeCoupling, __} |
                                           {SARAH`leftCoupling, __} |
-                                          {SARAH`strongCoupling, __}
+                                          {SARAH`strongCoupling, __} |
+                                          (* any gauge coupling that is fixed in terms of SM parameters *)
+                                          {_?Parameters`IsGaugeCoupling | (_?Parameters`IsGaugeCoupling)[__],
+                                           _?(!FreeQ[smDecouplingParameters,#])&}
                                     ]
                                 ]
                                                                             ],
                             "@setDecouplingVEV@" -> IndentText @ IndentText @ WrapLines[
                                 Constraint`ApplyConstraints[
                                     Cases[FlexibleSUSY`LowScaleInput,
-                                          {p_?Parameters`IsVEV | (p_?Parameters`IsVEV)[__], __}
+                                          {SARAH`VEVSM, __} |
+                                          {SARAH`VEVSM1, __} |
+                                          {SARAH`VEVSM2, __} |
+                                          (* any VEV that is fixed in terms of SM parameters *)
+                                          {_?Parameters`IsVEV | (_?Parameters`IsVEV)[__],
+                                           _?(!FreeQ[smDecouplingParameters,#])&}
                                     ]
                                 ]
                                                                               ],
