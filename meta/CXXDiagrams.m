@@ -215,7 +215,7 @@ GetEdgeLists[adjacencyMatrix_List, vertexLabels_List] :=
   Note that the adjacency matrix must be undirected (i.e., symmetric).
 *)
 FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
-  Module[{k, allVerticesexternalVertices = externalFields[[All,1]],
+  Module[{k, allVertices, externalVertices = externalFields[[All,1]],
           internalVertices,externalRules,
           internalFieldCouplings,
           unspecifiedEdgesLess,unspecifiedEdgesEqual,
@@ -224,7 +224,7 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
           unresolvedFieldCouplings,resolvedFields,resolvedFieldCouplings,
           diagrams = {}},
    allVertices = Table[k, {k, 1, Length[adjacencyMatrix]}];
-   internalVertices = Complement[allVertices ,externalVertices];
+   internalVertices = Complement[allVertices, externalVertices];
    externalRules = Flatten @ ({{_,#,_} :> SARAH`AntiField[# /. externalFields],
                                {#,_,_} :> SARAH`AntiField[# /. externalFields]} & /@ externalVertices);
 
