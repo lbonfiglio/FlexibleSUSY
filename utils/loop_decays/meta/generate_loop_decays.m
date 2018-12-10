@@ -11,6 +11,7 @@ If[loadFSStatus === $Failed,
    Quit[1];
   ];
 
+Clear[SARAH`AntiField];
 Clear[Vertex];
 
 loadUtilsStatus = Needs["OneLoopDecaysUtils`"];
@@ -497,6 +498,99 @@ CreateDiagramEvaluators[process_, diagrams_] :=
            {decls, defs}
           ];
 
+GetNumberOfVertices[topology_] :=
+    Length[DeleteDuplicates[Cases[List @@ topology, Vertex[_][_], {0, Infinity}]]];
+
+GetDirectedAdjacencyMatrix[topology_] :=
+    Module[{propagators, edges, nVertices},
+           propagators = List @@ topology;
+           edges = propagators /. Propagator[type_][Vertex[i_][from_], Vertex[j_][to_], Field[k_]] :> {from, to};
+           nVertices = GetNumberOfVertices[topology];
+           Normal[SparseArray[Rule @@@ Tally[edges], {nVertices, nVertices}]]
+          ];
+
+GetUndirectedAdjacencyMatrix[topology_] :=
+    Module[{directedAdjacencyMatrix},
+           directedAdjacencyMatrix = GetDirectedAdjacencyMatrix[topology];
+           directedAdjacencyMatrix + Transpose[directedAdjacencyMatrix]
+          ];
+
+GetEdgeLabels[topology_] :=
+    Module[{propagators},
+          propagators = List @@ topology;
+          propagators /. Propagator[type_][Vertex[i_][from_], Vertex[j_][to_], Field[k_]] :> Rule[{from, to}, Field[k]]
+         ];
+
+GetCouplings[expr_] :=
+    Module[{allCouplings},
+           allCouplings = Join[Cases[expr, SARAH`Cp[fields__], {0, Infinity}],
+                               Cases[expr, SARAH`Cp[fields__][lor__], {0, Infinity}]];
+           DeleteDuplicates[allCouplings]
+          ];
+
+GetEdgeLists[adjacencyMatrix_List, vertexLabels_List] :=
+    Module[{i, k},
+           edgeTriples = Flatten[(Flatten[Position[adjacencyMatrix[[#]], Except[0], Heads -> False]]
+                                  /. {i_Integer :> Table[{#, i, k}, {k, 1, adjacencyMatrix[[#,i]]}]}), 1]&
+                         /@ vertexLabels
+          ];
+
+GetPropagatorType[Propagator[Incoming][info__]] := Incoming;
+GetPropagatorType[Propagator[Outgoing][info__]] := Outgoing;
+GetPropagatorType[Propagator[Loop[i_]][info__]] := Loop;
+
+GetInternalEdgeLists[topology_] :=
+    Module[{propagators, internalPropagators, internalEdges},
+           propagators = List @@ topology;
+           internalPropagators = Select[propagators, (GetPropagatorType[#] === Loop)&];
+           internalEdges = Cases[internalPropagators, Propagator[type_][Vertex[i_][from_], Vertex[j_][to_], Field[k_]] :> Rule[{from, to}, Field[k]], {0, Infinity}];
+           internalEdges = internalEdges /. (Rule[{i_, j_}, f_] /; i > j) :> Rule[{j, i}, SARAH`AntiField[f]];
+           Flatten @ (MapIndexed[Rule[{#[[1,1]], #[[1,2]], First[#2]}, #[[2]]]&, #]& /@ Gather[internalEdges, (First[#1] === First[#2])&])
+          ];
+
+GetCXXDiagramsDiagram[topology_] :=
+    Module[{propagators, externalFields, externalFieldRules, vertices, externalVertices, internalVertices,
+            adjacencyMatrix, internalFieldCouplings, internalEdges, internalFieldRules, resolvedCouplings},
+           propagators = List @@ topology;
+           externalFields = Flatten @ Join[Cases[propagators, Propagator[Incoming][Vertex[i_][from_], Vertex[j_][to_], Field[k_]] :> Rule[from, Field[k]], {0, Infinity}],
+                                           Cases[propagators, Propagator[Outgoing][Vertex[i_][from_], Vertex[j_][to_], Field[k_]] :> Rule[from, Field[k]], {0, Infinity}]];
+           externalVertices = externalFields[[All, 1]];
+           externalFieldRules = Flatten @ ({{_,#,_} :> SARAH`AntiField[# /. externalFields],
+                                            {#,_,_} :> SARAH`AntiField[# /. externalFields]} & /@ externalVertices);
+           vertices = Table[i, {i, 1, GetNumberOfVertices[topology]}];
+           internalVertices = Complement[vertices, externalVertices];
+           adjacencyMatrix = GetUndirectedAdjacencyMatrix[topology];
+           internalFieldCouplings = GetEdgeLists[adjacencyMatrix, internalVertices] /. externalFieldRules;
+           internalEdges = GetInternalEdgeLists[topology];
+           internalFieldRules = Join[internalEdges, internalEdges /. (Rule[{i_, j_, k_}, f_]) :> Rule[{j, i, k}, SARAH`AntiField[f]]];
+           resolvedCouplings = internalFieldCouplings /. internalFieldRules;
+           vertices /. externalFields /. Thread[Rule[internalVertices, resolvedCouplings]]
+          ];
+
+GetGenericDiagramClass[process_, {graphID_, topology_, insertions_, formFactors_}] :=
+    Module[{graphName, adjacencyMatrix, edgeLabels, couplings},
+           graphName = CreateOneLoopDiagramName[process, graphID, insertions];
+           adjacencyMatrix = GetUndirectedAdjacencyMatrix[topology];
+           edgeLabels = GetEdgeLabels[topology];
+           couplings = GetCouplings[formFactors];
+           cxxDiagramsFormat = GetCXXDiagramsDiagram[topology];
+           {graphName, adjacencyMatrix, edgeLabels, List @@ insertions,
+            couplings, cxxDiagramsFormat}
+          ];
+
+GetGenericGraphClassesFileName[] :=
+    "generic_loop_decay_diagram_classes.m"
+
+WriteGraphClassesFile[fileName_String, expr_] :=
+    Module[{result, commentStr},
+           commentStr = "(* Generated at " <> DateString[] <> " *)";
+           result = Put[OutputForm[commentStr], fileName];
+           If[result === $Failed,
+              Return[result];
+             ];
+           PutAppend[expr, fileName]
+          ];
+
 genericProcesses = {
     {S} -> {S, S},
     {S} -> {V, V},
@@ -506,6 +600,7 @@ genericProcesses = {
 
 genericOneLoopDiagramEvaluatorDecls = "";
 genericOneLoopDiagramEvaluatorDefs = "";
+genericOneLoopDiagramClasses = {};
 
 For[i = 1, i <= Length[genericProcesses], i++,
     process = genericProcesses[[i]];
@@ -519,6 +614,7 @@ For[i = 1, i <= Length[genericProcesses], i++,
                                           If[genericOneLoopDiagramEvaluatorDecls != "", "\n\n", ""] <> decls;
     genericOneLoopDiagramEvaluatorDefs = genericOneLoopDiagramEvaluatorDefs <>
                                          If[genericOneLoopDiagramEvaluatorDefs != "", "\n\n", ""] <> defs;
+    genericOneLoopDiagramClasses = Join[genericOneLoopDiagramClasses, GetGenericDiagramClass[process, #]& /@ diagramExprs];
    ];
 
 Print["Writing output files ..."];
@@ -532,3 +628,11 @@ WriteOut`ReplaceInFiles[decayAmplitudesFiles,
                         }];
 
 Print["Generating C++ code finished"];
+
+Print["Writing generic graph classes to file ..."];
+propertiesFileName = FileNameJoin[{resultsDir, GetGenericGraphClassesFileName[]}];
+genericOneLoopDiagramClasses = DeleteDuplicates[genericOneLoopDiagramClasses];
+classesOutputStatus = WriteGraphClassesFile[propertiesFileName, genericOneLoopDiagramClasses];
+If[classesOutputStatus === $Failed,
+   Quit[2];
+  ];
