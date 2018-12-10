@@ -19,7 +19,14 @@
 #ifndef SLHA_IO_H
 #define SLHA_IO_H
 
-#include "config.h"
+#include <string>
+#include <sstream>
+#include <iosfwd>
+#include <vector>
+#include <Eigen/Core>
+#include <boost/function.hpp>
+#include "slhaea.h"
+#include "logger.hpp"
 #include "error.hpp"
 #include "logger.hpp"
 #include "numerics2.hpp"
@@ -27,14 +34,6 @@
 #include "slha_formatting.hpp"
 #include "slhaea.h"
 #include "wrappers.hpp"
-
-#include <Eigen/Core>
-#include <boost/function.hpp>
-
-#include <string>
-#include <sstream>
-#include <iosfwd>
-#include <vector>
 
 namespace softsusy {
    class QedQcd;
@@ -492,13 +491,6 @@ void SLHA_io::convert_symmetric_fermion_mixings_to_slha(Eigen::Array<double, N, 
       if (!is_zero(z.row(i).imag().cwiseAbs().maxCoeff())) {
          z.row(i) *= std::complex<double>(0.0,1.0);
          m(i) *= -1;
-#ifdef ENABLE_DEBUG
-         if (!is_zero(z.row(i).imag().cwiseAbs().maxCoeff())) {
-            WARNING("Row " << i << " of the following fermion mixing matrix"
-                    " contains entries which have non-zero real and imaginary"
-                    " parts:\nZ = " << z);
-         }
-#endif
       }
    }
 }

@@ -22,6 +22,7 @@ LIBFLEXI_SRC := \
 		$(DIR)/global_thread_pool.cpp \
 		$(DIR)/gsl_utils.cpp \
 		$(DIR)/gsl_vector.cpp \
+		$(DIR)/logger.cpp \
 		$(DIR)/lowe.cpp \
 		$(DIR)/sfermions.cpp \
 		$(DIR)/numerics.cpp \
