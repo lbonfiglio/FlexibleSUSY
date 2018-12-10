@@ -55,10 +55,41 @@ CreatePartialWidthSpecializations::usage="creates specialized functions for part
 Begin["`Private`"];
 
 GetInitialState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := particle;
+
 GetFinalState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := finalState;
+
+(*
+  Returns a list of the form
+
+     {{integer loop order, {{topology one, {diagram one, diagram two, ...}}, ...}},
+      {integer loop order, {{topology one, {diagram one, diagram two, ...}}, ...}}}
+
+  where each sublist contains the topologies and corresponding diagrams contributing
+  to the decay at that particular loop order.
+*)
 GetDecayTopologiesAndDiagrams[FSParticleDecay[particle_, finalState_List, diagrams_List]] := diagrams;
+
+(*
+  Returns a list of the form
+
+     {{integer loop order, {diagram one, diagram two, ...}},
+      {integer loop order, {diagram one, diagram two, ...}}, ...}
+
+  where each sublist contains the diagrams contributing to the decay at that
+  particular loop-order.
+*)
 GetDecayDiagramsOnly[FSParticleDecay[particle_, finalState_List, diagrams_List]] :=
     {#[[1]], Flatten[Last /@ #[[2]], 1]}& /@ diagrams;
+
+(*
+   Returns a list of the form
+
+      {{topology one, {diagram one, diagram two, ...}},
+       {topology two, {diagram one, diagram two, ...}}, ...}
+
+   containing all topologies and diagrams contributing to the decay
+   at the given loop order.
+*)
 GetDecayTopologiesAndDiagramsAtLoopOrder[decay_FSParticleDecay, loopOrder_Integer] :=
     Module[{toposAndDiags},
            toposAndDiags = Select[GetDecayTopologiesAndDiagrams[decay], (First[#] == loopOrder)&];
@@ -67,6 +98,14 @@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay_FSParticleDecay, loopOrder_Intege
              ];
            toposAndDiags
           ];
+
+(*
+  Returns a list of the form
+
+     {diagram one, diagram two, ...}
+
+  containing all diagrams contributing to the decay at the given loop order.
+*)
 GetDecayDiagramsOnlyAtLoopOrder[decay_FSParticleDecay, loopOrder_Integer] :=
     Module[{diags},
            diags = Select[GetDecayDiagramsOnly[decay], (First[#] == loopOrder)&];
