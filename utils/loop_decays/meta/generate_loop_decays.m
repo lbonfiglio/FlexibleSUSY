@@ -11,6 +11,8 @@ If[loadFSStatus === $Failed,
    Quit[1];
   ];
 
+Clear[Vertex];
+
 loadUtilsStatus = Needs["OneLoopDecaysUtils`"];
 If[loadUtilsStatus === $Failed,
    Quit[1];
