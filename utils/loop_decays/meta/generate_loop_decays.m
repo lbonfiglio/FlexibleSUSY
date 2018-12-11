@@ -1,7 +1,7 @@
 status = 0;
 
 baseDir = DirectoryName[$InputFileName];
-fsDir = ParentDirectory[baseDir, 3];
+fsDir = Nest[ParentDirectory, baseDir, 3];
 
 AppendTo[$Path, FileNameJoin[{fsDir, "meta"}]];
 AppendTo[$Path, baseDir];
