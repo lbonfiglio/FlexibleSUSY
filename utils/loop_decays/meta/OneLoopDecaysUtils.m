@@ -143,10 +143,26 @@ CouplingToSARAHCpRules[] :=
                                   + SARAH`g[SARAHLorentzIndex[i2], SARAHLorentzIndex[i3]] (SARAH`Mom[{fields}[[i3]]] - SARAH`Mom[{fields}[[i2]]])]],
      RuleDelayed[FeynArts`G[_][0][fields__]["d_"[FeynArts`KI1[i1_], FeynArts`KI1[i2_]] "d_"[FeynArts`KI1[i3_], FeynArts`KI1[i4_]]],
                  SARAH`Cp[fields][SARAH`g[SARAHLorentzIndex[i1], SARAHLorentzIndex[i2]] SARAH`g[SARAHLorentzIndex[i3], SARAHLorentzIndex[i4]]]],
-     RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`Mom[i1_]], SARAH`Cp[fields][SARAH`Mom[{fields}[[i1]]]]]
+     RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`Mom[i1_]], SARAH`Cp[fields][SARAH`Mom[{fields}[[i1]]]]],
+     RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`NonCommutative[Global`DiracMatrix[FeynArts`KI1[i1_]], Global`ChiralityProjector[1]]],
+                 SARAH`Cp[fields][SARAH`LorentzProduct[SARAH`gamma[SARAHLorentzIndex[i1]], SARAH`PR]]],
+     RuleDelayed[FeynArts`G[_][0][fields__][FeynArts`NonCommutative[Global`DiracMatrix[FeynArts`KI1[i1_]], Global`ChiralityProjector[-1]]],
+                 SARAH`Cp[fields][SARAH`LorentzProduct[SARAH`gamma[SARAHLorentzIndex[i1]], SARAH`PL]]]
     };
 
-ToSARAHCouplings[expr_] := expr /. CouplingToSARAHCpRules[];
+IsFeynArtsField[FeynArts`S] := True;
+IsFeynArtsField[FeynArts`F] := True;
+IsFeynArtsField[FeynArts`V] := True;
+IsFeynArtsField[FeynArts`U] := True;
+IsFeynArtsField[sym_] := False;
+
+RemoveFieldLineSpecifiers[] :=
+    {
+     RuleDelayed[field_[indices__, FeynArts`Loop] /; IsFeynArtsField[field], field[indices]],
+     RuleDelayed[field_[indices__, FeynArts`External] /; IsFeynArtsField[field], field[indices]]
+    };
+
+ToSARAHCouplings[expr_] := expr /. CouplingToSARAHCpRules[] /. RemoveFieldLineSpecifiers[];
 
 LoopFunctionToFSNotationRules[] :=
     {
