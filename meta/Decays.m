@@ -20,7 +20,9 @@
 
 *)
 
-BeginPackage["Decays`", {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`", "TextFormatting`", "Utils`", "Vertices`"}];
+BeginPackage["Decays`",
+   {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`", "TextFormatting`", "Utils`", "Vertices`",
+      "ColorMathInterface`"}];
 
 FSParticleDecay::usage="head used for storing details of an particle decay,
 in the format
@@ -1041,8 +1043,36 @@ FillTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, struct
            _, ""
           ];
 
+EvaluateColorFactor[topology_, diagram_] :=
+   Module[{diagramWithIndices},
+      Print[diagram];
+      diagramWithIndices =
+         Map[
+            If[TreeMasses`ColorChargedQ[#],
+               If[TreeMasses`GetDimension[#] === 1,
+                  #[{Unique["ct"]}],
+                  #[{Unique["gt"], Unique["ct"]}]
+               ], #
+            ]&, diagram, 2
+         ];
+      Print[diagramWithIndices];
+      For[i = 1, i < Length[diagram], i++,
+         For[j = i+1, j < Length[diagram], j++,
+            Print[i];
+            Print[j];
+            Print[CXXDiagrams`ContractionsBetweenVerticesForDiagramFromGraph[i, j, diagram, topology]];
+         ]
+      ];
+      Print[ColorMathInterface`FSCalcColorFactor[Vertex /@ Drop[diagram, 3]]];
+      Quit[1];
+   ];
+
 EvaluateOneLoopTwoBodyDecayDiagramWithTopology[decay_, topology_, diagram_] :=
     Module[{name = GetTopologyName[topology]},
+       (*EvaluateColorFactor[topology, diagram];*)
+       (* get vertices from diagram *)
+       (* connect them based on topology *)
+       (* calc color factor *)
            "// evaluate graph " <> GetDecayTopologyName[topology] <> "\n"
           ];
 

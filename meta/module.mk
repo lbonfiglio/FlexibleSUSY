@@ -70,6 +70,7 @@ META_SRC     := \
 		$(DIR)/CXXDiagrams.m \
 		$(DIR)/Decays.m \
 		$(DIR)/EDM.m \
+		$(DIR)/ColorMathInterface.m \
 		$(DIR)/EffectiveCouplings.m \
 		$(DIR)/EWSB.m \
 		$(DIR)/FlexibleEFTHiggsMatching.m \

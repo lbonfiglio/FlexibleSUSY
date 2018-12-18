@@ -42,6 +42,7 @@ CreateMassFunctions::usage="";
 CreatePhysicalMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
+ContractionsBetweenVerticesForDiagramFromGraph::usage = "";
 NumberOfFieldIndices::usage="";
 FieldInfo::usage="";
 includeLorentzIndices::usage="";
@@ -264,11 +265,39 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
 
 VerticesForDiagram[diagram_] := Select[diagram,Length[#] > 1 &]
 
+(* vertex v1, vertex v2*)
+ContractionsBetweenVerticesForDiagramFromGraph[v1_Integer, v2_Integer,
+		diagram_List, graph_List] :=
+	Module[{fields1 = diagram[[v1]], fields2 = diagram[[v2]],
+			preceedingNumberOfFields1 = Total[graph[[v1, ;;v2]]] - graph[[v1,v2]],
+			preceedingNumberOfFields2 = Total[graph[[v2, ;;v1]]] - graph[[v2,v1]],
+			contractedFieldIndices1, contractedFieldIndices2},
+		contractedFieldIndices1 = Table[k, {k, preceedingNumberOfFields1 + 1,
+			preceedingNumberOfFields1 + graph[[v1,v2]]}];
+		contractedFieldIndices2 = Table[k, {k, preceedingNumberOfFields2 + 1,
+			preceedingNumberOfFields2 + graph[[v2,v1]]}];
+		
+		Transpose[{contractedFieldIndices1, contractedFieldIndices2}]
+	]
+
+CreateVertexData[fields_List] := 
+  Module[{dataClassName},
+    dataClassName = "VertexData<" <> StringJoin[Riffle[
+      CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields,
+    ", "]] <> ">";
+    
+    "template<> struct " <> dataClassName <> "\n" <>
+    "{\n" <>
+    TextFormatting`IndentText[
+      "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
+         ";"] <> "\n" <>
+    "};"
+  ]
+
 CreateMassFunctions[fieldsNamespace_:""] :=
   Module[{massiveFields,
           ghostMappings = SelfEnergies`ReplaceGhosts[FlexibleSUSY`FSEigenstates]},
     massiveFields = TreeMasses`GetParticles[];
-
     StringJoin @ Riffle[
       Module[{fieldInfo = FieldInfo[#], numberOfIndices},
              numberOfIndices = Length @ fieldInfo[[5]];
