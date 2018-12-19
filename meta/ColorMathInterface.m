@@ -62,12 +62,10 @@ GetFieldColorIndex[field_/;TreeMasses`ColorChargedQ[field]]:=
 FSCalcColorFactor[vertex_List] :=
    Module[{return},
       return =
-         vertex //SARAHToColorMathSymbols // DropColorles;
-      Print[return];
+          (SARAHToColorMathSymbols /@ vertex) // DropColorles;
       If[return === {}, Return[1]];
       return =
          TakeOnlyColor @ return;
-      Print[return];
       return = Times @@ return;
       (* CSimplify[1] doesn't evaluate *)
       If[return === 1,
@@ -109,9 +107,16 @@ TakeOnlyColor[vvvv__] :=
       Assert[CountDistinct[#] === 1]& /@ result;
       result = DeleteDuplicates /@ result;
       result = Flatten[result, 2];
+      Print["Final ", result];
+      result = result /. Subscript[Superscript[Superscript[ColorMath`CMt, List[a__]], b_], c_] :> 2 * Subscript[Superscript[Superscript[ColorMath`CMt, List[a]], b], c];
+      Print["Final ", result];
       result
     ];
 
+AntiFieldQ[field_] :=
+    If[Head[field] === bar || Head[field] === conj, True, False];
+
+(* Convert color symbols in a single SARAH`Vertex object to ColorMAth convention *)
 SARAHToColorMathSymbols[vertex_List] :=
     Module[{result},
 
@@ -122,11 +127,12 @@ SARAHToColorMathSymbols[vertex_List] :=
    (* if the result has Delta, we need to find out if it's adj. or fundamental *)
     result = result /. SARAH`Delta[c1_?IsColorIndex, c2_?IsColorIndex] :>
         If[getColorRep[Select[vertex[[1]], ! FreeQ[#, c1] &][[1]]] === T,
-           ColorMath`CMdelta[c1, c2]
+
+           ColorMath`CMdelta @@ If[!AntiFieldQ[Select[vertex[[1]], ! FreeQ[#, c1] &][[1]]], {c2, c1}, {c1,c2}]
         ];
    result = result /. SARAH`Delta[c1_?IsColorIndex, c2_?IsColorIndex] :>
        If[getColorRep[Select[vertex[[1]], ! FreeQ[#, c1] &][[1]]] === O,
-          ColorMath`CMDelta[c1, c2]
+          ColorMath`CMDelta[c2, c1]
        ];
 
        result
