@@ -24,7 +24,7 @@ Limitations:
 *)
 
 BeginPackage["ColorMathInterface`",
-   {"SARAH`", "TreeMasses`", (*IsColorIndex is there*)"CXXDiagrams`", "ColorMath`"}
+   {"SARAH`", "TreeMasses`", (*IsColorIndex is there*)"Parameters`", "ColorMath`"}
 ];
 
 FSCalcColorFactor::usage = "";
