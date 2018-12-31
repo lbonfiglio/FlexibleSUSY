@@ -1,27 +1,29 @@
 (* ::Package:: *)
 
-(*
-Outline
-1.  I assume that the input for the calculation is a list from Jobst
-    having the following format:
-    {list of external fields, list of lists of fields in vertices}
-    e.g.
-    {Fe,bar[Fe],VP,{bar[Fe],Ah,Fe},{Fe,Ah,bar[Fe]},{VP,bar[Fe],Fe}}
-    Sizes of those lists are arbitrary.
-2.  For each external color charged field I generate a random name for 
-    the color index. This is done through
-    GenerateUniqueColorAssociationsForExternalParticles function
-    which takes list from Jobst and returns a association list,
-    e.g. \[LeftAssociation]1\[Rule]c22\[RightAssociation] meaning that external particle at position on in
-    Jobst list will have color index c22.
-3.  Final step. Take fields in vertices and pass them to SARAH`Vertex function.
-    Each vertex will get automatically generated indices starting from c1.
-    Using info the info from Jobst adjacency matrix and my association list 
-    create new dummny indices and connect them between vertices.
+(* :Copyright:
 
-Limitations:
-1.  We asumme that there are only 3-particle vertices.
+   ====================================================================
+   This file is part of FlexibleSUSY.
+
+   FlexibleSUSY is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published
+   by the Free Software Foundation, either version 3 of the License,
+   or (at your option) any later version.
+
+   FlexibleSUSY is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with FlexibleSUSY.  If not, see
+   <http://www.gnu.org/licenses/>.
+   ====================================================================
+
 *)
+
+(* This is a FlexibleSUSY interface to ColorMath package by Malin Sj̈odahl
+   [http://inspirehep.net/record/1201957] *)
 
 BeginPackage["ColorMathInterface`",
    {"SARAH`", "TreeMasses`", (*IsColorIndex is there*)"Parameters`", "ColorMath`"}
