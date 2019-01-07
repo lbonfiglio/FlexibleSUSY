@@ -37,6 +37,7 @@ ConnectColorLines::usage = "";
 StripSU3Generators::usage = "";
 SortColorDeltas::usage = "Sort ";
 TakeOnlyColor::usage = "";
+AntiFieldQ::usage = "Returns True if the field is conjugated or bared. Otherwise return False";
 
 Begin["`Private`"];
 
@@ -116,7 +117,7 @@ TakeOnlyColor[vvvv__] :=
     ];
 
 AntiFieldQ[field_] :=
-    If[Head[field] === bar || Head[field] === conj, True, False];
+    If[Head[field] === SARAH`bar || Head[field] === Susyno`LieGroups`conj, True, False];
 
 (* Convert color symbols in a single SARAH`Vertex object to ColorMAth convention *)
 SARAHToColorMathSymbols[vertex_List] :=
