@@ -38,14 +38,12 @@ CreateNamedFieldAliases::usage="";
 CreateSelfConjugateFieldsDefinitions::usage="";
 CreateFieldTypeLists::usage="";
 CreateFieldTraitsDefinitions::usage="";
+ContractionsBetweenVerticesForDiagramFromGraph::usage="";
 CreateMassFunctions::usage="";
 CreatePhysicalMassFunctions::usage="";
 CreateUnitCharge::usage="";
 CreateStrongCoupling::usage="";
-ContractionsBetweenVerticesForDiagramFromGraph::usage = "";
 NumberOfFieldIndices::usage="";
-FieldInfo::usage="";
-includeLorentzIndices::usage="";
 
 Begin["`Private`"];
 
@@ -265,41 +263,26 @@ FeynmanDiagramsOfType[adjacencyMatrix_List,externalFields_List] :=
 
 VerticesForDiagram[diagram_] := Select[diagram,Length[#] > 1 &]
 
-(* vertex v1, vertex v2*)
 ContractionsBetweenVerticesForDiagramFromGraph[v1_Integer, v2_Integer,
-		diagram_List, graph_List] :=
-	Module[{fields1 = diagram[[v1]], fields2 = diagram[[v2]],
-			preceedingNumberOfFields1 = Total[graph[[v1, ;;v2]]] - graph[[v1,v2]],
-			preceedingNumberOfFields2 = Total[graph[[v2, ;;v1]]] - graph[[v2,v1]],
-			contractedFieldIndices1, contractedFieldIndices2},
-		contractedFieldIndices1 = Table[k, {k, preceedingNumberOfFields1 + 1,
-			preceedingNumberOfFields1 + graph[[v1,v2]]}];
-		contractedFieldIndices2 = Table[k, {k, preceedingNumberOfFields2 + 1,
-			preceedingNumberOfFields2 + graph[[v2,v1]]}];
-		
-		Transpose[{contractedFieldIndices1, contractedFieldIndices2}]
-	]
+                diagram_List, graph_List] :=
+        Module[{fields1 = diagram[[v1]], fields2 = diagram[[v2]],
+                        preceedingNumberOfFields1 = Total[graph[[v1, ;;v2]]] - graph[[v1,v2]],
+                        preceedingNumberOfFields2 = Total[graph[[v2, ;;v1]]] - graph[[v2,v1]],
+                        contractedFieldIndices1, contractedFieldIndices2},
+                contractedFieldIndices1 = Table[k, {k, preceedingNumberOfFields1 + 1,
+                        preceedingNumberOfFields1 + graph[[v1,v2]]}];
+                contractedFieldIndices2 = Table[k, {k, preceedingNumberOfFields2 + 1,
+                        preceedingNumberOfFields2 + graph[[v2,v1]]}];
 
-CreateVertexData[fields_List] := 
-  Module[{dataClassName},
-    dataClassName = "VertexData<" <> StringJoin[Riffle[
-      CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields,
-    ", "]] <> ">";
-    
-    "template<> struct " <> dataClassName <> "\n" <>
-    "{\n" <>
-    TextFormatting`IndentText[
-      "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
-         ";"] <> "\n" <>
-    "};"
-  ]
+                Transpose[{contractedFieldIndices1, contractedFieldIndices2}]
+        ]
 
 CreateMassFunctions[fieldsNamespace_:""] :=
   Module[{massiveFields,
           ghostMappings = SelfEnergies`ReplaceGhosts[FlexibleSUSY`FSEigenstates]},
     massiveFields = TreeMasses`GetParticles[];
     StringJoin @ Riffle[
-      Module[{fieldInfo = FieldInfo[#], numberOfIndices},
+      Module[{fieldInfo = TreeMasses`FieldInfo[#], numberOfIndices},
              numberOfIndices = Length @ fieldInfo[[5]];
 
              "template<> inline\n" <>
@@ -318,7 +301,7 @@ CreatePhysicalMassFunctions[fieldsNamespace_:""] :=
     massiveFields = TreeMasses`GetParticles[];
 
     StringJoin @ Riffle[
-      Module[{fieldInfo = FieldInfo[#], numberOfIndices},
+      Module[{fieldInfo = TreeMasses`FieldInfo[#], numberOfIndices},
              numberOfIndices = Length @ fieldInfo[[5]];
 
              "template<> inline\n" <>
@@ -347,7 +330,7 @@ CreateUnitCharge[] :=
          TextFormatting`IndentText @
            ("std::array<int, " <> ToString @ numberOfElectronIndices <> "> electron_indices = {" <>
               If[TreeMasses`GetDimension[electron] =!= 1,
-                 " " <> ToString @ (FieldInfo[electron][[2]]-1) <> (* Electron has the lowest index *)
+                 " " <> ToString @ (TreeMasses`FieldInfo[electron][[2]]-1) <> (* Electron has the lowest index *)
                  If[numberOfElectronIndices =!= 1,
                     StringJoin @ Table[", 0", {numberOfElectronIndices-1}],
                     ""] <> " ",
@@ -359,7 +342,7 @@ CreateUnitCharge[] :=
          TextFormatting`IndentText @
            ("std::array<int, " <> ToString @ numberOfPhotonIndices <> "> photon_indices = {" <>
                If[TreeMasses`GetDimension[photon] =!= 1,
-                 " " <> ToString @ (FieldInfo[photon][[2]]-1) <>
+                 " " <> ToString @ (TreeMasses`FieldInfo[photon][[2]]-1) <>
                  If[numberOfPhotonIndices =!= 1,
                     StringJoin @ Table[", 0", {numberOfPhotonIndices-1}],
                     ""] <> " ",
@@ -393,7 +376,7 @@ CreateStrongCoupling[] :=
          TextFormatting`IndentText @
            ("std::array<int, " <> ToString @ numberOfdownquarkIndices <> "> downquark_indices = {" <>
               If[TreeMasses`GetDimension[downquark] =!= 1,
-                 " " <> ToString @ (FieldInfo[downquark][[2]]-1) <> (* downquark has the lowest index *)
+                 " " <> ToString @ (TreeMasses`FieldInfo[downquark][[2]]-1) <> (* downquark has the lowest index *)
                  If[numberOfdownquarkIndices =!= 1,
                     StringJoin @ Table[", 0", {numberOfdownquarkIndices-1}],
                     ""] <> " ",
@@ -405,7 +388,7 @@ CreateStrongCoupling[] :=
          TextFormatting`IndentText @
            ("std::array<int, " <> ToString @ numberOfgluonIndices <> "> gluon_indices = {" <>
                If[TreeMasses`GetDimension[gluon] =!= 1,
-                 " " <> ToString @ (FieldInfo[gluon][[2]]-1) <>
+                 " " <> ToString @ (TreeMasses`FieldInfo[gluon][[2]]-1) <>
                  If[numberOfgluonIndices =!= 1,
                     StringJoin @ Table[", 0", {numberOfgluonIndices-1}],
                     ""] <> " ",
@@ -424,10 +407,10 @@ CreateStrongCoupling[] :=
          "}"
   ]
 
-NumberOfFieldIndices[field_] := Length @ FieldInfo[field][[5]]
+NumberOfFieldIndices[field_] := Length @ TreeMasses`FieldInfo[field][[5]]
 
 IndexBoundsForField[field_] :=
-  Module[{fieldInfo = FieldInfo[field]},
+  Module[{fieldInfo = TreeMasses`FieldInfo[field]},
     If[NumberOfFieldIndices[field] === 0,
        Return[{{},{}}]];
     If[Length @ Cases[fieldInfo[[5]],{SARAH`generation,_}] === 0,
