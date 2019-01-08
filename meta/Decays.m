@@ -1047,43 +1047,35 @@ EvaluateColorFactor[topology_, diagram_] :=
    Module[{diagramWithIndices, field1, field2, replacementList},
       diagramWithIndices =
          Map[
+            If[ListQ[#], #,
             If[TreeMasses`ColorChargedQ[#],
                If[TreeMasses`GetDimension[#] === 1,
                   #[{Unique["ct"]}],
                   #[{Unique["gt"], Unique["ct"]}]
                ], #
-            ]&, diagram, 2
+            ]]&, diagram, 2
          ];
+      Utils`PrintHeadline["Diagram"];
+      Print[diagramWithIndices];
       replacementList = {};
       For[i = 1, i <= Length[diagram], i++,
          For[j = i+1, j <= Length[diagram], j++,
-            (*Print["Checking ", i, j];*)
             connectedParticles = CXXDiagrams`ContractionsBetweenVerticesForDiagramFromGraph[i, j, diagram, topology];
-            (*Print[connectedParticles];*)
             If[connectedParticles === {}, Continue[]];
             (* what if connected particles has 2 or more sublists? *)
-            If[TreeMasses`ColorChargedQ[If[ListQ[diagram[[i]]], diagram[[i, connectedParticles[[1,1]]]], diagram[[i]]]],
-               field1 = If[ListQ[diagram[[i]]], diagramWithIndices[[i, connectedParticles[[1,1]]]], diagramWithIndices[[i]]];
-               field2 = If[ListQ[diagram[[j]]], diagramWithIndices[[j, connectedParticles[[1,2]]]], diagramWithIndices[[j]]];
+            For[k = 1, k <= Length[connectedParticles], k++,
+            If[
+               TreeMasses`ColorChargedQ[
+                  If[ListQ[diagram[[i]]], diagram[[i, connectedParticles[[k,1]]]], diagram[[i]]]
+               ],
+               field1 = If[ListQ[diagram[[i]]], diagramWithIndices[[i, connectedParticles[[k,1]]]], diagramWithIndices[[i]]];
+               field2 = If[ListQ[diagram[[j]]], diagramWithIndices[[j, connectedParticles[[k,2]]]], diagramWithIndices[[j]]];
                AppendTo[replacementList, ColorMathInterface`GetFieldColorIndex[field2] -> ColorMathInterface`GetFieldColorIndex[field1]];
-               (*)
-               Print[field1, " ", field2];
-               Print[
-                  ColorMathInterface`GetFieldColorIndex[field1];
-               ];,
-               Print["Not color charged",
-                  If[ListQ[i], diagram[[i, connectedParticles[[1,1]]]], diagram[[i]]],
-                  If[ListQ[i], diagram[[j, connectedParticles[[1,2]]]], diagram[[i]]]
-               ]
-               *)
             ];
+               ]
          ]
       ];
-      (*Print[replacementList];*)
-      (*Print[diagramWithIndices/.replacementList];*)
-      (*Print[Vertex /@ Drop[diagramWithIndices/.replacementList, 3]];*)
-      (*Print[ColorMathInterface`FSCalcColorFactor[Vertex /@ Drop[diagramWithIndices/.replacementList, 3]]];*)
-      (*Quit[1];*)
+      Print[ColorMathInterface`FSCalcColorFactor[Vertex /@ Drop[diagramWithIndices/.replacementList, 3]]];
    ];
 
 EvaluateOneLoopTwoBodyDecayDiagramWithTopology[decay_, topology_, diagram_] :=

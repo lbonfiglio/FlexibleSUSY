@@ -2,6 +2,9 @@
 
 (* :Copyright:
 
+   This is a FlexibleSUSY interface to ColorMath package by Malin Sj̈odahl
+   [http://inspirehep.net/record/1201957]
+
    ====================================================================
    This file is part of FlexibleSUSY.
 
@@ -22,22 +25,20 @@
 
 *)
 
-(* This is a FlexibleSUSY interface to ColorMath package by Malin Sj̈odahl
-   [http://inspirehep.net/record/1201957] *)
-
 BeginPackage["ColorMathInterface`",
    {"SARAH`", "TreeMasses`", (*IsColorIndex is there*)"Parameters`", "ColorMath`"}
 ];
 
-FSCalcColorFactor::usage = "";
+FSCalcColorFactor::usage = "Calculate overal color factor from a list of color connected
+   SARAH'Vertex 'objects'";
 SARAHToColorMathSymbols::usage = "";
 GetFieldColorIndex::usage = "";
-ColorN::usage = "Evaluate numerically the analytic form of the color factor.";
+ColorN::usage = "Evaluate numerically the analytic form of the color factor, substituting Nc = 3 and TR = 1/2.";
 ConnectColorLines::usage = "";
 StripSU3Generators::usage = "";
 SortColorDeltas::usage = "Sort ";
 TakeOnlyColor::usage = "";
-AntiFieldQ::usage = "Returns True if the field is conjugated or bared. Otherwise return False";
+AntiFieldQ::usage = "Returns True if the field is conjugated or bared. Otherwise returns False";
 
 Begin["`Private`"];
 
@@ -60,21 +61,33 @@ GetFieldColorIndex[field_/;TreeMasses`ColorChargedQ[field]]:=
     res[[1]]
   ];
 
-(* Calculate overal color factor from a list of color connected
-   SARAH'Vertex 'objects' *)
+(* This is the 'main' function. *)
 FSCalcColorFactor[vertex_List] :=
    Module[{return},
+
+      (* There are cases where SU(3) generators are under the sum.
+         The sumation index is called jN. We need to d*)
+      return = (#/. sum[i_, imin_, imax_, expr_] :> (
+         If[Select[Part[expr, #]& @@@ Position[expr, i, Infinity], (Head[#]===SARAH`fSU3 || Head[#]===SARAH`Lam)&] === {},
+         sum[i, imin, imax, expr],
+         expr/. i -> Unique["ct"]
+         ]))& /@ vertex;
+      
       return =
-          (SARAHToColorMathSymbols /@ vertex) // DropColorles;
+          SARAHToColorMathSymbols /@ return;
+
+      (* remove vertices without color structures from the list of vertices *)
+      return = DropColorles@return;
+
+      (* if all vertices were removed, color factor is 1 *)
       If[return === {}, Return[1]];
+
       return =
          TakeOnlyColor @ return;
       return = Times @@ return;
+
       (* CSimplify[1] doesn't evaluate *)
-      If[return === 1,
-         1,
-         CSimplify[return]
-      ]
+      If[return === 1, 1, CSimplify[return]]
    ];
 
 ColorStructureFreeQ[el_] :=
@@ -110,9 +123,7 @@ TakeOnlyColor[vvvv__] :=
       Assert[CountDistinct[#] === 1]& /@ result;
       result = DeleteDuplicates /@ result;
       result = Flatten[result, 2];
-      Print["Final ", result];
       result = result /. Subscript[Superscript[Superscript[ColorMath`CMt, List[a__]], b_], c_] :> 2 * Subscript[Superscript[Superscript[ColorMath`CMt, List[a]], b], c];
-      Print["Final ", result];
       result
     ];
 
@@ -146,6 +157,7 @@ ColorN[expr_] :=
    expr /. ColorMath`Nc -> 3 /. ColorMath`TR -> 1/2;
 
 (* connect color indices of field1 and field2 *)
+(*)
 ConnectColorLines[field1_, field2_] :=
    Module[{r1 = getColorRep[field1], r2 = getColorRep[field2]},
       Assert[r1 === r2];
@@ -430,7 +442,7 @@ inOutParticles
 a
     ]
 *)
-
+*)
 End[];
 
 EndPackage[];
