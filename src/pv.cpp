@@ -248,7 +248,7 @@ std::complex<double> D1B0
 
 namespace {
 
-const double nan = numeric_limits<double>::quiet_NaN();
+const double nan = std::numeric_limits<double>::quiet_NaN();
 const double deriv_eps = 1e-5; ///< epsilon for derivatives
 
 // see src/include/ff.h in LoopTools
