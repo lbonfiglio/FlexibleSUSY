@@ -1062,17 +1062,16 @@ EvaluateColorFactor[topology_, diagram_] :=
          For[j = i+1, j <= Length[diagram], j++,
             connectedParticles = CXXDiagrams`ContractionsBetweenVerticesForDiagramFromGraph[i, j, diagram, topology];
             If[connectedParticles === {}, Continue[]];
-            (* what if connected particles has 2 or more sublists? *)
             For[k = 1, k <= Length[connectedParticles], k++,
-            If[
-               TreeMasses`ColorChargedQ[
-                  If[ListQ[diagram[[i]]], diagram[[i, connectedParticles[[k,1]]]], diagram[[i]]]
-               ],
-               field1 = If[ListQ[diagram[[i]]], diagramWithIndices[[i, connectedParticles[[k,1]]]], diagramWithIndices[[i]]];
-               field2 = If[ListQ[diagram[[j]]], diagramWithIndices[[j, connectedParticles[[k,2]]]], diagramWithIndices[[j]]];
-               AppendTo[replacementList, ColorMathInterface`GetFieldColorIndex[field2] -> ColorMathInterface`GetFieldColorIndex[field1]];
-            ];
-               ]
+               If[
+                  TreeMasses`ColorChargedQ[
+                     If[ListQ[diagram[[i]]], diagram[[i, connectedParticles[[k,1]]]], diagram[[i]]]
+                  ],
+                  field1 = If[ListQ[diagram[[i]]], diagramWithIndices[[i, connectedParticles[[k,1]]]], diagramWithIndices[[i]]];
+                  field2 = If[ListQ[diagram[[j]]], diagramWithIndices[[j, connectedParticles[[k,2]]]], diagramWithIndices[[j]]];
+                  AppendTo[replacementList, ColorMathInterface`GetFieldColorIndex[field2] -> ColorMathInterface`GetFieldColorIndex[field1]];
+               ];
+            ]
          ]
       ];
       Print[ColorMathInterface`FSCalcColorFactor[Vertex /@ Drop[diagramWithIndices/.replacementList, 3]]];

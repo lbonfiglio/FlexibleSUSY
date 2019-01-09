@@ -130,26 +130,38 @@ TakeOnlyColor[vvvv__] :=
 AntiFieldQ[field_] :=
     If[Head[field] === SARAH`bar || Head[field] === Susyno`LieGroups`conj, True, False];
 
-(* Convert color symbols in a single SARAH`Vertex object to ColorMAth convention *)
+(* Convert color symbols in a single SARAH`Vertex object to ColorMath convention *)
 SARAHToColorMathSymbols[vertex_List] :=
-    Module[{result},
+    Module[{result, particlesInVertex},
 
-   result = vertex //.
-      SARAH`Lam[colIdx1_, colIdx2_, colIdx3_] :> 2 ColorMath`CMt[{colIdx1}, colIdx2, colIdx3] //.
-      SARAH`fSU3[colSeq__] :> ColorMath`CMf[colSeq];
+      result = vertex //.
+         SARAH`Lam[colIdx1_, colIdx2_, colIdx3_] :> 2 ColorMath`CMt[{colIdx1}, colIdx2, colIdx3] //.
+         SARAH`fSU3[colSeq__] :> ColorMath`CMf[colSeq];
 
-   (* if the result has Delta, we need to find out if it's adj. or fundamental *)
-    result = result /. SARAH`Delta[c1_?IsColorIndex, c2_?IsColorIndex] :>
-        If[getColorRep[Select[vertex[[1]], ! FreeQ[#, c1] &][[1]]] === T,
+      (* If the result has a color Delta, we need to find out if it's adj. or fundamental
+         because they are represented by different symbols in ColorMath.
+         Also, in ColorMath the order of indices matters. As stated in  ColorMath tutorial notebook:
+
+         "Note that lower and upper indices are different. One position is taken to define incoming
+         quarks/outgoing anti-quarks, and the other position is used for outgoing quarks and incoming
+         anti-quarks. What is taken to be what is a question of definition.*)
+        
+      particlesInVertex = vertex[[1]];
+
+      (* check fundamental deltas *)
+      result = result /. SARAH`Delta[c1_?IsColorIndex, c2_?IsColorIndex] :>
+        If[getColorRep[Select[particlesInVertex, !FreeQ[#, c1]&][[1]]] === T,
 
            ColorMath`CMdelta @@ If[!AntiFieldQ[Select[vertex[[1]], ! FreeQ[#, c1] &][[1]]], {c2, c1}, {c1,c2}]
         ];
-   result = result /. SARAH`Delta[c1_?IsColorIndex, c2_?IsColorIndex] :>
-       If[getColorRep[Select[vertex[[1]], ! FreeQ[#, c1] &][[1]]] === O,
-          ColorMath`CMDelta[c2, c1]
-       ];
 
-       result
+      (* check adjoint deltas *)
+      result = result /. SARAH`Delta[c1_?IsColorIndex, c2_?IsColorIndex] :>
+         If[getColorRep[Select[particlesInVertex, !FreeQ[#, c1]&][[1]]] === O,
+            ColorMath`CMDelta[c2, c1]
+         ];
+
+      result
    ];
 
 (* for SU(3) *)
