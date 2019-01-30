@@ -53,7 +53,8 @@ GetName[BetaFunction[name_, type_, beta_List]] :=
     name /. Parameters`StripSARAHIndicesRules[1] /.
             Parameters`StripSARAHIndicesRules[2] /.
             Parameters`StripSARAHIndicesRules[3] /.
-            Parameters`StripSARAHIndicesRules[4];
+            Parameters`StripSARAHIndicesRules[4] /.
+            Parameters`StripSARAHIndicesRules[5];
 
 GetType[BetaFunction[name_, type_, beta_List]] := type;
 
@@ -90,16 +91,16 @@ CreateSingleBetaFunctionDecl[betaFun_List] :=
             CreateSingleBetaFunctionDecl[#, 1] <> 
             CreateSingleBetaFunctionDecl[#, 2] <> 
             CreateSingleBetaFunctionDecl[#, 3] <> 
-            CreateSingleBetaFunctionDecl[#, 4]
+            CreateSingleBetaFunctionDecl[#, 4] <>
+            CreateSingleBetaFunctionDecl[#, 5]
         )& /@ betaFun
     ];
 
 CreateSingleBetaFunctionDefs[betaFun_List, templateFile_String, sarahTraces_List] :=
     Module[{b, para, type, paraStr, typeStr, files = {},
             inputFile, outputFile,
-            traceArgsOneLoop, traceArgsTwoLoop, traceArgsThreeLoop, traceArgsFourLoop,
-            localDeclOneLoop, localDeclTwoLoop, localDeclThreeLoop, localDeclFourLoop,
-            betaOneLoop, betaTwoLoop, betaThreeLoop, betaFourLoop},
+            localDeclOneLoop, localDeclTwoLoop, localDeclThreeLoop, localDeclFourLoop, localDeclFiveLoop,
+            betaOneLoop, betaTwoLoop, betaThreeLoop, betaFourLoop, betaFiveLoop},
            For[b = 1, b <= Length[betaFun], b++,
                para = GetName[betaFun[[b]]];
                type = GetType[betaFun[[b]]];
@@ -114,10 +115,7 @@ CreateSingleBetaFunctionDefs[betaFun_List, templateFile_String, sarahTraces_List
                {localDeclTwoLoop, betaTwoLoop} = CreateBetaFunction[betaFun[[b]], 2, sarahTraces];
                {localDeclThreeLoop, betaThreeLoop} = CreateBetaFunction[betaFun[[b]], 3, sarahTraces];
                {localDeclFourLoop, betaFourLoop}   = CreateBetaFunction[betaFun[[b]], 4, sarahTraces];
-               traceArgsOneLoop = If[localDeclOneLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
-               traceArgsTwoLoop = If[localDeclTwoLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
-               traceArgsThreeLoop = If[localDeclThreeLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
-               traceArgsFourLoop = If[localDeclFourLoop != "", "TRACE_STRUCT", "/* TRACE_STRUCT */"];
+               {localDeclFiveLoop, betaFiveLoop}   = CreateBetaFunction[betaFun[[b]], 5, sarahTraces];
                WriteOut`ReplaceInFiles[{{inputFile, outputFile}},
                      { "@ModelName@"     -> FlexibleSUSY`FSModelName,
                        "@parameterType@" -> typeStr,
@@ -130,10 +128,12 @@ CreateSingleBetaFunctionDefs[betaFun_List, templateFile_String, sarahTraces_List
                        "@localDeclTwoLoop@" -> WrapLines[IndentText[localDeclTwoLoop]],
                        "@localDeclThreeLoop@" -> WrapLines[IndentText[localDeclThreeLoop]],
                        "@localDeclFourLoop@"  -> WrapLines[IndentText[localDeclFourLoop]],
+                       "@localDeclFiveLoop@"  -> WrapLines[IndentText[localDeclFiveLoop]],
                        "@betaOneLoop@"   -> WrapLines[IndentText[betaOneLoop]],
                        "@betaTwoLoop@"   -> WrapLines[IndentText[betaTwoLoop]],
                        "@betaThreeLoop@" -> WrapLines[IndentText[betaThreeLoop]],
                        "@betaFourLoop@"  -> WrapLines[IndentText[betaFourLoop]],
+                       "@betaFiveLoop@"  -> WrapLines[IndentText[betaFiveLoop]],
                        "@DateAndTime@"   -> DateString[]
                      } ];
                AppendTo[files, outputFile];
@@ -152,7 +152,8 @@ ToList[expr_, head_] :=
 
 FactorOutLoopFactor[expr_] :=
     Module[{i, prefactors = {CConversion`oneOver16PiSqr, CConversion`twoLoop,
-                             CConversion`threeLoop, CConversion`oneOver16PiSqr^4}},
+                             CConversion`threeLoop, CConversion`oneOver16PiSqr^4,
+                             CConversion`oneOver16PiSqr^5}},
            For[i = 1, i <= Length[prefactors], i++,
                If[Coefficient[expr, prefactors[[i]]] =!= 0,
                   Return[TimeConstrainedSimplify[prefactors[[i]] Expand[expr / prefactors[[i]]]]];
@@ -162,7 +163,7 @@ FactorOutLoopFactor[expr_] :=
           ];
 
 TimeConstrainedSimplify[expr_] :=
-    TimeConstrained[Simplify[expr], FlexibleSUSY`FSSimplifyBetaFunctionsTimeConstraint, expr];
+    TimeConstrained[Factor[expr], FlexibleSUSY`FSSimplifyBetaFunctionsTimeConstraint, expr];
 
 CollectMatMul[expr_] :=
     TimeConstrained[Collect[expr, SARAH`MatMul[___], TimeConstrainedSimplify],
@@ -244,7 +245,7 @@ CreateBetaFunction[betaFunction_BetaFunction, loopOrder_Integer, sarahTraces_Lis
             beta = loopFactor CollectMatMul[beta / loopFactor];
             (* declare SARAH traces locally *)
             localDecl  = localDecl <> Traces`CreateLocalCopiesOfSARAHTraces[expr, sarahTraces, "TRACE_STRUCT"];
-            If[beta === 0 || PossibleZeroQ[beta],
+            If[beta == 0,
                beta = CConversion`CreateZero[type];
               ];
             beta       = Parameters`DecreaseIndexLiterals[beta];
@@ -314,11 +315,12 @@ CreateBetaFunctionCalls[betaFunctions_List, loopOrder_Integer, parallel_:False] 
       ];
 
 CreateBetaFunction[betaFunctions_List] :=
-    Module[{allBeta1L, allBeta2L, allBeta3L, allBeta3LParallel, allBeta4L},
+    Module[{allBeta1L, allBeta2L, allBeta3L, allBeta3LParallel, allBeta4L, allBeta5L},
            allBeta1L = CreateBetaFunctionCalls[betaFunctions,1];
            allBeta2L = TextFormatting`IndentText @ CreateBetaFunctionCalls[betaFunctions,2];
            allBeta3L = TextFormatting`IndentText @ CreateBetaFunctionCalls[betaFunctions,3];
            allBeta4L = TextFormatting`IndentText @ CreateBetaFunctionCalls[betaFunctions,4];
+           allBeta5L = TextFormatting`IndentText @ CreateBetaFunctionCalls[betaFunctions,5];
            (* only parallelization of 3L betas leads to a speed-up *)
            allBeta3LParallel = TextFormatting`IndentText @ CreateBetaFunctionCalls[betaFunctions,3,True];
            StringJoin[DeclareBetaFunction /@ betaFunctions] <> "\n" <>
@@ -339,6 +341,12 @@ CreateBetaFunction[betaFunctions_List] :=
                    TextFormatting`IndentText[
                        "if (loops > 3) {\n" <>
                        allBeta4L <>
+                       "\n" <>
+                       TextFormatting`IndentText[
+                           "if (loops > 4) {\n" <>
+                           allBeta5L <>
+                           "\n}"
+                       ] <>
                        "\n}"
                    ] <>
                    "\n}"

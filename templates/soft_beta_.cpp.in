@@ -67,7 +67,7 @@ typename Eigen::MatrixBase<Derived>::PlainObject operator-(double n, const Eigen
  *
  * @return 1-loop beta function
  */
-@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_1_loop(const Soft_traces& @traceArgsOneLoop@) const
+@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_1_loop(const Soft_traces& soft_traces) const
 {
 @localDeclOneLoop@
 
@@ -83,7 +83,7 @@ typename Eigen::MatrixBase<Derived>::PlainObject operator-(double n, const Eigen
  *
  * @return 2-loop beta function
  */
-@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_2_loop(const Soft_traces& @traceArgsTwoLoop@) const
+@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_2_loop(const Soft_traces& soft_traces) const
 {
 @localDeclTwoLoop@
 
@@ -99,7 +99,7 @@ typename Eigen::MatrixBase<Derived>::PlainObject operator-(double n, const Eigen
  *
  * @return 3-loop beta function
  */
-@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_3_loop(const Soft_traces& @traceArgsThreeLoop@) const
+@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_3_loop(const Soft_traces& soft_traces) const
 {
    DEFINE_PROJECTOR(3,3,3,3)
 
@@ -117,7 +117,7 @@ typename Eigen::MatrixBase<Derived>::PlainObject operator-(double n, const Eigen
  *
  * @return 4-loop beta function
  */
-@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_4_loop(const Soft_traces& @traceArgsFourLoop@) const
+@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_4_loop(const Soft_traces& soft_traces) const
 {
    DEFINE_PROJECTOR(3,3,3,3)
 
@@ -126,6 +126,24 @@ typename Eigen::MatrixBase<Derived>::PlainObject operator-(double n, const Eigen
    @parameterType@ beta_@parameterName@;
 
 @betaFourLoop@
+
+   return beta_@parameterName@;
+}
+
+/**
+ * Calculates the 5-loop beta function of @parameterName@.
+ *
+ * @return 5-loop beta function
+ */
+@parameterType@ @ModelName@_soft_parameters::calc_beta_@parameterName@_5_loop(const Soft_traces& soft_traces) const
+{
+   DEFINE_PROJECTOR(3,3,3,3)
+
+@localDeclFiveLoop@
+
+   @parameterType@ beta_@parameterName@;
+
+@betaFiveLoop@
 
    return beta_@parameterName@;
 }

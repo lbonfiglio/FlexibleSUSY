@@ -31,7 +31,7 @@ namespace flexiblesusy {
  *
  * @return 1-loop beta function
  */
-@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_1_loop(const Susy_traces& @traceArgsOneLoop@) const
+@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_1_loop(const Susy_traces& susy_traces) const
 {
 @localDeclOneLoop@
 
@@ -47,7 +47,7 @@ namespace flexiblesusy {
  *
  * @return 2-loop beta function
  */
-@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_2_loop(const Susy_traces& @traceArgsTwoLoop@) const
+@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_2_loop(const Susy_traces& susy_traces) const
 {
 @localDeclTwoLoop@
 
@@ -63,7 +63,7 @@ namespace flexiblesusy {
  *
  * @return 3-loop beta function
  */
-@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_3_loop(const Susy_traces& @traceArgsThreeLoop@) const
+@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_3_loop(const Susy_traces& susy_traces) const
 {
    DEFINE_PROJECTOR(3,3,3,3)
 
@@ -81,7 +81,7 @@ namespace flexiblesusy {
  *
  * @return 4-loop beta function
  */
-@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_4_loop(const Susy_traces& @traceArgsFourLoop@) const
+@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_4_loop(const Susy_traces& susy_traces) const
 {
    DEFINE_PROJECTOR(3,3,3,3)
 
@@ -90,6 +90,24 @@ namespace flexiblesusy {
    @parameterType@ beta_@parameterName@;
 
 @betaFourLoop@
+
+   return beta_@parameterName@;
+}
+
+/**
+ * Calculates the 5-loop beta function of @parameterName@.
+ *
+ * @return 5-loop beta function
+ */
+@parameterType@ @ModelName@_susy_parameters::calc_beta_@parameterName@_5_loop(const Susy_traces& susy_traces) const
+{
+   DEFINE_PROJECTOR(3,3,3,3)
+
+@localDeclFiveLoop@
+
+   @parameterType@ beta_@parameterName@;
+
+@betaFiveLoop@
 
    return beta_@parameterName@;
 }
