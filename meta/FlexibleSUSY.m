@@ -1871,19 +1871,19 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
                = Decays`CreateTotalAmplitudeSpecializations[decaysLists, FlexibleSUSY`FSModelName];
            {partialWidthSpecializationDecls, partialWidthSpecializationDefs}
                = Decays`CreatePartialWidthSpecializations[decaysLists, FlexibleSUSY`FSModelName];
-           smParticleAliases = Decays`CreateSMParticleAliases[FlexibleSUSY`FSModelName <> "_fields"];
+           smParticleAliases = Decays`CreateSMParticleAliases["fields"];
            WriteOut`ReplaceInFiles[files,
                           { "@callAllDecaysFunctions@" -> IndentText[callAllDecaysFunctions],
                             "@callAllDecaysFunctionsInThreads@" -> IndentText[callAllDecaysFunctionsInThreads],
                             "@decaysGetters@" -> IndentText[WrapLines[decaysGetters]],
                             "@decaysCalculationPrototypes@" -> IndentText[decaysCalculationPrototypes],
                             "@decaysCalculationFunctions@" -> WrapLines[decaysCalculationFunctions],
-                            "@partialWidthCalculationPrototypes@" -> IndentText[partialWidthCalculationPrototypes],
-                            "@partialWidthCalculationFunctions@" -> WrapLines[partialWidthCalculationFunctions],
-                            "@calcAmplitudeSpecializationDecls@" -> WrapLines[calcAmplitudeSpecializationDecls],
-                            "@calcAmplitudeSpecializationDefs@" -> WrapLines[calcAmplitudeSpecializationDefs],
-                            "@partialWidthSpecializationDecls@" -> WrapLines[partialWidthSpecializationDecls],
-                            "@partialWidthSpecializationDefs@" -> WrapLines[partialWidthSpecializationDefs],
+                            "@partialWidthCalculationPrototypes@" -> partialWidthCalculationPrototypes,
+                            "@partialWidthCalculationFunctions@" -> partialWidthCalculationFunctions,
+                            "@calcAmplitudeSpecializationDecls@" -> calcAmplitudeSpecializationDecls,
+                            "@calcAmplitudeSpecializationDefs@" -> calcAmplitudeSpecializationDefs,
+                            "@partialWidthSpecializationDecls@" -> partialWidthSpecializationDecls,
+                            "@partialWidthSpecializationDefs@" -> partialWidthSpecializationDefs,
                             "@decaysListGettersPrototypes@" -> IndentText[decaysListGettersPrototypes],
                             "@decaysListGettersFunctions@" -> decaysListGettersFunctions,
                             "@initDecayTable@" -> IndentText[WrapLines[initDecayTable]],

@@ -102,13 +102,13 @@ void CLASSNAME::calculate_decays()
 #endif
 }
 
-double get_alphas(@ModelName@_context_base const&  context)
+double get_alphas(context_base const&  context)
 {
    return pow(context.model.get_@gs_name@(), 2)/(4.*Pi);
 }
 
 // @todo generate names for g1, g2 based on SARAH model
-double get_alpha(@ModelName@_context_base const&  context)
+double get_alpha(context_base const&  context)
 {
    const double g1 = std::sqrt(3./5.)*context.model.get_g1();
    const double g2 = context.model.get_g2();
@@ -119,7 +119,7 @@ double get_alpha(@ModelName@_context_base const&  context)
 // -------- specializations for decays needing higher order corrections --------
 
 @create_SM_particle_usings@
-using ContextName = @ModelName@_context_base;
+using ContextName = context_base;
 
 @calcAmplitudeSpecializationDefs@
 
