@@ -564,8 +564,8 @@ CreateGenericGetPartialWidthFunctionName[] := "get_partial_width";
 
 CreateSpecializedPartialWidthCalculationName[initialState_, finalState_List, fieldsNamespace_] :=
     CreateGenericGetPartialWidthFunctionName[] <> "<" <>
-    CXXDiagrams`CXXNameOfField[initialState, prefixNamespace -> "SM_cxx_diagrams::fields"] <> "," <>
-    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField[#, prefixNamespace -> "SM_cxx_diagrams::fields"]& /@ finalState, ","] <> " >";
+    CXXDiagrams`CXXNameOfField[initialState] <> "," <>
+    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField /@ finalState, ","] <> " >";
 
 CreatePartialWidthCalculationName[decay_FSParticleDecay, scope_:""] :=
     Module[{initialState, initialStateName,
@@ -605,7 +605,7 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay, fieldsNamespace_] :
                Module[{i, dim, numIndices, result = ""},
                       dim = TreeMasses`GetDimension[field];
                       numIndices = CXXDiagrams`NumberOfFieldIndices[field];
-                      result = "const field_indices<" <> CXXDiagrams`CXXNameOfField[field, prefixNamespace -> "SM_cxx_diagrams::fields"] <> " >::type " <> indicesName;
+                      result = "const typename field_indices<" <> CXXDiagrams`CXXNameOfField[field] <> " >::type " <> indicesName;
                       If[numIndices == 0 || dim <= 1,
                          result = result <> "{};\n";,
                          result = result <> "{{" <> ToString[indexVal] <>
@@ -614,6 +614,11 @@ CreatePartialWidthCalculationFunction[decay_FSParticleDecay, fieldsNamespace_] :
                       result
                      ];
            body = "context_base context{model};\n" <>
+                  (* @todo ask Jobst which usings are necessary *)
+                  "using namespace " <> FlexibleSUSY`FSModelName <> "_cxx_diagrams;\n" <>
+                  "using namespace " <> FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields;\n" <>
+                  "using fields::bar;" <>
+                  "using fields::conj;" <>
                   StringJoin[setFieldIndices[#[[1]], #[[2]], #[[3]]]& /@
                                  Join[{{initialState, "in_indices", If[initialStateDim > 1, "gI1", ""]}},
                                       MapIndexed[{#1, "out_" <> ToString[First[#2]] <> "_indices",
