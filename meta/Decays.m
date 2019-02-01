@@ -167,7 +167,7 @@ GetPossibleDecayTopologies[2, 1] :=
 IsTreeLevelDecayTopology[t_] := MemberQ[GetPossibleDecayTopologies[2, 0], t];
 IsTreeLevelTwoBodyDecayTopology[t_] := IsTreeLevelDecayTopology[t];
 
-IsOneLoopDecayTopology[t_] := MemberQ[GetPossibleDecayTopologies[2, 1], Drop[t,-1][[1]]];
+IsOneLoopDecayTopology[t_] := MemberQ[GetPossibleDecayTopologies[2, 1], t];
 IsOneLoopTwoBodyDecayTopology[t_] := IsOneLoopDecayTopology[t];
 
 GetPossibleDecayTopologies[nProducts_] := Join @@ (GetPossibleDecayTopologies[nProducts, #]& /@ {0, 1});
@@ -321,7 +321,7 @@ ContainsOnlySupportedVertices[diagram_] :=
     Module[{vertices, vertexTypes, unsupportedVertices},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
            vertexTypes = Vertices`VertexTypeForFieldsD /@ vertices;
-           unsupportedVertices = Complement[vertexTypes, Vertices`VertexTypes[]];
+           unsupportedVertices = Complement[vertexTypes, Vertices`VertexTypesD[]];
            If[unsupportedVertices =!= {},
               MapIndexed[(If[!MemberQ[Vertices`VertexTypesD[], vertexTypes[[First[#2]]]],
                              Print["Warning: vertex with fields ", #1, " is not currently supported."];
