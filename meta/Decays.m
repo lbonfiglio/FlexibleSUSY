@@ -1061,6 +1061,7 @@ EvaluateColorFactor[topology_, diagram_] :=
             ]]&, diagram, 2
          ];
       Utils`PrintHeadline["Diagram"];
+      Print[diagramWithIndices];
       replacementList = {};
       For[i = 1, i <= Length[diagram], i++,
          For[j = i+1, j <= Length[diagram], j++,

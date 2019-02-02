@@ -2108,7 +2108,7 @@ WriteCXXDiagramClass[vertices_List,files_List,
                              "@CXXDiagrams_MassFunctions@"   -> massFunctions,
                              "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
-      (*                       "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],*)
+                             "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              Sequence @@ GeneralReplacementRules[]
                             }];
  ]
