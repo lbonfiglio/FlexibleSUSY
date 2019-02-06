@@ -37,6 +37,7 @@ InverseMetricVertex::usage="";
 
 VertexTypes::usage="";
 CXXNameOfField::usage="";
+CXXNameOfVertex::usage="";
 LorentzConjugateOperation::usage="";
 LorentzConjugate::usage="";
 RemoveLorentzConjugation::usage="";
@@ -83,6 +84,10 @@ CXXNameOfField[Susyno`LieGroups`conj[p_],
                OptionsPattern[{prefixNamespace -> False}]] :=
   "typename conj<" <> CXXNameOfField[p, prefixNamespace -> OptionValue[prefixNamespace]] <>
   ">::type";
+
+CXXNameOfVertex[fields_List] := "Vertex<" <> StringJoin[Riffle[
+    CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields,
+    ", "]] <> ">"
 
 CXXBoolValue[True] = "true"
 CXXBoolValue[False] = "false"
@@ -299,8 +304,7 @@ CreateVertices[vertices_List, OptionsPattern[{StripColorStructure -> False}]] :=
 CreateVertex[fields_List, OptionsPattern[{StripColorStructure -> False}]] :=
   Module[{functionClassName},
     LoadVerticesIfNecessary[];
-    functionClassName = "Vertex<" <> StringJoin @ Riffle[
-    CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields, ", "] <> ">";
+    functionClassName = CXXNameOfVertex[fields];
 
     "template<> inline\n" <> 
     functionClassName <> "::vertex_type\n" <>
