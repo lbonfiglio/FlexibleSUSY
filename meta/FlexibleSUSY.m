@@ -1861,7 +1861,7 @@ WriteDecaysClass[decayParticles_List, finalStateParticles_List, files_List] :=
            decaysCalculationPrototypes = Decays`CreateDecaysCalculationPrototypes[decaysLists];
            decaysCalculationFunctions = Decays`CreateDecaysCalculationFunctions[decaysLists];
            partialWidthCalculationPrototypes = Decays`CreatePartialWidthCalculationPrototypes[decaysLists];
-           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists, FlexibleSUSY`FSModelName <> "_fields"];
+           partialWidthCalculationFunctions = Decays`CreatePartialWidthCalculationFunctions[decaysLists, FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
            decaysGetters = Decays`CreateDecaysGetterFunctions[decayParticles];
            decaysListGettersPrototypes = Decays`CreateDecayTableGetterPrototypes[decayParticles];
            decaysListGettersFunctions = Decays`CreateDecayTableGetterFunctions[decayParticles, FlexibleSUSY`FSModelName <> "_decay_table"];
@@ -2075,8 +2075,11 @@ WriteCXXDiagramClass[vertices_List,files_List,
 		OptionsPattern[{StripColorStructure -> False}]] :=
   Module[{fields, vertexData, cxxVertices, massFunctions, unitCharge,
           sarahOutputDir = SARAH`$sarahCurrentOutputMainDir,
-          outputDir, cxxDiagramsDir, createdVerticesFile, fileHandle},
+          outputDir, cxxDiagramsDir, createdVerticesFile, fileHandle,
+         lorentzSelfConjugateFieldDefs, defineFieldTraits},
     fields = CXXDiagrams`CreateFields[];
+    lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[TreeMasses`GetParticles[], FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
+    defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[TreeMasses`GetParticles[], FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
     vertexData = StringJoin @ Riffle[CXXDiagrams`CreateVertexData
                                      /@ DeleteDuplicates[vertices],
                                      "\n\n"];
@@ -2109,6 +2112,8 @@ WriteCXXDiagramClass[vertices_List,files_List,
                              "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
+                             "@lorentzSelfConjugateFieldDefs@" -> lorentzSelfConjugateFieldDefs,
+                             "@defineFieldTraits@"           -> defineFieldTraits,
                              Sequence @@ GeneralReplacementRules[]
                             }];
  ]
@@ -2469,7 +2474,8 @@ WriteBVPSolverMakefile[files_List] :=
           ];
 
 WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extraParameters_List,
-                    lesHouchesParameters_List, extraSLHAOutputBlocks_List, decaysSLHAIncludeFiles_List, files_List] :=
+                    lesHouchesParameters_List, extraSLHAOutputBlocks_List, 
+                    decaysSLHAIncludeFiles_List, files_List] :=
     Module[{k, particles, susyParticles, smParticles,
             minpar, extpar, imminpar, imextpar, extraSLHAInputParameters,
             fillSpectrumVectorWithSusyParticles = "",
@@ -2568,7 +2574,7 @@ WriteUtilitiesClass[massMatrices_List, betaFun_List, inputParameters_List, extra
               fillDecaysDataFunctions = WriteOut`CreateFillDecaysDataFunctions[FlexibleSUSY`FSModelName];
               fillSLHAeaIncludingDecaysPrototypes = WriteOut`CreateFillSLHAeaIncludingDecaysPrototypes[FlexibleSUSY`FSModelName];
               fillSLHAeaIncludingDecaysFunctions = WriteOut`CreateFillSLHAeaIncludingDecaysFunctions[FlexibleSUSY`FSModelName];
-              decaysHeaderIncludes = Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ decaysHeaderFiles, "\n"];
+              decaysHeaderIncludes = Utils`StringJoinWithSeparator[("#include \"" <> # <> "\"")& /@ decaysSLHAIncludeFiles, "\n"];
              ];
            getPDGCodeFromParticleEnumNoIndex = Parameters`CreatePDGCodeFromParticleCases[particles];
            getPDGCodeFromParticleEnumIndex = Parameters`CreatePDGCodeFromParticleIndexedCases[particles];
@@ -4446,9 +4452,15 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
               If[FlexibleSUSY`DecayParticles =!= {},
                  Print["Creating class for decays ..."];
                  decaysSources = Join[decaysSources, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_table.cpp"}],
-                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.cpp"}]}];
+                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.cpp"}],
+                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_amplitudes.cpp"}]}
+                                                   
+                                                      ];
                  decaysHeaders = Join[decaysHeaders, {FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_table.hpp"}],
-                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.hpp"}]}];
+                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decays.hpp"}],
+                                                      FileNameJoin[{FlexibleSUSY`FSModelName <> "_decay_amplitudes.hpp"}]}
+                                                      
+                                                      ];
                  decaysVertices = WriteDecaysClass[FlexibleSUSY`DecayParticles, decaysFinalStateParticles,
                                                    {{FileNameJoin[{$flexiblesusyTemplateDir, "decay_table.hpp.in"}],
                                                      FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_table.hpp"}]},
@@ -4457,7 +4469,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                                     {FileNameJoin[{$flexiblesusyTemplateDir, "decays.hpp.in"}],
                                                      FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.hpp"}]},
                                                     {FileNameJoin[{$flexiblesusyTemplateDir, "decays.cpp.in"}],
-                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]}
+                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decays.cpp"}]},
+                                                    {FileNameJoin[{$flexiblesusyTemplateDir, "decay_amplitudes.hpp.in"}],
+                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_amplitudes.hpp"}]},
+                                                    {FileNameJoin[{$flexiblesusyTemplateDir, "decay_amplitudes.cpp.in"}],
+                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_amplitudes.cpp"}]}
                                                    }];
                  ,
                  Print["Skipping calculating decays as no particles to calculate decays for were found."];

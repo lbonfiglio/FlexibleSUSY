@@ -20,7 +20,7 @@
  * @todo implement formulas for most general forms of amplitudes
  */
 
-#include "decay_amplitudes.hpp"
+#include "@ModelName@_decay_amplitudes.hpp"
 #include "wrappers.hpp"
 
 namespace flexiblesusy {

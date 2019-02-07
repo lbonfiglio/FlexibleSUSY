@@ -57,6 +57,8 @@ NumberOfFieldIndices::usage="";
 FieldInfo::usage="";
 includeLorentzIndices::usage="";
 VertexTypeForFields::usage="";
+CreateFieldTraitsDefinitions::usage="";
+CreateSelfConjugateFieldsDefinitions::usage="";
 
 Begin["`Private`"];
 
@@ -70,6 +72,36 @@ VertexTypes[] := {
     InverseMetricVertex
 };
 
+CreateSelfConjugateFieldDefinition[field_, namespacePrefix_] := ""; 
+IsLorentzSelfConjugate[field_] := field === LorentzConjugate[field];
+CreateSelfConjugateFieldDefinition[field_?IsLorentzSelfConjugate, namespacePrefix_] :=
+    Module[{fieldName},
+           fieldName = TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix];
+           "template<> struct " <> FlexibleSUSY`FSModelName <>  "_cxx_diagrams::fields::" <> LorentzConjugateOperation[field] <> "<" <> fieldName <> ">" <>
+           " { using type = " <> fieldName <> "; };"
+          ];  
+
+CreateSelfConjugateFieldsDefinitions[fields_List, namespacePrefix_:""] :=
+    Utils`StringJoinWithSeparator[CreateSelfConjugateFieldDefinition[#, namespacePrefix]& /@ Select[fields, IsLorentzSelfConjugate   ], "\n"] <>
+ "\n";
+
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsScalar, namespacePrefix_] :=
+    "template<>\nstruct is_scalar<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsFermion, namespacePrefix_] :=
+    "template<>\nstruct is_fermion<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsVector, namespacePrefix_] :=
+    "template<>\nstruct is_vector<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTypeTraitDefinition[field_?TreeMasses`IsGhost, namespacePrefix_] :=
+    "template<>\nstruct is_ghost<" <> TreeMasses`CreateFieldClassName[field, prefixNamespace -> namespacePrefix] <> " > : public std::true_type {};";
+CreateFieldTraitsDefinition[field_, namespacePrefix_] :=
+    Module[{fieldTypeTraitDefinition = ""},
+           fieldTypeTraitDefinition = CreateFieldTypeTraitDefinition[field, namespacePrefix];
+           fieldTypeTraitDefinition <> "\n"
+          ];
+
+CreateFieldTraitsDefinitions[fields_, namespacePrefix_:""] :=
+    StringJoin[CreateFieldTraitsDefinition[#, namespacePrefix]& /@ fields];
+
 (* Return a string corresponding to the c++ class name of the field.
  Note that "bar" and "conj" get turned into bar<...>::type and
  conj<...>::type respectively! *)
@@ -78,11 +110,11 @@ CXXNameOfField[p_, OptionsPattern[{prefixNamespace -> False}]] :=
      OptionValue[prefixNamespace] <> "::",
      ""] <> SymbolName[p];
 CXXNameOfField[SARAH`bar[p_], OptionsPattern[{prefixNamespace -> False}]] :=
-  "typename bar<" <> CXXNameOfField[p, prefixNamespace -> OptionValue[prefixNamespace]] <>
+  "typename " <> If[OptionValue[prefixNamespace] === False, "", OptionValue[prefixNamespace]<>"::"]  <> "bar<" <> CXXNameOfField[p, prefixNamespace -> OptionValue[prefixNamespace]] <>
   ">::type";
 CXXNameOfField[Susyno`LieGroups`conj[p_],
                OptionsPattern[{prefixNamespace -> False}]] :=
-  "typename conj<" <> CXXNameOfField[p, prefixNamespace -> OptionValue[prefixNamespace]] <>
+  "typename " <> If[OptionValue[prefixNamespace] === False, "", OptionValue[prefixNamespace]<>"::"] <> "conj<" <> CXXNameOfField[p, prefixNamespace -> OptionValue[prefixNamespace]] <>
   ">::type";
 
 CXXNameOfVertex[fields_List] := "Vertex<" <> StringJoin[Riffle[

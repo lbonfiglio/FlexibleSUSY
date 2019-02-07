@@ -14,7 +14,6 @@ LIBFLEXI_SRC := \
 		$(DIR)/composite_convergence_tester.cpp \
 		$(DIR)/database.cpp \
 		$(DIR)/decay.cpp \
-		$(DIR)/decay_amplitudes.cpp \
 		$(DIR)/dilog.cpp \
 		$(DIR)/dilogc.f \
 		$(DIR)/effective_couplings.cpp \
@@ -27,7 +26,6 @@ LIBFLEXI_SRC := \
 		$(DIR)/sfermions.cpp \
 		$(DIR)/numerics.cpp \
 		$(DIR)/numerics2.cpp \
-		$(DIR)/one_loop_decay_diagrams.cpp \
 		$(DIR)/physical_input.cpp \
 		$(DIR)/pmns.cpp \
 		$(DIR)/problems.cpp \
@@ -72,7 +70,6 @@ LIBFLEXI_HDR := \
 		$(DIR)/error.hpp \
 		$(DIR)/ew_input.hpp \
 		$(DIR)/ewsb_solver.hpp \
-		$(DIR)/field_traits.hpp \
 		$(DIR)/find_if.hpp \
 		$(DIR)/fixed_point_iterator.hpp \
 		$(DIR)/functors.hpp \

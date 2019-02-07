@@ -537,7 +537,6 @@ GetAllowedGenericFinalStates[particle_?TreeMasses`IsFermion, n_Integer] :=
 
 GetVerticesForDecay[decay_FSParticleDecay] :=
     Module[{diagrams = GetDecayDiagramsOnly[decay]},
-    Print[decay];
            DeleteDuplicates[Join @@ (Flatten[(CXXDiagrams`VerticesForDiagram /@ Last[#]), 1]& /@ diagrams)]
           ];
 
@@ -564,8 +563,8 @@ CreateGenericGetPartialWidthFunctionName[] := "get_partial_width";
 
 CreateSpecializedPartialWidthCalculationName[initialState_, finalState_List, fieldsNamespace_] :=
     CreateGenericGetPartialWidthFunctionName[] <> "<" <>
-    CXXDiagrams`CXXNameOfField[initialState] <> "," <>
-    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField /@ finalState, ","] <> " >";
+    CXXDiagrams`CXXNameOfField[initialState, prefixNamespace -> fieldsNamespace] <> "," <>
+    Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField[#, prefixNamespace -> fieldsNamespace]& /@ finalState, ","] <> " >";
 
 CreatePartialWidthCalculationName[decay_FSParticleDecay, scope_:""] :=
     Module[{initialState, initialStateName,
@@ -780,7 +779,7 @@ CreateTotalAmplitudeSpecializationDecl[decay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             returnType = "", fieldsNamespace, fieldsList, templatePars = "", args = ""},
            returnType = GetDecayAmplitudeType[initialParticle, finalState];
-           fieldsNamespace = FlexibleSUSY`FSModelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields";
            fieldsList = Join[{initialParticle}, finalState];
            templatePars = "<" <> Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField[#, prefixNamespace -> "SM_cxx_diagrams::fields"]& /@
                                                                fieldsList, ", "] <> ">";
@@ -792,7 +791,7 @@ CreateTotalAmplitudeSpecializationDecl[decay_FSParticleDecay, modelName_] :=
 
 FillSSSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{fieldsNamespace, assignments = ""},
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            assignments = assignments <> structName <> ".m_decay = " <> paramsStruct <> ".physical_mass<" <>
                          CXXDiagrams`CXXNameOfField[GetInitialState[decay], prefixNamespace -> "SM_cxx_diagrams::fields"] <>
                          " >(idx_1);\n";
@@ -807,7 +806,7 @@ FillSSSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
 
 FillSFFDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{fieldsNamespace, assignments = ""},
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            assignments = assignments <> structName <> ".m_decay = " <> paramsStruct <> ".physical_mass<" <>
                          CXXDiagrams`CXXNameOfField[GetInitialState[decay], prefixNamespace -> "SM_cxx_diagrams::fields"] <>
                          " >(idx_1);\n";
@@ -822,7 +821,7 @@ FillSFFDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
 
 FillSSVDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{fieldsNamespace, finalState, scalar, scalarPos, vector, vectorPos, assignments = ""},
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            finalState = GetFinalState[decay];
            scalar = First[Select[finalState, TreeMasses`IsScalar]];
            scalarPos = First[First[Position[finalState, scalar]]];
@@ -842,7 +841,7 @@ FillSSVDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
 
 FillSVVDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{fieldsNamespace, assignments = ""},
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            assignments = assignments <> structName <> ".m_decay = " <> paramsStruct <> ".physical_mass<" <>
                          CXXDiagrams`CXXNameOfField[GetInitialState[decay], prefixNamespace -> "SM_cxx_diagrams::fields"] <>
                          " >(idx_1);\n";
@@ -857,7 +856,7 @@ FillSVVDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
 
 FillFFSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{fieldsNamespace, finalState, scalar, scalarPos, fermion, fermionPos, assignments = ""},
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            finalState = GetFinalState[decay];
            fermion = First[Select[finalState, TreeMasses`IsFermion]];
            fermionPos = First[First[Position[finalState, fermion]]];
@@ -877,7 +876,7 @@ FillFFSDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, para
 
 FillFFVDecayAmplitudeMasses[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{fieldsNamespace, finalState, fermion, fermionPos, vector, vectorPos, assignments = ""},
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            finalState = GetFinalState[decay];
            fermion = First[Select[finalState, TreeMasses`IsFermion]];
            fermionPos = First[First[Position[finalState, fermion]]];
@@ -958,7 +957,7 @@ EvaluateTreeLevelTwoBodyDecayVertex[decay_FSParticleDecay, modelName_, indicesNa
              ];
            If[vertexFields =!= {},
               vertexFields = First[vertexFields];
-              fieldsNamespace = modelName <> "_fields";
+              fieldsNamespace = modelName <> "_cxx_diagrams::fields";
               templatePars = "<" <>
                               Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField[#, prefixNamespace -> "SM_cxx_diagrams::fields"]&
                                                             /@ vertexFields, ", "] <> " >";
@@ -971,7 +970,7 @@ EvaluateTreeLevelTwoBodyDecayVertex[decay_FSParticleDecay, modelName_, indicesNa
 FillSSSTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
            vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
@@ -982,7 +981,7 @@ FillSSSTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
 FillSFFTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
            vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
@@ -994,7 +993,7 @@ FillSFFTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
 FillSSVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
            vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
@@ -1005,7 +1004,7 @@ FillSSVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
 FillSVVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
            vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
@@ -1016,7 +1015,7 @@ FillSVVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
 FillFFSTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
            vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
@@ -1028,7 +1027,7 @@ FillFFSTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, str
 FillFFVTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
     Module[{i, fieldsList, fieldsNamespace, indices, vertex, assignments},
            fieldsList = Join[{GetInitialState[decay]}, GetFinalState[decay]];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            indices = "const auto indices = concatenate(" <>
                      Utils`StringJoinWithSeparator[Table["idx_" <> ToString[i], {i, 1, Length[fieldsList]}], ", "] <> ");\n";
            vertex = EvaluateTreeLevelTwoBodyDecayVertex[decay, modelName, "indices", paramsStruct];
@@ -1158,7 +1157,7 @@ CreateTotalAmplitudeSpecializationDef[decay_FSParticleDecay, modelName_] :=
             fieldsNamespace, fieldsList, templatePars = "", args = "",
             body = ""},
            returnType = GetDecayAmplitudeType[decay];
-           fieldsNamespace = modelName <> "_cxx_diagrams::" <> modelName <> "_fields";
+           fieldsNamespace = modelName <> "_cxx_diagrams::fields";
            fieldsList = Join[{initialParticle}, finalState];
            templatePars = "<" <> Utils`StringJoinWithSeparator[CXXDiagrams`CXXNameOfField[#, prefixNamespace -> "SM_cxx_diagrams::fields"]& /@
                                                                fieldsList, ", "] <> ">";
@@ -1275,7 +1274,7 @@ CreateHiggsToGluonGluonTotalAmplitudeFunction[hggDecay_FSParticleDecay, modelNam
             fieldsList, returnType = "", args = "", templatePars = "", body = ""},
            fieldsList = Join[{initialParticle}, finalState];
            returnType = GetDecayAmplitudeType[initialParticle, finalState];
-           args = "const " <> modelName <> "_cxx_diagrams::context_base& context, " <>
+           args = "const " <> modelName <> "_cxx_diagrams::context_base&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
            templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
            body = returnType <> " result;\nreturn result;\n";
@@ -1304,7 +1303,7 @@ CreateHiggsToPhotonPhotonTotalAmplitudeFunction[hgamgamDecay_FSParticleDecay, mo
             fieldsList, returnType = "", args = "", templatePars = "", body = ""},
            fieldsList = Join[{initialParticle}, finalState];
            returnType = GetDecayAmplitudeType[initialParticle, finalState];
-           args = "const " <> modelName <> "_cxx_diagrams::context_base& context, " <>
+           args = "const " <> modelName <> "_cxx_diagrams::context_base&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
            templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
            body = returnType <> " result;\nreturn result;\n";
@@ -1346,8 +1345,8 @@ CreatePartialWidthSpecializationDecl[decay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             fieldsList, fieldsNamespace, args},
            fieldsList = Join[{initialParticle}, finalState];
-           fieldsNamespace = If[modelName != "", modelName <> "_cxx_diagrams::" <> modelName <> "_fields", False];
-           args = "const " <> modelName <> "_cxx_diagrams::context_base& context, " <>
+           fieldsNamespace = If[modelName != "", modelName <> "_cxx_diagrams::fields", False];
+           args = "const " <> modelName <> "_cxx_diagrams::context_base&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[#, fieldsNamespace] <> "&")& /@ fieldsList, ", "];
            "template <>\n" <>
            "double " <> modelName <> "_decays::" <>
@@ -1390,7 +1389,7 @@ CreateHiggsToGluonGluonPartialWidthFunction[decay_FSParticleDecay, modelName_] :
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             fieldsList, args, templatePars, body = ""},
            fieldsList = Join[{initialParticle}, finalState];
-           args = "const " <> modelName <> "_cxx_diagrams::context_base& context, " <>
+           args = "const " <> modelName <> "_cxx_diagrams::context_base&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
            templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
            body = "return 0.;\n";
@@ -1403,7 +1402,7 @@ CreateHiggsToPhotonPhotonPartialWidthFunction[decay_FSParticleDecay, modelName_]
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             fieldsList, args, templatePars, body = ""},
            fieldsList = Join[{initialParticle}, finalState];
-           args = "const " <> modelName <> "_cxx_diagrams::context_base& context, " <>
+           args = "const " <> modelName <> "_cxx_diagrams::context_base&, " <>
                   Utils`StringJoinWithSeparator[("const " <> CreateFieldIndices[SimplifiedName[#]] <> "&")& /@ fieldsList, ", "];
            templatePars = "<" <> Utils`StringJoinWithSeparator[SimplifiedName /@ fieldsList, ", "] <> ">";
            body = "return 0.;\n";

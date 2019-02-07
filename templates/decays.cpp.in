@@ -52,7 +52,6 @@ namespace flexiblesusy {
 #define PHYSICAL(parameter) model.get_physical().parameter
 #define MODELPARAMETER(parameter) model.get_##parameter()
 
-using namespace field_traits;
 using namespace @ModelName@_cxx_diagrams;
 using effective_couplings::beta;
 namespace info = @ModelName@_info;
