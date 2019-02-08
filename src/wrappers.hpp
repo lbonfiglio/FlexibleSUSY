@@ -330,7 +330,6 @@ double PrintVERBOSE(Ts&&... vs)
    return 0.;
 }
 
-
 /// print warning to cerr
 template<typename... Ts>
 double PrintWARNING(Ts&&... vs)

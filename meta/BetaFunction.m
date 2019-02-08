@@ -120,10 +120,6 @@ CreateSingleBetaFunctionDefs[betaFun_List, templateFile_String, sarahTraces_List
                      { "@ModelName@"     -> FlexibleSUSY`FSModelName,
                        "@parameterType@" -> typeStr,
                        "@parameterName@" -> paraStr,
-                       "@traceArgsOneLoop@" -> traceArgsOneLoop,
-                       "@traceArgsTwoLoop@" -> traceArgsTwoLoop,
-                       "@traceArgsThreeLoop@" -> traceArgsThreeLoop,
-                       "@traceArgsFourLoop@" -> traceArgsFourLoop,
                        "@localDeclOneLoop@" -> WrapLines[IndentText[localDeclOneLoop]],
                        "@localDeclTwoLoop@" -> WrapLines[IndentText[localDeclTwoLoop]],
                        "@localDeclThreeLoop@" -> WrapLines[IndentText[localDeclThreeLoop]],
@@ -450,10 +446,11 @@ CreateParameterNames[betaFunctions_List] :=
           ];
 
 CreateParameterEnum[betaFunctions_List] :=
-    Module[{entries},
-           entries = Flatten[Join[Parameters`CreateParameterEnumEntries[GetName[#], GetType[#]]& /@ betaFunctions,
-                                  {"NUMBER_OF_PARAMETERS"}]];
-           CConversion`CreateEnum["Parameters", entries, 0]
+    Module[{result},
+           result = Utils`StringJoinWithSeparator[
+               Parameters`CreateParameterEnums[GetName[#],GetType[#]]& /@ betaFunctions, ", "];
+           If[Length[betaFunctions] > 0, result = result <> ", ";];
+           "enum Parameters : int { " <> result <> "NUMBER_OF_PARAMETERS };\n"
           ];
 
 (* create setters *)
