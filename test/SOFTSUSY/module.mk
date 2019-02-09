@@ -34,7 +34,6 @@ LIBSOFTSUSY_SRC  := \
 		$(DIR)/nmssmsoftpars.cpp \
 		$(DIR)/nmssmsoftsusy.cpp \
 		$(DIR)/nmssmsusy.cpp \
-		$(DIR)/nmssm1loop.f \
 		$(DIR)/numerics_legacy.cpp \
 		$(DIR)/physpars.cpp \
 		$(DIR)/rge.cpp \
@@ -108,7 +107,7 @@ distclean::     distclean-$(MODNAME)
 
 $(LIBSOFTSUSY_DEP) $(RUN_SOFTSUSY_DEP) $(RUN_SOFTPOINT_DEP) \
 $(LIBSOFTSUSY_OBJ) $(RUN_SOFTSUSY_OBJ) $(RUN_SOFTPOINT_OBJ): \
-	CPPFLAGS += $(MODSOFTSUSY_INC) $(EIGENFLAGS)
+	CPPFLAGS += $(MODSOFTSUSY_INC) $(BOOSTFLAGS) $(EIGENFLAGS)
 
 $(LIBSOFTSUSY): $(LIBSOFTSUSY_OBJ)
 		$(MODULE_MAKE_LIB_CMD) $@ $^

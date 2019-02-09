@@ -162,7 +162,6 @@ IsGhost::usage="";
 IsGoldstone::usage="";
 IsSMGoldstone::usage="";
 IsAuxiliary::usage="";
-IsVEV::usage="";
 IsMajoranaFermion::usage="";
 IsDiracFermion::usage="";
 IsComplexScalar::usage="";
@@ -352,8 +351,6 @@ IsAuxiliary[Susyno`LieGroups`conj[sym_]] := IsAuxiliary[sym];
 IsAuxiliary[SARAH`bar[sym_]] := IsAuxiliary[sym];
 IsAuxiliary[sym_Symbol] := IsOfType[sym, A];
 
-IsVEV[sym_Symbol] := IsOfType[sym, VEV];
-
 IsMajoranaFermion[Susyno`LieGroups`conj[sym_]] := IsMajoranaFermion[sym];
 IsMajoranaFermion[SARAH`bar[sym_]] := IsMajoranaFermion[sym];
 IsMajoranaFermion[sym_Symbol] :=
@@ -387,7 +384,19 @@ IsRealScalar[sym_List] :=
     And[IsScalar[sym], And @@ (Parameters`IsRealParameter /@ sym)];
 
 IsMassless[Susyno`LieGroups`conj[sym_], states_:FlexibleSUSY`FSEigenstates] := IsMassless[sym, states];
+
 IsMassless[SARAH`bar[sym_], states_:FlexibleSUSY`FSEigenstates] := IsMassless[sym, states];
+
+(* Massless ghosts are not stored in SARAH`Massless[FSEigenstates],
+   so use mass of the corresponding vector boson. *)
+IsMassless[sym_?IsGhost] :=
+    Module[{v = Symbol["V" <> StringDrop[ToString[sym],1]]},
+           Switch[RXi[v],
+                  0, True,
+                  _, IsMassless[v]
+                 ]
+         ];
+
 IsMassless[sym_Symbol, states_:FlexibleSUSY`FSEigenstates] :=
     MemberQ[SARAH`Massless[states], sym];
 
@@ -2128,7 +2137,14 @@ CreateMixingArraySetter[masses_List, array_String] :=
 GetPhoton[] := SARAH`Photon;
 GetGluon[] := SARAH`Gluon;
 GetZBoson[] := SARAH`Zboson;
-GetWBoson[] := SARAH`Wboson;
+GetWBoson[] :=
+   Module[{temp},
+      temp = Select[Unevaluated[{SARAH`Wboson, SARAH`VectorW}], ValueQ];
+      If[Length @ DeleteDuplicates[temp] === 1,
+         temp[[1]],
+         Print["Could not identify the name given to the W-boson"]; Quit[1]
+      ]
+   ];
 GetHiggsBoson[] := SARAH`HiggsBoson;
 
 End[];
