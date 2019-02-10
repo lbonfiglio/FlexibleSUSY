@@ -701,22 +701,34 @@ ReplaceUnrotatedFields[SARAH`Cp[p__][lorentz_]] :=
     ReplaceUnrotatedFields[SARAH`Cp[p]][lorentz];
 
 FSVertexWithoutIndices[particleList_List] := FSVertexWithoutIndices[particleList] =
-   Module[{},
-   	(* read in cached vertices *)
-   	(* .... *)
+   Module[{allVertices,vertex, prefix = SARAH`$sarahCurrentOutputMainDir <> "/EWSB/Vertices/"},
 
-      SARAH`Vertex[particleList]
+   	(* read in cached vertices *)
+      allVertices = 
+         Switch[Length[particleList],
+            3, Get[prefix <> "VertexList3.m"],
+            4, Get[prefix <> "VertexList4.m"],
+            _, Print["Wrong number of particles"];Quit[1];
+      ];
+
+      vertex = Select[allVertices, (StripFieldIndices@First[#] === particleList)&];
+      Assert[Length[vertex]===1];
+   	
+      First[vertex]
 	];
 
 FSVertex[particleList_List] :=
-   Module[{},
+   Module[{fieldsIndices, genericFieldIndices, vertex},
 
-		(* if any particle has an index, remember it and strip it *)
+      (* store indices of fields (if any) *)
+      fieldsIndices = FieldIndexList /@ particleList;
 
-		(* call with indices ordered as 1, 2, 3... *)
-		FSVertexWithoutIndices[particleList]
+		vertex = FSVertexWithoutIndices[StripFieldIndices /@ particleList];
+
+      genericFieldIndices = FieldIndexList /@ First[vertex];
 
 		(* restore indices *)
+      vertex/.Flatten[Thread/@DeleteCases[Thread[genericFieldIndices -> fieldsIndices], _->{}]]
 	];
 
 
