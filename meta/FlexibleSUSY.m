@@ -2073,16 +2073,13 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
 (* Write the CXXDiagrams c++ files *)
 WriteCXXDiagramClass[vertices_List,files_List,
 		OptionsPattern[{StripColorStructure -> False}]] :=
-  Module[{fields, vertexData, cxxVertices, massFunctions, unitCharge,
+  Module[{fields, cxxVertices, massFunctions, unitCharge,
           sarahOutputDir = SARAH`$sarahCurrentOutputMainDir,
           outputDir, cxxDiagramsDir, createdVerticesFile, fileHandle,
          lorentzSelfConjugateFieldDefs, defineFieldTraits},
     fields = CXXDiagrams`CreateFields[];
     lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[TreeMasses`GetParticles[], FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
     defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[TreeMasses`GetParticles[], FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
-    vertexData = StringJoin @ Riffle[CXXDiagrams`CreateVertexData
-                                     /@ DeleteDuplicates[vertices],
-                                     "\n\n"];
     cxxVertices = CXXDiagrams`CreateVertices[vertices,
 			StripColorStructure -> OptionValue[StripColorStructure]];
     massFunctions = CXXDiagrams`CreateMassFunctions[];
@@ -2105,10 +2102,11 @@ WriteCXXDiagramClass[vertices_List,files_List,
     Close[fileHandle];
     
     WriteOut`ReplaceInFiles[files,
-                            {"@CXXDiagrams_Fields@"          -> fields,
-                             "@CXXDiagrams_VertexData@"      -> vertexData,
-                             "@CXXDiagrams_Vertices@"        -> cxxVertices,
-                             "@CXXDiagrams_MassFunctions@"   -> massFunctions,
+                            {"@CXXDiagrams_Fields@"            -> fields,
+                             "@CXXDiagrams_VertexPrototypes@"  -> cxxVertices[[1]],
+                             "@CXXDiagrams_VertexDefinitions@" -> cxxVertices[[2]],
+                             "@CXXDiagrams_MassFunctions@"     -> massFunctions,
+                             "@CXXDiagrams_UnitCharge@"        -> unitCharge,
                              "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
                              "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
@@ -4529,6 +4527,8 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "vertices.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
+                          {FileNameJoin[{cxxQFTTemplateDir, "vertices.cpp.in"}],
+                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.cpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "context_base.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_context_base.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "generic_calculations.hpp.in"}],

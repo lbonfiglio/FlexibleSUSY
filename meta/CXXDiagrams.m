@@ -36,6 +36,7 @@ MomentumDifferenceVertex::usage="";
 InverseMetricVertex::usage="";
 
 VertexTypes::usage="";
+VertexTypeForFields::usage="";
 CXXNameOfField::usage="";
 CXXNameOfVertex::usage="";
 LorentzConjugateOperation::usage="";
@@ -46,7 +47,6 @@ CreateFields::usage="";
 FeynmanDiagramsOfType::usage="";
 VerticesForDiagram::usage="";
 ContractionsBetweenVerticesForDiagramFromGraph::usage="";
-CreateVertexData::usage="";
 CreateVertices::usage="";
 VertexRulesForVertices::usage="";
 CreateMassFunctions::usage="";
@@ -118,8 +118,8 @@ CXXNameOfField[Susyno`LieGroups`conj[p_],
   ">::type";
 
 CXXNameOfVertex[fields_List] := "Vertex<" <> StringJoin[Riffle[
-    CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields,
-    ", "]] <> ">"
+		CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields,
+	", "]] <> ">"
 
 CXXBoolValue[True] = "true"
 CXXBoolValue[False] = "false"
@@ -301,51 +301,64 @@ ContractionsBetweenVerticesForDiagramFromGraph[v1_Integer, v2_Integer,
 	Module[{fields1 = diagram[[v1]], fields2 = diagram[[v2]],
 			preceedingNumberOfFields1 = Total[graph[[v1, ;;v2]]] - graph[[v1,v2]],
 			preceedingNumberOfFields2 = Total[graph[[v2, ;;v1]]] - graph[[v2,v1]],
-			contractedFieldIndices1, contractedFieldIndices2},
+			contractedFieldIndices1, contractedFieldIndices2,
+			stepSize = If[v1 === v2, 2, 1]},
+		If[v1 === v2,
+			preceedingNumberOfFields2 = preceedingNumberOfFields2 + 1];
+		If[v1 < v2,
+			preceedingNumberOfFields1 =
+				preceedingNumberOfFields1 + graph[[v1,v1]]];
+		If[v2 < v1,
+			preceedingNumberOfFields2 =
+				preceedingNumberOfFields2 + graph[[v2,v2]]];
+		
 		contractedFieldIndices1 = Table[k, {k, preceedingNumberOfFields1 + 1,
-			preceedingNumberOfFields1 + graph[[v1,v2]]}];
+			preceedingNumberOfFields1 + stepSize * graph[[v1,v2]], stepSize}];
 		contractedFieldIndices2 = Table[k, {k, preceedingNumberOfFields2 + 1,
-			preceedingNumberOfFields2 + graph[[v2,v1]]}];
+			preceedingNumberOfFields2 + stepSize * graph[[v2,v1]], stepSize}];
 		
 		Transpose[{contractedFieldIndices1, contractedFieldIndices2}]
 	]
 
-CreateVertexData[fields_List] := 
-  Module[{dataClassName},
-    dataClassName = "VertexData<" <> StringJoin[Riffle[
-      CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields,
-    ", "]] <> ">";
-    
-    "template<> struct " <> dataClassName <> "\n" <>
-    "{\n" <>
-    TextFormatting`IndentText[
-      "using vertex_type = " <> SymbolName[VertexTypeForFields[fields]] <>
-         ";"] <> "\n" <>
-    "};"
-  ]
-
 (* Returns the necessary c++ code corresponding to the vertices that need to be calculated.
  The returned value is a list {prototypes, definitions}. *)
 CreateVertices[vertices_List, OptionsPattern[{StripColorStructure -> False}]] :=
-  StringJoin @ Riffle[
-		CreateVertex[#, StripColorStructure -> OptionValue[StripColorStructure]] & /@
-			DeleteDuplicates[vertices], "\n\n"]
+	Module[{prototypes, definitions},
+		{prototypes, definitions} = Transpose[
+			CreateVertex[#, StripColorStructure -> OptionValue[StripColorStructure]] & /@
+			DeleteDuplicates[vertices]
+		];
+		
+		StringJoin[Riffle[#, "\n\n"]] & /@ {prototypes, definitions}
+	]
 
-(* Creates the actual c++ code for a vertex with given fields.
- You should never need to change this code! *)
 CreateVertex[fields_List, OptionsPattern[{StripColorStructure -> False}]] :=
-  Module[{functionClassName},
-    LoadVerticesIfNecessary[];
-    functionClassName = CXXNameOfVertex[fields];
+  Module[{fieldSequence},
+		LoadVerticesIfNecessary[];
+		
+		fieldSequence = StringJoin @ Riffle[
+			CXXNameOfField[#, prefixNamespace -> "fields"] & /@ fields, ", "];
 
-    "template<> inline\n" <> 
-    functionClassName <> "::vertex_type\n" <>
-    functionClassName <> "::evaluate(const indices_type& indices, const context_base& context)\n" <>
-    "{\n" <>
-    TextFormatting`IndentText @ VertexFunctionBodyForFields[fields,
-			StripColorStructure -> OptionValue[StripColorStructure]] <> "\n" <>
-    "}"
-  ]
+		{
+		"template<> struct VertexImpl<" <> fieldSequence <> ">" <> "\n" <>
+		"{\n" <> TextFormatting`IndentText[
+			"static " <> SymbolName[VertexTypeForFields[fields]] <>
+				" evaluate(const std::array<int, " <>
+				ToString[Total[NumberOfFieldIndices /@ fields]] <>
+			">& indices, const context_base& context);"] <> "\n" <>
+		"};"
+		,
+		SymbolName[VertexTypeForFields[fields]] <>
+			" VertexImpl<" <> fieldSequence <> ">::evaluate(\n" <>
+				TextFormatting`IndentText["const std::array<int, " <>
+					ToString[Total[NumberOfFieldIndices /@ fields]] <> ">& indices, " <>
+				"const context_base& context)"] <> "\n" <>
+		"{\n" <> TextFormatting`IndentText[
+				VertexFunctionBodyForFields[fields,
+					StripColorStructure -> OptionValue[StripColorStructure]] <> "\n"] <>
+		"};"
+		}
+	]
 
 VertexFunctionBodyForFields[fields_List, OptionsPattern[{StripColorStructure -> False}]] := 
 	Switch[Length[fields],
@@ -371,10 +384,29 @@ VertexFunctionBodyForFieldsImpl[fields_List, vertexList_List,
     If[vertexIsZero,
        Return[Switch[vertexType,
          ScalarVertex,
-         "return vertex_type(0);",
+         "return {0};",
          
          ChiralVertex,
-         "return vertex_type(0, 0);",
+         "return {0, 0};",
+         
+         MomentumVertex,
+         ghosts = Select[fields, TreeMasses`IsGhost];
+         ghosts = Select[ghosts, RemoveLorentzConjugation[#] =!= 
+           LorentzConjugate[#] &];
+         
+         Utils`AssertWithMessage[Length[ghosts] === 1,
+				   "CXXDiagrams`VertexFunctionBodyForFieldsImpl[]: \
+Invalid ghosts in vertex: " <> ToString[fields]];
+				   
+         "return {0, " <>
+           ToString[Position[fields, ghosts[[1]], {1}][[1,1]] - 1] <>
+         "};",
+         
+         TripleVectorVertex,
+         "return {0, TripleVectorVertex::even_permutation{}};",
+         
+         QuadrupleVectorVertex,
+         "return {0, 0, 0};",
          
          MomentumVertex,
          ghosts = Select[fields, TreeMasses`IsGhost];
@@ -396,14 +428,14 @@ Invalid ghosts in vertex: " <> ToString[fields]];
          "return vertex_type(0, 0, 0);",
          
          MomentumDifferenceVertex,
-         "return vertex_type(0, " <> StringJoin[Riffle[
+         "return {0, " <> StringJoin[Riffle[
             ToString /@ Flatten[Position[fields,
                field_ /; TreeMasses`IsScalar[field] || TreeMasses`IsGhost[field],
                {1}, Heads -> False] - 1],
-            ", "]] <> ");",
+            ", "]] <> "};",
          
          InverseMetricVertex,
-         "return vertex_type(0);"]]];
+         "return {0};"]]];
 
     sortedIndexedFields = vertex[[1]];
     
@@ -431,7 +463,7 @@ Invalid ghosts in vertex: " <> ToString[fields]];
       Parameters`CreateLocalConstRefs[expr] <> "\n" <>
       "const " <> GetComplexScalarCType[] <> " result = " <>
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
-      "return vertex_type(result);",
+      "return {result};",
       
       ChiralVertex,
       vertexRules = {
@@ -457,7 +489,7 @@ Invalid ghosts in vertex: " <> ToString[fields]];
       Parameters`ExpressionToString[exprL] <> ";\n\n" <>
       "const " <> GetComplexScalarCType[] <> " right = " <>
       Parameters`ExpressionToString[exprR] <> ";\n\n" <>
-      "return vertex_type(left, right);",
+      "return {left, right};",
       
       MomentumVertex,
       incomingGhost = Replace[vertex[[2,2]], SARAH`Mom[ig_,_] :> ig];
@@ -473,9 +505,9 @@ Invalid ghosts in vertex: " <> ToString[fields]];
       Parameters`CreateLocalConstRefs[expr] <> "\n" <>
       "const " <> GetComplexScalarCType[] <> " result = " <>
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
-      "return vertex_type(result, " <> 
-				ToString[Position[indexedFields, incomingGhost][[1,1]] - 1] <>
-			");",
+      "return {result, " <> 
+				ToString[Position[indexedFields, incomingGhost,{1}][[1,1]] - 1] <>
+			"};",
          
 			TripleVectorVertex,
 			{lIndex1, lIndex2, lIndex3} = LorentzIndexOfField /@ 
@@ -506,7 +538,7 @@ structure in vertex: " <> ToString[vertex]]; Quit[1]];
       Parameters`CreateLocalConstRefs[expr] <> "\n" <>
       "const " <> GetComplexScalarCType[] <> " result = " <>
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
-      "return vertex_type(result, vertex_type::even_permutation{});",
+      "return {result, TripleVectorVertex::even_permutation{}};",
          
 			QuadrupleVectorVertex,
 			{lIndex1, lIndex2, lIndex3, lIndex4} = LorentzIndexOfField /@ 
@@ -556,7 +588,7 @@ structure in vertex: " <> ToString[vertex]]; Quit[1]];
       Parameters`ExpressionToString[expr2] <> ";\n\n" <>
       "const " <> GetComplexScalarCType[] <> " part3 = " <>
       Parameters`ExpressionToString[expr3] <> ";\n\n" <>
-      "return vertex_type(part1, part2, part3);",
+      "return {part1, part2, part3};",
 
       MomentumDifferenceVertex,
       {incomingScalar, outgoingScalar} = Replace[vertex[[2,2]],
@@ -577,7 +609,7 @@ structure in vertex: " <> ToString[vertex]]; Quit[1]];
       Parameters`CreateLocalConstRefs[expr] <> "\n" <>
       "const " <> GetComplexScalarCType[] <> " result = " <>
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
-      "return vertex_type(result, minuend_index, subtrahend_index);",
+      "return {result, minuend_index, subtrahend_index};",
 
       InverseMetricVertex,
       vertexRules = {(SARAH`Cp @@ sortedIndexedFields) -> vertex[[2,1]]};
@@ -592,7 +624,7 @@ structure in vertex: " <> ToString[vertex]]; Quit[1]];
       Parameters`CreateLocalConstRefs[expr] <> "\n" <>
       "const " <> GetComplexScalarCType[] <> " result = " <>
       Parameters`ExpressionToString[expr] <> ";\n\n" <>
-      "return vertex_type(result);"
+      "return {result};"
     ]
   ]
 
@@ -673,9 +705,8 @@ CreateUnitCharge[] :=
          numberOfElectronIndices = NumberOfFieldIndices[electron];
          numberOfPhotonIndices = NumberOfFieldIndices[photon];
 
-         "static ChiralVertex unit_charge(const context_base& context)\n" <>
+         "ChiralVertex unit_charge(const context_base& context)\n" <>
          "{\n" <>
-         TextFormatting`IndentText["using vertex_type = ChiralVertex;"] <> "\n\n" <>
          TextFormatting`IndentText @ 
            ("std::array<int, " <> ToString @ numberOfElectronIndices <> "> electron_indices = {" <>
               If[TreeMasses`GetDimension[electron] =!= 1,
