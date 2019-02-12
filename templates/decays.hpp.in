@@ -39,6 +39,7 @@
 #include "decays_problems.hpp"
 #include "effective_couplings.hpp"
 #include "lowe.h"
+#include "wrappers.hpp"
 
 namespace flexiblesusy {
 

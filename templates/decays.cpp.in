@@ -33,6 +33,7 @@
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
 
+#include "concatenate.hpp"
 #include "dilog.hpp"
 
 #include "config.h"
