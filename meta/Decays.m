@@ -320,10 +320,10 @@ IsPossibleOneLoopDecay[decay_FSParticleDecay] :=
 ContainsOnlySupportedVertices[diagram_] :=
     Module[{vertices, vertexTypes, unsupportedVertices},
            vertices = CXXDiagrams`VerticesForDiagram[diagram];
-           vertexTypes = Vertices`VertexTypeForFieldsD /@ vertices;
-           unsupportedVertices = Complement[vertexTypes, Vertices`VertexTypesD[]];
+           vertexTypes = CXXDiagrams`VertexTypeForFields /@ vertices;
+           unsupportedVertices = Complement[vertexTypes, CXXDiagrams`VertexTypes[]];
            If[unsupportedVertices =!= {},
-              MapIndexed[(If[!MemberQ[Vertices`VertexTypesD[], vertexTypes[[First[#2]]]],
+              MapIndexed[(If[!MemberQ[CXXDiagrams`VertexTypes[], vertexTypes[[First[#2]]]],
                              Print["Warning: vertex with fields ", #1, " is not currently supported."];
                              Print["    Diagrams involving this vertex will be discarded."];
                             ];)&, vertices];
@@ -742,12 +742,12 @@ CallDecaysCalculationFunctions[particles_List, enableDecaysThreads_] :=
 
 GetDecayAmplitudeType[initialParticle_?TreeMasses`IsScalar, finalState_List] :=
     Module[{vertexType},
-           vertexType = Vertices`VertexTypeForFieldsD[Join[{initialParticle}, finalState]];
+           vertexType = CXXDiagrams`VertexTypeForFields[Join[{initialParticle}, finalState]];
            Switch[vertexType,
-                  Vertices`SSSVertex, "Decay_amplitude_SSS",
-                  Vertices`FFSVertex, "Decay_amplitude_SFF",
-                  Vertices`SSVVertex, "Decay_amplitude_SSV",
-                  Vertices`SVVVertex, "Decay_amplitude_SVV",
+                  ScalarVertex, "Decay_amplitude_SSS",
+                  ChiralVertex, "Decay_amplitude_SFF",
+                  MomentumDifferenceVertex, "Decay_amplitude_SSV",
+                  InverseMetricVertex, "Decay_amplitude_SVV",
                   _, Print["Warning: decay ", initialParticle, " -> ", finalState, " is not supported."];
                      "Unknown_amplitude_type"
                  ]
@@ -755,10 +755,10 @@ GetDecayAmplitudeType[initialParticle_?TreeMasses`IsScalar, finalState_List] :=
 
 GetDecayAmplitudeType[initialParticle_?TreeMasses`IsFermion, finalState_List] :=
     Module[{vertexType},
-           vertexType = Vertices`VertexTypeForFieldsD[Join[{initialParticle}, finalState]];
+           vertexType = CXXDiagrams`VertexTypeForFields[Join[{initialParticle}, finalState]];
            Switch[vertexType,
-                  Vertices`FFSVertex, "Decay_amplitude_FFS",
-                  Vertices`FFVVertex, "Decay_amplitude_FFV",
+                  ChiralVertex, "Decay_amplitude_FFS",
+                  ChiralVertex, "Decay_amplitude_FFV",
                   _, Print["Warning: decay ", initialParticle, " -> ", finalState, " is not supported."];
                      "Unknown_amplitude_type"
                  ]
@@ -1083,7 +1083,7 @@ EvaluateColorFactor[topology_, diagram_] :=
 
 EvaluateOneLoopTwoBodyDecayDiagramWithTopology[decay_, topology_, diagram_] :=
     Module[{name = GetTopologyName[topology]},
-       EvaluateColorFactor[topology, diagram];
+                         (*EvaluateColorFactor[topology, diagram];*)
        (* get vertices from diagram *)
        (* connect them based on topology *)
        (* calc color factor *)

@@ -56,7 +56,6 @@ CreateStrongCoupling::usage="";
 NumberOfFieldIndices::usage="";
 FieldInfo::usage="";
 includeLorentzIndices::usage="";
-VertexTypeForFields::usage="";
 CreateFieldTraitsDefinitions::usage="";
 CreateSelfConjugateFieldsDefinitions::usage="";
 
@@ -407,25 +406,6 @@ Invalid ghosts in vertex: " <> ToString[fields]];
          
          QuadrupleVectorVertex,
          "return {0, 0, 0};",
-         
-         MomentumVertex,
-         ghosts = Select[fields, TreeMasses`IsGhost];
-         ghosts = Select[ghosts, RemoveLorentzConjugation[#] =!= 
-           LorentzConjugate[#] &];
-         
-         Utils`AssertWithMessage[Length[ghosts] === 1,
-				   "CXXDiagrams`VertexFunctionBodyForFieldsImpl[]: \
-Invalid ghosts in vertex: " <> ToString[fields]];
-				   
-         "return vertex_type(0, " <>
-           ToString[Position[fields, ghosts[[1]], {1}][[1,1]] - 1] <>
-         ");",
-         
-         TripleVectorVertex,
-         "return vertex_type(0, vertex_type::even_permutation{});",
-         
-         QuadrupleVectorVertex,
-         "return vertex_type(0, 0, 0);",
          
          MomentumDifferenceVertex,
          "return {0, " <> StringJoin[Riffle[

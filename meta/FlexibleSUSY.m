@@ -2108,7 +2108,6 @@ WriteCXXDiagramClass[vertices_List,files_List,
                              "@CXXDiagrams_MassFunctions@"     -> massFunctions,
                              "@CXXDiagrams_UnitCharge@"        -> unitCharge,
                              "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
-                             "@CXXDiagrams_UnitCharge@"      -> TextFormatting`IndentText[unitCharge],
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              "@lorentzSelfConjugateFieldDefs@" -> lorentzSelfConjugateFieldDefs,
                              "@defineFieldTraits@"           -> defineFieldTraits,
@@ -3446,71 +3445,6 @@ RenameSLHAInputParametersInUserInput[lesHouchesInputParameters_] :=
                lesHouchesInputParameterReplacementRules;
           ];
 
-(*
-<<<<<<< HEAD
-Options[MakeFlexibleSUSY] :=
-    {
-        InputFile -> "FlexibleSUSY.m",
-        OutputDirectory -> "",
-        DebugOutput -> False
-    };
-MakeFlexibleSUSY[OptionsPattern[]] :=
-    Module[{nPointFunctions, runInputFile, initialGuesserInputFile,
-            edmVertices, aMuonVertices, edmFields,
-            cxxQFTTemplateDir, cxxQFTOutputDir, cxxQFTFiles,
-            susyBetaFunctions, susyBreakingBetaFunctions,
-            numberOfSusyParameters, anomDim,
-            inputParameters (* list of 3-component lists of the form {name, block, type} *),
-            massMatrices, phases,
-            diagonalizationPrecision,
-            allIntermediateOutputParameters = {},
-            allIntermediateOutputParameterIndexReplacementRules = {},
-            allInputParameterIndexReplacementRules = {},
-            allExtraParameterIndexReplacementRules = {},
-            allParticles, allParameters,
-            ewsbEquations, sharedEwsbSubstitutions = {}, solverEwsbSubstitutions = {},
-            freePhases = {}, solverFreePhases = {}, solverEwsbSolutions = {}, missingPhases,
-            treeLevelEwsbSolutionOutputFiles = {}, treeLevelEwsbEqsOutputFile,
-            solverEwsbSolvers = {}, fixedParameters,
-            lesHouchesInputParameters,
-            extraSLHAOutputBlocks, effectiveCouplings = {}, extraVertices = {},
-            deltaVBwave, deltaVBvertex, deltaVBbox,
-            vertexRules, vertexRuleFileName, effectiveCouplingsFileName,
-            Lat$massMatrices, spectrumGeneratorFiles = {}, spectrumGeneratorInputFile,
-            semiAnalyticBCs, semiAnalyticSolns,
-            semiAnalyticHighScaleFiles, semiAnalyticSUSYScaleFiles, semiAnalyticLowScaleFiles,
-            semiAnalyticSolnsOutputFile, semiAnalyticEWSBSubstitutions = {}, semiAnalyticInputScale = "",
-            decaysFinalStateParticles = {}, decaysVertices = {},
-            decaysSources = {}, decaysHeaders = {}, decaysSLHAIncludeFiles = {}},
-
-           Utils`PrintHeadline["Starting FlexibleSUSY"];
-           FSDebugOutput["meta code directory: ", $flexiblesusyMetaDir];
-           FSDebugOutput["config directory   : ", $flexiblesusyConfigDir];
-           FSDebugOutput["templates directory: ", $flexiblesusyTemplateDir];
-
-           (* check if SARAH`Start[] was called *)
-           If[!ValueQ[Model`Name],
-              Print["Error: Model`Name is not defined.  Did you call SARAH`Start[\"Model\"]?"];
-              Quit[1];
-             ];
-           FSDebugOutput = OptionValue[DebugOutput];
-           FSOutputDir = OptionValue[OutputDirectory];
-           If[!DirectoryQ[FSOutputDir],
-              Print["Error: OutputDirectory ", FSOutputDir, " does not exist."];
-              Print["   Please run ./createmodel first."];
-              Quit[1]];
-           CheckSARAHVersion[];
-           (* load model file *)
-           LoadModelFile[OptionValue[InputFile]];
-           Print["FlexibleSUSY model file loaded"];
-           Print["  Model: ", Style[FlexibleSUSY`FSModelName, FSColor]];
-           Print["  Model file: ", OptionValue[InputFile]];
-           Print["  Model output directory: ", FSOutputDir];
-
-           Utils`PrintHeadline["Reading SARAH output files"];
-           PrepareFSRules[];
-=======
-*)
 ReadSARAHBetaFunctions[] :=
     Module[{susyBetaFunctions, susyBreakingBetaFunctions},
            FSPrepareRGEs[FlexibleSUSY`FSRGELoopOrder];
