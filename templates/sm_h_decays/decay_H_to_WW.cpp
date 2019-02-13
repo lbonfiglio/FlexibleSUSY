@@ -13,7 +13,13 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
    const double x = Sqr(mWOS / mHOS);
    // std::cout << 1./(sqrt(2.)*pow(MODELPARAMETER(v),2)) << ' ' << mWOS << std::endl;
    double res;
-   // three-body-decays if below threshold
+   // mH < mW
+   // 4-body decay not implemented for a moment
+   if (x > 1.0) {
+      return 0.0;
+   }
+   // mW < mH < 2mW
+   // three-body decays
    if (4 * x > 1.0) {
       // const auto vd = MODELPARAMETER(vd);
       // const auto vu = MODELPARAMETER(vu);
@@ -21,7 +27,8 @@ double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
       const auto vev = 246.0; // sqrt(Sqr(vd) + Sqr(vu));
 
       res = 3.0 / (128 * std::pow(Pi, 3)) * mHOS / Sqr(vev) * RT(x);
-   // two-body decay   
+   // mH > 2mZ
+   // two-body decay
    } else {
 
       const double flux = 1. / (2 * mHOS);

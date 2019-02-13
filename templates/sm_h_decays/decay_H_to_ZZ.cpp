@@ -17,7 +17,14 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
    double res;
    // three-body-decays if below threshold
       const auto vev = 246.0; //sqrt(Sqr(vd) + Sqr(vu));
-   if(4.*x > 1.0) {
+
+   // mH < mZ
+   // 4-body decay not implemented for a moment
+   if (x > 1.0) {
+      return 0.0;
+   // mZ < mH < 2mZ
+   // three-body decay
+   } else if(4.0*x > 1.0) {
       // const auto vd = MODELPARAMETER(vd);
       // const auto vu = MODELPARAMETER(vu);
       // TODO: specify the vev correctly
@@ -25,6 +32,8 @@ double CLASSNAME::get_partial_width<H,Z,Z>(
       const double deltaV = 7.0/12.0 - 10.0/9.0 * sw2 + 40.0/27.0 * Sqr(sw2);
 
       res = 3.0/(128*pow(Pi,3)) * mHOS/Sqr(vev) * deltaV * RT(x);
+   // mH > 2mZ
+   // two-body decay
    } else {
 
       const double flux = 1. / (2 * mHOS);
