@@ -2,7 +2,7 @@
 // special case for H -> H H
 template <>
 double CLASSNAME::get_partial_width<H, H, H>(
-   const ContextName& context,
+   const context_base& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<H>::type const& indexOut1,
    typename field_indices<H>::type const& indexOut2) const

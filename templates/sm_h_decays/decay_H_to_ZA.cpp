@@ -1,6 +1,6 @@
 // template<>
 // Decay_amplitude_SVV CLASSNAME::calculate_amplitude<H,A,Z>(
-//    const ContextName& context,
+//    const context_base& context,
 //    const typename field_indices<H>::type& indexIn,
 //    const typename field_indices<A>::type& indexOut1,
 //    const typename field_indices<Z>::type& indexOut2
@@ -12,7 +12,7 @@
 
 // template<>
 // Decay_amplitude_SVV CLASSNAME::calculate_amplitude<H,Z,A>(
-//    const ContextName& context,
+//    const context_base& context,
 //    const typename field_indices<H>::type& indexIn,
 //    const typename field_indices<Z>::type& indexOut1,
 //    const typename field_indices<A>::type& indexOut2
@@ -25,7 +25,7 @@
 // special case for H -> photon Z
 template <>
 double CLASSNAME::get_partial_width<H, A, Z>(
-   const ContextName& context,
+   const context_base& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<A>::type const& indexOut1,
    typename field_indices<Z>::type const& indexOut2) const
@@ -41,7 +41,7 @@ double CLASSNAME::get_partial_width<H, A, Z>(
 
 template<>
 double CLASSNAME::get_partial_width<H,Z,A>(
-   const ContextName& context,
+   const context_base& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<Z>::type const& indexOut1,
    typename field_indices<A>::type const& indexOut2

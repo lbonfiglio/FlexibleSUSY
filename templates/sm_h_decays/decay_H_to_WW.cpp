@@ -2,7 +2,7 @@
 // TODO: implement higher order corrections
 template <>
 double CLASSNAME::get_partial_width<H, W, conj<W>::type>(
-   const ContextName& context, typename field_indices<H>::type const& indexIn,
+   const context_base& context, typename field_indices<H>::type const& indexIn,
    typename field_indices<conj<W>::type>::type const& indexOut1,
    typename field_indices<W>::type const& indexOut2) const
 {

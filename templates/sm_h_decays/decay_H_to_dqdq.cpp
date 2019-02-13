@@ -2,7 +2,7 @@
 
 template<>
 double CLASSNAME::get_partial_width<H,bar<dq>::type,dq>(
-   const ContextName& context,
+   const context_base& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<dq>::type const& indexOut1,
    typename field_indices<dq>::type const& indexOut2

@@ -2,7 +2,7 @@
 
 template <>
 double CLASSNAME::get_partial_width<H, bar<lep>::type, lep>(
-   const ContextName& context,
+   const context_base& context,
    typename field_indices<H>::type const& indexIn,
    typename field_indices<bar<lep>::type>::type const& indexOut1,
    typename field_indices<lep>::type const& indexOut2) const

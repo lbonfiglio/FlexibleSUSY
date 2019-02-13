@@ -116,12 +116,13 @@ double get_alpha(context_base const&  context)
    return pow(e, 2)/(4.*Pi);
 }
 
-// -------- specializations for decays needing higher order corrections --------
-
-@create_SM_particle_usings@
-using ContextName = context_base;
+// 1-loop BSM amplitudes
 
 @calcAmplitudeSpecializationDefs@
+
+// -------- specializations for decays needing higher order SM corrections --------
+
+@create_SM_particle_usings@
 
 namespace {
 
