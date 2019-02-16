@@ -4405,7 +4405,11 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                                                     {FileNameJoin[{$flexiblesusyTemplateDir, "decay_amplitudes.hpp.in"}],
                                                      FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_amplitudes.hpp"}]},
                                                     {FileNameJoin[{$flexiblesusyTemplateDir, "decay_amplitudes.cpp.in"}],
-                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_amplitudes.cpp"}]}
+                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_decay_amplitudes.cpp"}]},
+                                                    {FileNameJoin[{$flexiblesusyTemplateDir, "one_loop_decay_diagrams.hpp.in"}],
+                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_one_loop_decay_diagrams.hpp"}]},
+                                                    {FileNameJoin[{$flexiblesusyTemplateDir, "one_loop_decay_diagrams.cpp.in"}],
+                                                     FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> "_one_loop_decay_diagrams.cpp"}]}
                                                    }];
                  ,
                  Print["Skipping calculating decays as no particles to calculate decays for were found."];

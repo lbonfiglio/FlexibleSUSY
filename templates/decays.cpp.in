@@ -32,12 +32,13 @@
 #include "@ModelName@_decays.hpp"
 #include "@ModelName@_info.hpp"
 #include "@ModelName@_mass_eigenstates.hpp"
+// @todo: move one_loop_decay_diagrams back to src
+#include "@ModelName@_one_loop_decay_diagrams.hpp"
 
 #include "concatenate.hpp"
 #include "dilog.hpp"
 
 #include "config.h"
-//#include "one_loop_decay_diagrams.hpp"
 #include "thread_pool.hpp"
 #include "wrappers.hpp"
 
@@ -179,10 +180,8 @@ double calc_deltaqq(double alpha_s_red, double Nf)
 double RT(double x) {
    BOOST_ASSERT_MSG(x<=1, "This function");
    if (is_zero(x-1)) {
-      std::cout << "is zero\n"; 
       return 0.;
    } else if (1-x < 1e-6) {
-      std::cout << "close zero\n"; 
       return 39*(-1 + x) + (75*std::pow(-1 + x,2))/2. - 6*std::pow(-1 + x,3);
    } else {
       std::cout << "not zero\n"; 

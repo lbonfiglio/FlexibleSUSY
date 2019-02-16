@@ -22,7 +22,7 @@
 
 BeginPackage["Decays`",
    {"SARAH`", "CConversion`", "CXXDiagrams`", "TreeMasses`", "TextFormatting`", "Utils`", "Vertices`",
-      "ColorMathInterface`"}];
+      "ColorMath`", "ColorMathInterface`"}];
 
 FSParticleDecay::usage="head used for storing details of an particle decay,
 in the format
@@ -55,6 +55,27 @@ CreateTotalAmplitudeSpecializations::usage="creates specialized functions for hi
 CreatePartialWidthSpecializations::usage="creates specialized functions for particular decays.";
 
 Begin["`Private`"];
+
+MyReIm[z_] := If[$VersionNumber >= 10.1,
+   ReIm[z],
+   {Re[z], Im[z]}
+];
+
+StripDiagramColorFactor[fields_, colorFactor_] := 
+   Module[{fieldIn = fields[[1]], fieldsOut = Drop[fields, 1], initialStateRep, finalStateReps},
+      initialStateRep = TreeMasses`GetColorRepresentation@fieldsIn;
+      finalStateReps = TreeMasses`GetColorRepresentation /@ fieldsOut;
+      Switch[initialStateRep,
+         S, 
+            Switch[finalStateReps,
+               {S,S}, colorFactor,
+               {T,-T}, Coefficient[colorFactor, Superscript[ColorMath`CM\[Delta], ColorMathInterface`GetFieldColorIndex/@fieldsOut]],
+               {O,O}, Coefficient[colorFactor, Superscript[ColorMath`CM\[CapitalDelta], ColorMathInterface`GetFieldColorIndex/@fieldsOut]], 
+               _, Print["Unhandled final state color representation in ", initialStateRep, " -> ", finalStateReps, " decay"]; Quit[1];
+            ],
+         _, Print["Unhandled initial state color representation ", initialStateRep, " -> ", finalStateReps, " decay"]; Quit[1];
+      ]
+   ];
 
 GetInitialState[FSParticleDecay[particle_, finalState_List, diagrams_List]] := particle;
 
@@ -1048,7 +1069,7 @@ FillTreeLevelDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, struct
           ];
 
 EvaluateColorFactor[topology_, diagram_] :=
-   Module[{diagramWithIndices, field1, field2, replacementList},
+   Module[{diagramWithIndices, field1, field2, replacementList, externalParticles},
       diagramWithIndices =
          Map[
             If[ListQ[#], #,
@@ -1078,16 +1099,15 @@ EvaluateColorFactor[topology_, diagram_] :=
             ]
          ]
       ];
-      Print[ColorMathInterface`FSCalcColorFactor[Vertex /@ Drop[diagramWithIndices/.replacementList, 3]]];
+      externalParticles = Select[diagramWithIndices, (Head[#]=!=List)&];
+      {externalParticles, ColorMathInterface`FSCalcColorFactor[Vertex /@ Drop[diagramWithIndices/.replacementList, 3]]}
    ];
 
 EvaluateOneLoopTwoBodyDecayDiagramWithTopology[decay_, topology_, diagram_] :=
     Module[{name = GetTopologyName[topology]},
-                         (*EvaluateColorFactor[topology, diagram];*)
-       (* get vertices from diagram *)
-       (* connect them based on topology *)
-       (* calc color factor *)
-           "// evaluate graph " <> GetDecayTopologyName[topology] <> "\n"
+           "// evaluate graph " <> ToString[diagram] <> GetDecayTopologyName[topology] <> "\n" <>
+           "// std::complex<double> " <> ToString@N[MyReIm[ColorMathInterface`ColorN[StripDiagramColorFactor@@EvaluateColorFactor[topology, diagram]]],16] <> " * " <>
+           "\n"
           ];
 
 EvaluateDecayDiagramWithTopology[decay_, topology_, diagram_] :=
