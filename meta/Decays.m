@@ -1157,24 +1157,21 @@ EvaluateDecayDiagramWithTopology[decay_, topology_, diagram_] :=
          ];
 
 FillSSSOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structName_, paramsStruct_] :=
-    Module[{oneLoopDiags, body = ""},
+    Module[{oneLoopDiags, body = "", particlesInVertices = {}, ids = {}},
            oneLoopDiags = Flatten[With[{topo = #[[1]], diags = #[[2]]}, {topo, #}& /@ diags]& /@ GetDecayTopologiesAndDiagramsAtLoopOrder[decay, 1], 1];
-           ( 
+           Print[( 
+           particlesInVertices = Select[#[[2]], (Head[#]===List)&];
+           (*ids = ToString@Unique["id"]& /@ Range@Length[particlesInVertices];*)
+
               body = body <>
-              Switch[Count[#[[2]], el_ /; Head[el] === List],
-              2, ""
-              (*
-                  "using Vertex4 = Vertex<" <> StringJoin@Riffle[CXXDiagrams`CXXNameOfField/@#[[2,4]],", "] <> ">;\n" <>
-                  "using Vertex5 = Vertex<" <> StringJoin@Riffle[CXXDiagrams`CXXNameOfField/@#[[2,5]],", "] <> ">;"*),
-                  3, ""
-(*                  "using Vertex4 = Vertex<" <> StringJoin@Riffle[CXXDiagrams`CXXNameOfField/@#[[2,4]],", "] <> ">;\n" <>
-                  "using Vertex5 = Vertex<" <> StringJoin@Riffle[CXXDiagrams`CXXNameOfField/@#[[2,5]],", "] <> ">;\n" <>
-                  "using Vertex6 = Vertex<" <> StringJoin@Riffle[CXXDiagrams`CXXNameOfField/@#[[2,6]],", "] <> ">;"*)
-              ] <> "\n" <>
+              StringJoin[
+              ("using vertex" <> ToString@Unique["id"] <> " = Vertex<" <>  StringJoin@Riffle[CXXDiagrams`CXXNameOfField/@# ,", "] <> ">;\n")& /@ particlesInVertices
+              ] <>
 
               "result.form_factor += " <> EvaluateDecayDiagramWithTopology[decay, Sequence @@ #] <> 
               ";\n"
-            )& /@ oneLoopDiags;
+            )& /@ oneLoopDiags];
+            Quit[1];
 
            "// 1-loop amplitude(s)\n" <> body
           ];
@@ -1233,6 +1230,9 @@ FillOneLoopDecayAmplitudeFormFactors[decay_FSParticleDecay, modelName_, structNa
            _, ""
           ];
 
+(* creates calculate_amplitude functions
+   they return a total 1-loop amplitude for a set of external particles        
+           *)
 CreateTotalAmplitudeSpecializationDef[decay_FSParticleDecay, modelName_] :=
     Module[{initialParticle = GetInitialState[decay], finalState = GetFinalState[decay],
             returnVar = "result", paramsStruct = "context", returnType = "",
