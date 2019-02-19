@@ -55,6 +55,7 @@ namespace flexiblesusy {
 #define MODELPARAMETER(parameter) model.get_##parameter()
 
 using namespace @ModelName@_cxx_diagrams;
+using namespace @ModelName@_cxx_diagrams::fields;
 using effective_couplings::beta;
 namespace info = @ModelName@_info;
 
