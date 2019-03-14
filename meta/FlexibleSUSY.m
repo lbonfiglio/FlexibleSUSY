@@ -2072,20 +2072,24 @@ WriteObservables[extraSLHAOutputBlocks_, files_List] :=
            ];
 
 (* Write the CXXDiagrams c++ files *)
-WriteCXXDiagramClass[vertices_List,files_List,
-		OptionsPattern[{StripColorStructure -> False}]] :=
-  Module[{fields, cxxVertices, massFunctions, unitCharge,
+WriteCXXDiagramClass[vertices_List, files_List,
+    cxxQFTVerticesTemplate_, cxxQFTVerticesOutputDirectory_,
+    cxxQFTVerticesMakefileTemplates_] :=
+  Module[{fields, cxxVerticesParts, massFunctions, unitCharge,
           sarahOutputDir = SARAH`$sarahCurrentOutputMainDir,
           outputDir, cxxDiagramsDir, createdVerticesFile, fileHandle,
-         lorentzSelfConjugateFieldDefs, defineFieldTraits},
+         lorentzSelfConjugateFieldDefs, defineFieldTraits,
+          cxxQFTVerticesFiles},
     fields = CXXDiagrams`CreateFields[];
     lorentzSelfConjugateFieldDefs = CXXDiagrams`CreateSelfConjugateFieldsDefinitions[TreeMasses`GetParticles[], FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
     defineFieldTraits = CXXDiagrams`CreateFieldTraitsDefinitions[TreeMasses`GetParticles[], FlexibleSUSY`FSModelName <> "_cxx_diagrams::fields"];
-    cxxVertices = CXXDiagrams`CreateVertices[vertices,
-			StripColorStructure -> OptionValue[StripColorStructure]];
+    cxxVerticesParts = CXXDiagrams`CreateVertices[vertices];
     massFunctions = CXXDiagrams`CreateMassFunctions[];
     physicalMassFunctions = CXXDiagrams`CreatePhysicalMassFunctions[fieldsNamespace];
     unitCharge = CXXDiagrams`CreateUnitCharge[];
+    
+    cxxVerticesParts[[1, 2]] = cxxVerticesParts[[1, 2]] <> "\n\n" <>
+      unitCharge;
     
     (* Document which vertices are created. This is mainly useful for
        unit testing. See e.g test/test_MSSM_npointfunctions.m *)
@@ -2104,16 +2108,34 @@ WriteCXXDiagramClass[vertices_List,files_List,
     
     WriteOut`ReplaceInFiles[files,
                             {"@CXXDiagrams_Fields@"            -> fields,
-                             "@CXXDiagrams_VertexPrototypes@"  -> cxxVertices[[1]],
-                             "@CXXDiagrams_VertexDefinitions@" -> cxxVertices[[2]],
                              "@CXXDiagrams_MassFunctions@"     -> massFunctions,
                              "@CXXDiagrams_UnitCharge@"        -> unitCharge,
                              "@CXXDiagrams_PhysicalMassFunctions@" -> physicalMassFunctions,
                              "@CXXDiagrams_StrongCoupling@"  -> TextFormatting`IndentText[strongCoupling],
                              "@lorentzSelfConjugateFieldDefs@" -> lorentzSelfConjugateFieldDefs,
                              "@defineFieldTraits@"           -> defineFieldTraits,
+                             "@CXXDiagrams_VertexPrototypes@"  ->
+                               StringJoin[Riffle[cxxVerticesParts[[All, 1]], "\n\n"]],
                              Sequence @@ GeneralReplacementRules[]
                             }];
+    
+    cxxQFTVerticesFiles = Table[
+        {cxxQFTVerticesTemplate,
+		   FileNameJoin[{cxxQFTVerticesOutputDirectory,
+			   FSModelName <> "_" <> FileNameTake[StringReplace[cxxQFTVerticesTemplate,
+			     {".cpp.in" -> ToString[k] <> ".cpp"}]]}]
+			},
+		  {k, Length[cxxVerticesParts]}];
+	
+    WriteOut`ReplaceInFiles[{#[[1]]},
+      {"@CXXDiagrams_VertexDefinitions@" -> #[[2, 2]],
+       Sequence @@ GeneralReplacementRules[]
+      }] & /@ Transpose[{cxxQFTVerticesFiles, cxxVerticesParts}];
+    WriteOut`ReplaceInFiles[cxxQFTVerticesMakefileTemplates,
+      {"@generatedCXXVerticesFiles@" ->
+         "\t" <> StringJoin[Riffle[cxxQFTVerticesFiles[[All, 2]], " \\\n\t"]],
+       Sequence @@ GeneralReplacementRules[]
+      }];
  ]
 
 (* Write the EDM c++ files *)
@@ -3626,6 +3648,7 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
     Module[{nPointFunctions, runInputFile, initialGuesserInputFile,
             edmVertices, aMuonVertices, edmFields,
             cxxQFTTemplateDir, cxxQFTOutputDir, cxxQFTFiles,
+            cxxQFTVerticesTemplate, cxxQFTVerticesMakefileTemplates,
             susyBetaFunctions, susyBreakingBetaFunctions,
             anomDim,
             inputParameters (* list of 3-component lists of the form {name, block, type} *),
@@ -4479,23 +4502,22 @@ MakeFlexibleSUSY[OptionsPattern[]] :=
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_fields.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "vertices.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.hpp"}]},
-                          {FileNameJoin[{cxxQFTTemplateDir, "vertices.cpp.in"}],
-                           FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_vertices.cpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "context_base.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_context_base.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "generic_calculations.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_generic_calculations.hpp"}]},
                           {FileNameJoin[{cxxQFTTemplateDir, "npointfunctions.hpp.in"}],
                            FileNameJoin[{cxxQFTOutputDir, FlexibleSUSY`FSModelName <> "_npointfunctions.hpp"}]}};
+           cxxQFTVerticesTemplate = FileNameJoin[{cxxQFTTemplateDir, "vertices_.cpp.in"}];
+           cxxQFTVerticesMakefileTemplates = {{FileNameJoin[{cxxQFTTemplateDir, "vertices.mk.in"}],
+                           FileNameJoin[{cxxQFTOutputDir, "vertices.mk"}]}};
 
            If[DirectoryQ[cxxQFTOutputDir] === False,
               CreateDirectory[cxxQFTOutputDir]];
-
-           WriteCXXDiagramClass[
-             DeleteDuplicates @ Join[
-                edmVertices, aMuonVertices, decaysVertices
-             ], cxxQFTFiles, StripColorStructure -> True
-           ];
+           
+           WriteCXXDiagramClass[Join[edmVertices,aMuonVertices,decaysVertices], cxxQFTFiles,
+             cxxQFTVerticesTemplate, cxxQFTOutputDir,
+             cxxQFTVerticesMakefileTemplates];
 
            Utils`PrintHeadline["Creating Mathematica interface"];
            Print["Creating LibraryLink ", FileNameJoin[{FSOutputDir, FlexibleSUSY`FSModelName <> ".mx"}], " ..."];
