@@ -96,6 +96,9 @@ AtomQ[] and return the result.";
 CreateUnitCharge::usage="Creates the c++ code for a function that returns the \
 numerical value of the electrical charge of the electron.";
 
+NumberOfExternalParticlesInTopology::usage = "";
+NumberOfPropagatorsInTopology::usage = "";
+
 Begin["`Private`"];
 
 LeftChiralVertex::usage="A left projector part of a vertex";
@@ -1502,6 +1505,12 @@ StripColourIndices[p_] :=
 		If[Length[remainingIndices] === 0, Head[p],
 			Head[p][remainingIndices]]
 	]
+
+NumberOfExternalParticlesInTopology[topology_] :=
+   Count[topology, e_ /; Sort[e] === {0, 0, 0, 0, 0, 1}];
+
+NumberOfPropagatorsInTopology[topology_] :=
+   Total[UpperTriangularize[topology], 2] - NumberOfExternalParticlesInTopology[topology];
 
 End[];
 EndPackage[];
