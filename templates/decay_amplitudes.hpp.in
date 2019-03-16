@@ -37,7 +37,10 @@ struct Decay_amplitude_SSS {
    std::complex<double> form_factor{};
 
    double square() const;
+   Decay_amplitude_SSS operator+=(Decay_amplitude_SSS const&);
 };
+Decay_amplitude_SSS operator*(std::complex<double>, Decay_amplitude_SSS const&);
+
 
 /**
  * @class Decay_amplitude_SSV
@@ -51,7 +54,9 @@ struct Decay_amplitude_SSV {
    std::complex<double> form_factor{};
 
    double square() const;
+   Decay_amplitude_SSV operator+=(Decay_amplitude_SSV const&);
 };
+Decay_amplitude_SSV operator*(std::complex<double>, Decay_amplitude_SSV const&);
 
 /**
  * @class Decay_amplitude_SVV
@@ -70,7 +75,9 @@ struct Decay_amplitude_SVV {
    std::complex<double> form_factor_eps{};
 
    double square() const;
+   Decay_amplitude_SVV operator+=(Decay_amplitude_SVV const&);
 };
+Decay_amplitude_SVV operator*(std::complex<double>, Decay_amplitude_SVV const&);
 
 /**
  * @class Decay_amplitude_SFF
@@ -84,7 +91,9 @@ struct Decay_amplitude_SFF {
    std::complex<double> form_factor_right{};
 
    double square() const;
+   Decay_amplitude_SFF operator+=(Decay_amplitude_SFF const&);
 };
+Decay_amplitude_SFF operator*(std::complex<double>, Decay_amplitude_SFF const&);
 
 /**
  * @class Decay_amplitude_FFS
@@ -98,7 +107,9 @@ struct Decay_amplitude_FFS {
    std::complex<double> form_factor_right{};
 
    double square() const;
+   Decay_amplitude_FFS operator+=(Decay_amplitude_FFS const&);
 };
+Decay_amplitude_FFS operator*(std::complex<double>, Decay_amplitude_FFS const&);
 
 /**
  * @class Decay_amplitude_FFV
@@ -115,7 +126,9 @@ struct Decay_amplitude_FFV {
    std::complex<double> form_factor_p_2{};
 
    double square() const;
+   Decay_amplitude_FFV operator+=(Decay_amplitude_FFV const&);
 };
+Decay_amplitude_FFV operator*(std::complex<double>, Decay_amplitude_FFV const&);
 
 namespace detail {
 
