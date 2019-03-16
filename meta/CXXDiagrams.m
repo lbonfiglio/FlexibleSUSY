@@ -59,6 +59,9 @@ includeLorentzIndices::usage="";
 CreateFieldTraitsDefinitions::usage="";
 CreateSelfConjugateFieldsDefinitions::usage="";
 
+NumberOfExternalParticlesInTopology::usage = "";
+NumberOfPropagatorsInTopology::usage = "";
+
 Begin["`Private`"];
 
 VertexTypes[] := {
@@ -833,6 +836,12 @@ FieldInfo[field_,OptionsPattern[{includeLorentzIndices -> False}]] :=
                DeleteCases[fieldInfo, {SARAH`lorentz, _}, {2}],
                fieldInfo]
           ]
+
+NumberOfExternalParticlesInTopology[topology_] :=
+   Count[topology, e_ /; Sort[e] === {0, 0, 0, 0, 0, 1}];
+
+NumberOfPropagatorsInTopology[topology_] :=
+   Total[UpperTriangularize[topology], 2] - NumberOfExternalParticlesInTopology[topology];
 
 End[];
 EndPackage[];
