@@ -154,7 +154,11 @@ CreateDependencePrototypes::usage="";
 CreateDependenceFunctions::usage="";
 
 ColorChargedQ::usage="";
+
 FieldInfo::usage="";
+includeLorentzIndices::usage="";
+includeColourIndices::usage="";
+
 IsScalar::usage="";
 IsFermion::usage="";
 IsVector::usage="";
@@ -162,7 +166,6 @@ IsGhost::usage="";
 IsGoldstone::usage="";
 IsSMGoldstone::usage="";
 IsAuxiliary::usage="";
-IsVEV::usage="";
 IsMajoranaFermion::usage="";
 IsDiracFermion::usage="";
 IsComplexScalar::usage="";
@@ -206,6 +209,11 @@ GetSMTauLepton::usage      = "returns SM tau, Fe[3] or Ftau";
 GetSMNeutrino1::usage      = "returns SM neutrino 1, Fv[1] or FveL";
 GetSMNeutrino2::usage      = "returns SM neutrino 2, Fv[2] or FvmL";
 GetSMNeutrino3::usage      = "returns SM neutrino 3, Fv[3] or FvmL";
+GetPhoton::usage           = "returns the photon";
+GetGluon::usage            = "returns the gluon";
+GetZBoson::usage           = "returns the Z boson";
+GetWBoson::usage           = "returns the W boson";
+GetHiggsBoson::usage       = "Returns the Higgs boson";
 
 GetSMTopQuarkMultiplet::usage    = "Returns multiplet containing the top quark, Fu or Ft";
 GetSMBottomQuarkMultiplet::usage = "Returns multiplet containing the bottom quark, Fd or Fb";
@@ -277,14 +285,19 @@ GetSMParticles[states_:FlexibleSUSY`FSEigenstates] :=
 ParticleQ[p_, states_:FlexibleSUSY`FSEigenstates] :=
     MemberQ[GetParticles[states], p];
 
-FieldInfo[field_,OptionsPattern[{includeLorentzIndices -> False}]] :=
-    Module[{fieldInfo = Cases[SARAH`Particles[FlexibleSUSY`FSEigenstates],
-                                {SARAH`getParticleName @ field, ___}][[1]]},
-            fieldInfo = DeleteCases[fieldInfo, {SARAH`generation, 1}, {2}];
-            If[!OptionValue[includeLorentzIndices],
-               DeleteCases[fieldInfo, {SARAH`lorentz, _}, {2}],
-               fieldInfo]
-          ]
+FieldInfo[field_, OptionsPattern[{includeLorentzIndices -> False,
+	includeColourIndices -> False}]] := 
+	Module[{fieldInfo = Cases[SARAH`Particles[FlexibleSUSY`FSEigenstates],
+		{SARAH`getParticleName @ field, ___}][[1]]},
+		fieldInfo = DeleteCases[fieldInfo, {SARAH`generation, 1}, {2}];
+		
+		fieldInfo = If[!OptionValue[includeLorentzIndices],
+			DeleteCases[fieldInfo, {SARAH`lorentz, _}, {2}],
+			fieldInfo];
+		If[!OptionValue[includeColourIndices],
+			DeleteCases[fieldInfo, {SARAH`color, _}, {2}],
+			fieldInfo]
+	]
 
 IsOfType[sym_Symbol, type_Symbol, states_:FlexibleSUSY`FSEigenstates] :=
     SARAH`getType[sym, False, states] === type;
@@ -348,8 +361,6 @@ IsAuxiliary[Susyno`LieGroups`conj[sym_]] := IsAuxiliary[sym];
 IsAuxiliary[SARAH`bar[sym_]] := IsAuxiliary[sym];
 IsAuxiliary[sym_Symbol] := IsOfType[sym, A];
 
-IsVEV[sym_Symbol] := IsOfType[sym, VEV];
-
 IsMajoranaFermion[Susyno`LieGroups`conj[sym_]] := IsMajoranaFermion[sym];
 IsMajoranaFermion[SARAH`bar[sym_]] := IsMajoranaFermion[sym];
 IsMajoranaFermion[sym_Symbol] :=
@@ -383,7 +394,19 @@ IsRealScalar[sym_List] :=
     And[IsScalar[sym], And @@ (Parameters`IsRealParameter /@ sym)];
 
 IsMassless[Susyno`LieGroups`conj[sym_], states_:FlexibleSUSY`FSEigenstates] := IsMassless[sym, states];
+
 IsMassless[SARAH`bar[sym_], states_:FlexibleSUSY`FSEigenstates] := IsMassless[sym, states];
+
+(* Massless ghosts are not stored in SARAH`Massless[FSEigenstates],
+   so use mass of the corresponding vector boson. *)
+IsMassless[sym_?IsGhost] :=
+    Module[{v = Symbol["V" <> StringDrop[ToString[sym],1]]},
+           Switch[RXi[v],
+                  0, True,
+                  _, IsMassless[v]
+                 ]
+         ];
+
 IsMassless[sym_Symbol, states_:FlexibleSUSY`FSEigenstates] :=
     MemberQ[SARAH`Massless[states], sym];
 
@@ -397,7 +420,7 @@ ContainsMassless[sym_List, states_:FlexibleSUSY`FSEigenstates] :=
     Or @@ (IsMassless[#,states]& /@ sym);
 
 ColorChargedQ[field_] :=
-    !FreeQ[FieldInfo[field], SARAH`color];
+    !FreeQ[FieldInfo[field, includeColourIndices -> True], SARAH`color];
 
 GetColoredParticles[] :=
     Select[GetParticles[], ColorChargedQ];
@@ -2116,6 +2139,23 @@ CreateMixingArraySetter[masses_List, array_String] :=
            paramCount += nAssignments;
            Return[set];
           ];
+
+(* Once Dominik wanted to have functions identifying SM particles.
+   This might be non-trivial in some models.
+   For now, we just have wrappers that return SM particles using SARAH symbols *)
+
+GetPhoton[] := SARAH`Photon;
+GetGluon[] := SARAH`Gluon;
+GetZBoson[] := SARAH`Zboson;
+GetWBoson[] :=
+   Module[{temp},
+      temp = Select[Unevaluated[{SARAH`Wboson, SARAH`VectorW}], ValueQ];
+      If[Length @ DeleteDuplicates[temp] === 1,
+         temp[[1]],
+         Print["Could not identify the name given to the W-boson"]; Quit[1]
+      ]
+   ];
+GetHiggsBoson[] := SARAH`HiggsBoson;
 
 End[];
 

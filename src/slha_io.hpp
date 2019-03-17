@@ -27,7 +27,6 @@
 #include <boost/format.hpp>
 #include <boost/function.hpp>
 #include "slhaea.h"
-#include "config.h"
 #include "logger.hpp"
 #include "error.hpp"
 #include "wrappers.hpp"
@@ -226,14 +225,6 @@ private:
    double read_matrix(const std::string&, Eigen::MatrixBase<Derived>&) const;
    template <class Derived>
    double read_vector(const std::string&, Eigen::MatrixBase<Derived>&) const;
-};
-
-template<class S>
-struct Set_spectrum {
-   S* slha_io;
-   Set_spectrum(S* slha_io_) : slha_io(slha_io_) {}
-   template<typename T>
-   void operator()(const T& model) const { slha_io->set_spectrum(model); }
 };
 
 template <class Scalar>
@@ -524,13 +515,6 @@ void SLHA_io::convert_symmetric_fermion_mixings_to_slha(Eigen::Array<double, N, 
       if (!is_zero(z.row(i).imag().cwiseAbs().maxCoeff())) {
          z.row(i) *= std::complex<double>(0.0,1.0);
          m(i) *= -1;
-#ifdef ENABLE_DEBUG
-         if (!is_zero(z.row(i).imag().cwiseAbs().maxCoeff())) {
-            WARNING("Row " << i << " of the following fermion mixing matrix"
-                    " contains entries which have non-zero real and imaginary"
-                    " parts:\nZ = " << z);
-         }
-#endif
       }
    }
 }
