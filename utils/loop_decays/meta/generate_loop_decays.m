@@ -568,14 +568,16 @@ GetCXXDiagramsDiagram[topology_] :=
           ];
 
 GetGenericDiagramClass[process_, {graphID_, topology_, insertions_, formFactors_}] :=
-    Module[{graphName, adjacencyMatrix, edgeLabels, couplings},
+    Module[{graphName, adjacencyMatrix, edgeLabels, couplings,
+            hasLocalTerms = FreeQ[formFactors, Finite]
+            },
            graphName = CreateOneLoopDiagramName[process, graphID, insertions];
            adjacencyMatrix = GetUndirectedAdjacencyMatrix[topology];
            edgeLabels = GetEdgeLabels[topology];
            couplings = GetCouplings[formFactors];
            cxxDiagramsFormat = GetCXXDiagramsDiagram[topology];
            {graphName, adjacencyMatrix, edgeLabels, List @@ insertions,
-            couplings, cxxDiagramsFormat}
+            couplings, cxxDiagramsFormat, hasLocalTerms}
           ];
 
 GetGenericGraphClassesFileName[] :=
