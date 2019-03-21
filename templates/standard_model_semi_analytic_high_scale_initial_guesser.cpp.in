@@ -18,13 +18,15 @@
 
 // File generated at @DateAndTime@
 
-#include "@ModelName@_two_scale_initial_guesser.hpp"
-#include "@ModelName@_two_scale_model.hpp"
-#include "@ModelName@_standard_model_two_scale_matching.hpp"
+#include "@ModelName@_semi_analytic_initial_guesser.hpp"
+#include "@ModelName@_semi_analytic_model.hpp"
+#include "@ModelName@_semi_analytic_susy_convergence_tester.hpp"
 #include "standard_model_two_scale_model.hpp"
 #include "lowe.h"
 #include "error.hpp"
 #include "ew_input.hpp"
+#include "two_scale_running_precision.hpp"
+#include "two_scale_solver.hpp"
 #include "wrappers.hpp"
 
 #include <Eigen/Core>
@@ -38,47 +40,52 @@ namespace flexiblesusy {
 #define LowEnergyConstant(p) Electroweak_constants::p
 #define MODEL model
 
-@ModelName@_standard_model_initial_guesser<Two_scale>::@ModelName@_standard_model_initial_guesser(
-   @ModelName@<Two_scale>* model_,
+@ModelName@_standard_model_initial_guesser<Semi_analytic>::@ModelName@_standard_model_initial_guesser(
+   @ModelName@<Semi_analytic>* model_,
    standard_model::StandardModel<Two_scale>* eft_,
    const softsusy::QedQcd& qedqcd_,
    const standard_model::Standard_model_low_scale_constraint<Two_scale>& low_constraint_,
-   const @ModelName@_susy_scale_constraint<Two_scale>& susy_constraint_
+   @ModelName@_susy_scale_constraint<Semi_analytic>& susy_constraint_,
+   @ModelName@_high_scale_constraint<Semi_analytic>& high_constraint_,
+   @ModelName@_matching_constraint<Semi_analytic>& matching_constraint_,
+   @ModelName@_standard_model_matching_up<Semi_analytic>& matching_up_
 )
-   : Initial_guesser()
-   , model(model_)
+   : model(model_)
    , eft(eft_)
    , qedqcd(qedqcd_)
    , low_constraint(low_constraint_)
    , susy_constraint(susy_constraint_)
+   , high_constraint(high_constraint_)
+   , matching_constraint(matching_constraint_)
+   , matching_up(matching_up_)
 {
    if (!model)
       throw SetupError("@ModelName@_initial_guesser: Error: pointer to model"
-                       " @ModelName@<Two_scale> must not be zero");
-}
-
-@ModelName@_standard_model_initial_guesser<Two_scale>::~@ModelName@_standard_model_initial_guesser()
-{
+                       " @ModelName@<Semi_analytic> must not be zero");
 }
 
 /**
  * Guesses the DR-bar model parameters by calling
  * guess_susy_parameters() and guess_soft_parameters() .
  */
-void @ModelName@_standard_model_initial_guesser<Two_scale>::guess()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::guess()
 {
    guess_eft_parameters();
    guess_model_parameters();
 }
 
 /**
- * Guesses the effective parameters (gauge, Yukawa couplings) at
+ * Guesses the SUSY parameters (gauge, Yukawa couplings) at
  * \f$m_\text{top}^\text{pole}\f$ from the Standard Model gauge
  * couplings and fermion masses.  Threshold corrections are ignored.
  * The user-defined initial guess at the low-scale
- * (InitialGuessAtLowScale) are ignored
+ * (InitialGuessAtLowScale) is applied here:
+ *
+ * \code{.cpp}
+@initialGuessAtLowScale@
+ * \endcode
  */
-void @ModelName@_standard_model_initial_guesser<Two_scale>::guess_eft_parameters()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::guess_eft_parameters()
 {
    softsusy::QedQcd leAtMt(qedqcd);
    const double mtpole = leAtMt.displayPoleMt();
@@ -99,14 +106,12 @@ void @ModelName@_standard_model_initial_guesser<Two_scale>::guess_eft_parameters
       leAtMt.displayPoleMmuon();
    mtau_guess = leAtMt.displayMass(softsusy::mTau);
 
-   calculate_running_SM_masses();
-
    // guess gauge couplings at mt
    const auto alpha_sm(leAtMt.guess_alpha_SM5(mtpole));
 
-   eft->set_g1(sqrt(4.0 * Pi * alpha_sm(0)));
-   eft->set_g2(sqrt(4.0 * Pi * alpha_sm(1)));
-   eft->set_g3(sqrt(4.0 * Pi * alpha_sm(2)));
+   eft->set_g1(sqrt(4.0 * M_PI * alpha_sm(0)));
+   eft->set_g2(sqrt(4.0 * M_PI * alpha_sm(1)));
+   eft->set_g3(sqrt(4.0 * M_PI * alpha_sm(2)));
    eft->set_scale(mtpole);
 
    eft->set_v(Electroweak_constants::vev);
@@ -128,30 +133,10 @@ void @ModelName@_standard_model_initial_guesser<Two_scale>::guess_eft_parameters
 
    eft->set_Lambdax(0.12604);
    eft->solve_ewsb_tree_level();
-
 }
 
-void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_running_SM_masses()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::calculate_DRbar_yukawa_couplings()
 {
-   upQuarksDRbar.setZero();
-   upQuarksDRbar(0,0) = mu_guess;
-   upQuarksDRbar(1,1) = mc_guess;
-   upQuarksDRbar(2,2) = mt_guess;
-
-   downQuarksDRbar.setZero();
-   downQuarksDRbar(0,0) = md_guess;
-   downQuarksDRbar(1,1) = ms_guess;
-   downQuarksDRbar(2,2) = mb_guess;
-
-   downLeptonsDRbar.setZero();
-   downLeptonsDRbar(0,0) = me_guess;
-   downLeptonsDRbar(1,1) = mm_guess;
-   downLeptonsDRbar(2,2) = mtau_guess;
-}
-
-void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_DRbar_yukawa_couplings()
-{
-   calculate_running_SM_masses();
    calculate_@UpYukawa@_DRbar();
    calculate_@DownYukawa@_DRbar();
    calculate_@ElectronYukawa@_DRbar();
@@ -162,8 +147,13 @@ void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_DRbar_yuka
  * from the Standard Model up-type quark masses (ignoring threshold
  * corrections).
  */
-void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_@UpYukawa@_DRbar()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::calculate_@UpYukawa@_DRbar()
 {
+   Eigen::Matrix<std::complex<double>,3,3> upQuarksDRbar(ZEROMATRIXCOMPLEX(3,3));
+   upQuarksDRbar(0,0) = mu_guess;
+   upQuarksDRbar(1,1) = mc_guess;
+   upQuarksDRbar(2,2) = mt_guess;
+
 @setDRbarUpQuarkYukawaCouplings@
 }
 
@@ -172,8 +162,13 @@ void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_@UpYukawa@
  * quarks from the Standard Model down-type quark masses (ignoring
  * threshold corrections).
  */
-void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_@DownYukawa@_DRbar()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::calculate_@DownYukawa@_DRbar()
 {
+   Eigen::Matrix<std::complex<double>,3,3> downQuarksDRbar(ZEROMATRIXCOMPLEX(3,3));
+   downQuarksDRbar(0,0) = md_guess;
+   downQuarksDRbar(1,1) = ms_guess;
+   downQuarksDRbar(2,2) = mb_guess;
+
 @setDRbarDownQuarkYukawaCouplings@
 }
 
@@ -182,45 +177,93 @@ void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_@DownYukaw
  * from the Standard Model down-type lepton masses (ignoring threshold
  * corrections).
  */
-void @ModelName@_standard_model_initial_guesser<Two_scale>::calculate_@ElectronYukawa@_DRbar()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::calculate_@ElectronYukawa@_DRbar()
 {
+   Eigen::Matrix<std::complex<double>,3,3> downLeptonsDRbar(ZEROMATRIXCOMPLEX(3,3));
+   downLeptonsDRbar(0,0) = me_guess;
+   downLeptonsDRbar(1,1) = mm_guess;
+   downLeptonsDRbar(2,2) = mtau_guess;
+
 @setDRbarElectronYukawaCouplings@
 }
 
-/**
- * Guesses the full model parameters.  At first it runs to the
- * guess of the SUSY-scale (SUSYScaleFirstGuess) and imposes the
- * SUSY scale initial guess and the
- * SUSY-scale constraint (SUSYScaleInput).  Afterwards, it solves the
- * EWSB conditions at the tree-level.
- * Finally the DR-bar mass spectrum is calculated.
- */
-void @ModelName@_standard_model_initial_guesser<Two_scale>::guess_model_parameters()
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::guess_model_parameters()
+{
+   initial_guess_susy_scale_parameters();
+   initial_guess_high_scale_parameters();
+   solve_susy_parameters();
+   guess_soft_parameters();
+}
+
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::initial_guess_susy_scale_parameters()
 {
    const double susy_scale_guess = susy_constraint.get_initial_scale_guess();
-   const auto scale_getter = [this] () { return susy_constraint.get_scale(); };
 
    model->set_scale(susy_scale_guess);
 
    // apply susy-scale first guess
+   {
 @initialGuessAtSUSYScale@
+   }
 
    eft->run_to(susy_scale_guess, running_precision);
    eft->calculate_DRbar_masses();
 
    // get gauge and Yukawa couplings from effective theory
-   @ModelName@_standard_model_matching_up<Two_scale> matching_up;
-   matching_up.set_models(eft, model);
-   matching_up.set_scale(scale_getter);
    matching_up.match_tree_level();
 
    model->run_to(susy_scale_guess, running_precision);
 
    // apply susy-scale constraint
-   susy_constraint.set_model(model);
    susy_constraint.apply();
+}
+
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::initial_guess_high_scale_parameters()
+{
+   const double high_scale_guess = high_constraint.get_initial_scale_guess();
+
+   // run to high scale
+   model->run_to(high_scale_guess, running_precision);
+
+   // apply user-defined initial guess at the high scale
+   {
+@initialGuessAtHighScale@
+   }
+
+   // apply high-scale constraint
+   high_constraint.apply();
+}
+
+/**
+ * Performs an initial iteration for the SUSY parameters, ignoring
+ * threshold corrections.
+ */
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::solve_susy_parameters()
+{
+   const double susy_scale_guess = susy_constraint.get_initial_scale_guess();
+   model->run_to(susy_scale_guess, running_precision);
+
+   @ModelName@_susy_convergence_tester<Semi_analytic> convergence_tester(
+      model, running_precision);
+   Two_scale_increasing_precision precision(10.0, running_precision);
+
+   RGFlow<Two_scale> initial_solver;
+   initial_solver.set_convergence_tester(&convergence_tester);
+   initial_solver.set_running_precision(&precision);
+   initial_solver.add(&matching_constraint, model);
+   initial_solver.add(&high_constraint, model);
+   initial_solver.solve();
+}
+
+void @ModelName@_standard_model_initial_guesser<Semi_analytic>::guess_soft_parameters()
+{
+   const double susy_scale_guess = matching_constraint.get_scale();
+   const double input_scale = @inputScaleGuess@;
+
+   model->run_to(susy_scale_guess, running_precision);
 
    // apply EWSB constraint
+   model->calculate_semi_analytic_solutions(input_scale);
    model->solve_ewsb_tree_level();
 
    // calculate tree-level spectrum

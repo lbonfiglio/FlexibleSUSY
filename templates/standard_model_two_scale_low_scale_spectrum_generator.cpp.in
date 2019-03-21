@@ -19,6 +19,7 @@
 // File generated at @DateAndTime@
 
 #include "@ModelName@_two_scale_spectrum_generator.hpp"
+#include "@ModelName@_input_parameters.hpp"
 #include "@ModelName@_two_scale_convergence_tester.hpp"
 #include "@ModelName@_two_scale_ewsb_solver.hpp"
 #include "@ModelName@_two_scale_initial_guesser.hpp"
@@ -33,6 +34,7 @@
 #include "lowe.h"
 #include "numerics2.hpp"
 #include "two_scale_running_precision.hpp"
+#include "two_scale_solver.hpp"
 
 #include <algorithm>
 #include <limits>
