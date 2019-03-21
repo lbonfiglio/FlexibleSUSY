@@ -57,10 +57,10 @@ Block SMINPUTS               # Standard Model inputs
    23   1.040000000e-01      # ms(2 GeV) MS-bar
    24   1.270000000e+00      # mc(mc) MS-bar
 Block MINPAR
-   2   559.67697549872809759   # m12
-   3   31.902144432067871094   # TanBeta
+   2   133.33   # m12
+   3   10   # TanBeta
    4   1   # Sign(vS)
-   5   -469.98946538105155923   # Azero
+   5   -300   # Azero
 Block EXTPAR
-   61   0.075451812148094210553   # LambdaInput
+   61   -0.05   # LambdaInput
 
