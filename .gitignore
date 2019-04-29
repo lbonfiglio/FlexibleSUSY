@@ -58,7 +58,7 @@ models/fmssmn/fmssmn_lattice_numerical_constraints_dependence.cpp
 models/fmssmn/fmssmn_lattice_numerical_constraints_functions.f
 models/fmssmn/fmssmn_lattice_rge.f
 models/fmssmn/fmssmn_lattice_translator.inc
-models/*/LesHouches.out.*
+# models/*/LesHouches.out.*
 models/**/
 
 model_files/*/LesHouches.out.*
@@ -82,4 +82,3 @@ test/test_*.callgrind.out*
 test/test_SM_npointfunctions.cpp
 test/test_MSSM_npointfunctions.cpp
 test/test_SM_cxxdiagrams.cpp
-
