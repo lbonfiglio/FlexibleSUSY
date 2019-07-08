@@ -1,23 +1,10 @@
 #!/usr/bin/env python
 #import CNMSSM input parameters from previous scan_outputs
 
-
-
-
-
-
-
-
-
-
-
-
-
 specgen_call = 'models/CNSSMEFTHiggs/run_CNMSSMEFTHiggs.x' #calling the spectrum generator
 input_option = ' --slha-input-file='
 input_file = 'models/CNMSSMEFTHiggs/Misc/LesHouches.in.CNMSSMEFTHiggs'
-#output_option = ' >&
-# ^ Tells us how to specify where tot output it (./run_CNMSSMEFTHiggs.x)
+
 
 for i in range(0,numMS+1):
   #  MSUSY =  (endMS - startMS)  /  (numMS + 0.0) * i + startMS
