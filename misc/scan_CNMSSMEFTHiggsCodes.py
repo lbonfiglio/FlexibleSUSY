@@ -1,10 +1,41 @@
 #!/usr/bin/env python
 #import CNMSSM input parameters from previous scan_outputs
 
+#read the columsn from the CNMSSM Scan - m12, tanb, azero and lambda
+#For each individual point, within a loop, we want to import the 4 component string
+#into the LesHouches.in.CNMSSMEFTHiggs file and then run it through run_CNMSSMEFTHiggs
+#and produce the output file LesHouches.out.CNMSSMEFTHiggs.XXXXX
+#But we will want to check whether the spectrum has generated in these files
+#via some method.
+#We could just input these points straight into the command line run_CNMSSMEFTHiggs file
+#
+
 specgen_call = 'models/CNSSMEFTHiggs/run_CNMSSMEFTHiggs.x' #calling the spectrum generator
 input_option = ' --slha-input-file='
 input_file = 'models/CNMSSMEFTHiggs/Misc/LesHouches.in.CNMSSMEFTHiggs'
+#output_option = ' >&
 
+
+# parameters we fix
+lambdaMS = 0.4
+kappaMS = 0.6
+tanbMS = 5.0
+Xtop = 0.0
+
+# parameters for simple MSUSY scan
+startMS = 100
+endMS = 30000
+numMS = 1000
+endXt = 8000.0
+startXt = -8000.0
+
+FS_slha_setup =
+
+slha_sminputs =
+
+FS_model_inputs =
+
+fs_slha=FS_slha_setup+slha_sminputs+FS_model_inputs
 
 for i in range(0,numMS+1):
   #  MSUSY =  (endMS - startMS)  /  (numMS + 0.0) * i + startMS
@@ -12,7 +43,7 @@ for i in range(0,numMS+1):
     Xtop =  startXt + (endXt - startXt)  /  (numMS + 0.0) * i
 
     # print "*** FOR POINT ", i , " ****"
-    output_file = 'scan_outputs/NMSSMtowerNEWTEST/SLHA.BMMs' + 'Xt'+str(Xtop) +'.out'
+    output_file = 'scan_outputs/CNMSSMEFTHiggsScanTests/SLHA.BMMs' + 'Xt'+str(Xtop) +'.out'
 #    cmd_line_call = specgen_call + input_option + input_file + output_option + output_file
 
     cmd_line_call = specgen_call + input_option + input_file
@@ -29,6 +60,28 @@ for i in range(0,numMS+1):
     stdout, stderr = proc.communicate('dir c:\\')
 
     slhaout = open(output_file)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # No ERROR unless we find problem flag
     badword = "Problems"
