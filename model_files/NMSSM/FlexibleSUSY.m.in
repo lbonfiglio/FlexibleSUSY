@@ -94,6 +94,15 @@ ExtraSLHAOutputBlocks = {
             {2, FlexibleSUSYObservable`CpHiggsGluonGluon},
             {3, FlexibleSUSYObservable`CpPseudoScalarPhotonPhoton},
             {4, FlexibleSUSYObservable`CpPseudoScalarGluonGluon} } },
+<<<<<<< HEAD
+=======
+   {HMIX , {{2, vu / vd},
+            {3, Sqrt[vu^2 + vd^2]},
+            {4, M[Ah[2]]^2},
+            {10, ArcTan[vu / vd]},
+            {102, vd},
+            {103, vu} } },
+>>>>>>> 45847e6... betah
    {NMSSMRUN,
            {{1, \[Lambda]},
             {2, \[Kappa]},
