@@ -61,6 +61,7 @@ models/fmssmn/fmssmn_lattice_translator.inc
 models/*/LesHouches.out.*
 models/**/
 models/
+models/CNMSSMEFTHiggs/
 
 model_files/*/LesHouches.out.*
 
