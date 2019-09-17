@@ -60,10 +60,13 @@ models/fmssmn/fmssmn_lattice_rge.f
 models/fmssmn/fmssmn_lattice_translator.inc
 models/*/LesHouches.out.*
 models/**/
+models/
 
 model_files/*/LesHouches.out.*
 
 Output/
+
+scan_files/
 
 release/*.tar.gz
 release/*.tar.gz.md5
